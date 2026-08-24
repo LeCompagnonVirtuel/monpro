@@ -1,0 +1,55 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD, APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { ProfessionalsModule } from './professionals/professionals.module';
+import { CategoriesModule } from './categories/categories.module';
+import { ServicesModule } from './services/services.module';
+import { ServiceRequestsModule } from './service-requests/service-requests.module';
+import { QuotesModule } from './quotes/quotes.module';
+import { BookingsModule } from './bookings/bookings.module';
+import { PaymentsModule } from './payments/payments.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { MessagingModule } from './messaging/messaging.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { FavoritesModule } from './favorites/favorites.module';
+import { GeographyModule } from './geography/geography.module';
+import { UploadsModule } from './uploads/uploads.module';
+import { AdminModule } from './admin/admin.module';
+import { HealthController } from './health.controller';
+import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
+import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
+    PrismaModule,
+    AuthModule,
+    UsersModule,
+    ProfessionalsModule,
+    CategoriesModule,
+    ServicesModule,
+    ServiceRequestsModule,
+    QuotesModule,
+    BookingsModule,
+    PaymentsModule,
+    ReviewsModule,
+    MessagingModule,
+    NotificationsModule,
+    FavoritesModule,
+    GeographyModule,
+    UploadsModule,
+    AdminModule,
+  ],
+  controllers: [HealthController],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_FILTER, useClass: GlobalExceptionFilter },
+    { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
+  ],
+})
+export class AppModule {}
