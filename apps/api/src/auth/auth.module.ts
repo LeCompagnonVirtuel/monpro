@@ -6,6 +6,8 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { OtpService } from './otp.service';
 import { JwtStrategy } from './jwt.strategy';
+import { SMS_PROVIDER } from './providers/sms.interface';
+import { DevSmsProvider } from './providers/dev-sms.provider';
 
 @Module({
   imports: [
@@ -20,7 +22,12 @@ import { JwtStrategy } from './jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, OtpService, JwtStrategy],
+  providers: [
+    AuthService,
+    OtpService,
+    JwtStrategy,
+    { provide: SMS_PROVIDER, useClass: DevSmsProvider },
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

@@ -15,6 +15,10 @@ export class DevPaymentProvider implements IPaymentProvider {
     };
   }
 
+  verifyWebhookSignature(_payload: any, _signature: string | undefined): boolean {
+    return true;
+  }
+
   parseWebhook(payload: any): WebhookParseResult {
     return {
       providerRef: payload.reference || payload.providerRef,

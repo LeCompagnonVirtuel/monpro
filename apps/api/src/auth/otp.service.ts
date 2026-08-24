@@ -1,29 +1,24 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { randomInt } from 'crypto';
+import * as bcrypt from 'bcrypt';
+import { ISmsProvider, SMS_PROVIDER } from './providers/sms.interface';
 
 @Injectable()
 export class OtpService {
   private readonly logger = new Logger(OtpService.name);
 
-  constructor(private config: ConfigService) {}
+  constructor(@Inject(SMS_PROVIDER) private smsProvider: ISmsProvider) {}
 
-  async generate(phone: string): Promise<string> {
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+  async generate(phone: string): Promise<{ code: string; hash: string }> {
+    const code = randomInt(100000, 999999).toString();
+    const hash = await bcrypt.hash(code, 10);
 
-    const provider = this.config.get<string>('OTP_PROVIDER', 'dev');
+    await this.smsProvider.sendSms(phone, `Votre code MONPRO: ${code}`);
 
-    if (provider === 'dev') {
-      this.logger.log(`[DEV] OTP for ${phone}: ${code}`);
-      return code;
-    }
-
-    // REQUIRES_EXTERNAL_CONFIGURATION: SMS provider (e.g., Twilio, Africa's Talking)
-    await this.sendSms(phone, `Votre code MONPRO: ${code}`);
-    return code;
+    return { code, hash };
   }
 
-  private async sendSms(phone: string, message: string): Promise<void> {
-    // Adapter pattern — implement concrete SMS provider here
-    this.logger.warn(`SMS sending not configured. Message: ${message} to ${phone}`);
+  async verify(plainCode: string, hashedCode: string): Promise<boolean> {
+    return bcrypt.compare(plainCode, hashedCode);
   }
 }

@@ -9,6 +9,10 @@ import { RegisterDto } from './dto/register.dto';
 import { UserRole } from '@prisma/client';
 import { v4 as uuid } from 'uuid';
 
+const OTP_EXPIRY_MS = 5 * 60 * 1000;
+const OTP_MAX_ATTEMPTS = 3;
+const OTP_REGISTRATION_WINDOW_MS = 10 * 60 * 1000;
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -19,14 +23,26 @@ export class AuthService {
   ) {}
 
   async requestOtp(dto: RequestOtpDto) {
-    const code = await this.otpService.generate(dto.phone);
+    const recentCount = await this.prisma.otpCode.count({
+      where: {
+        phone: dto.phone,
+        createdAt: { gt: new Date(Date.now() - 60 * 1000) },
+      },
+    });
+    if (recentCount >= 1) {
+      throw new BadRequestException('Veuillez attendre 60 secondes avant de demander un nouveau code.');
+    }
+
+    const { hash } = await this.otpService.generate(dto.phone);
+
     await this.prisma.otpCode.create({
       data: {
         phone: dto.phone,
-        code,
-        expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+        code: hash,
+        expiresAt: new Date(Date.now() + OTP_EXPIRY_MS),
       },
     });
+
     return { message: 'OTP envoyé', expiresIn: 300 };
   }
 
@@ -34,7 +50,6 @@ export class AuthService {
     const otpRecord = await this.prisma.otpCode.findFirst({
       where: {
         phone: dto.phone,
-        code: dto.code,
         verified: false,
         expiresAt: { gt: new Date() },
       },
@@ -45,8 +60,18 @@ export class AuthService {
       throw new UnauthorizedException('Code OTP invalide ou expiré');
     }
 
-    if (otpRecord.attempts >= 3) {
+    if (otpRecord.attempts >= OTP_MAX_ATTEMPTS) {
       throw new BadRequestException('Trop de tentatives. Demandez un nouveau code.');
+    }
+
+    const isValid = await this.otpService.verify(dto.code, otpRecord.code);
+
+    if (!isValid) {
+      await this.prisma.otpCode.update({
+        where: { id: otpRecord.id },
+        data: { attempts: { increment: 1 } },
+      });
+      throw new UnauthorizedException('Code OTP invalide');
     }
 
     await this.prisma.otpCode.update({
@@ -59,8 +84,15 @@ export class AuthService {
     });
 
     if (existingUser) {
+      if (!existingUser.isActive) {
+        throw new UnauthorizedException('Votre compte est suspendu.');
+      }
+      await this.prisma.user.update({
+        where: { id: existingUser.id },
+        data: { lastLoginAt: new Date() },
+      });
       const tokens = await this.generateTokens(existingUser.id, existingUser.role);
-      return { isNewUser: false, ...tokens };
+      return { isNewUser: false, user: { id: existingUser.id, fullName: existingUser.fullName, role: existingUser.role }, ...tokens };
     }
 
     return { isNewUser: true, phone: dto.phone };
@@ -68,12 +100,16 @@ export class AuthService {
 
   async register(dto: RegisterDto) {
     const verified = await this.prisma.otpCode.findFirst({
-      where: { phone: dto.phone, verified: true },
+      where: {
+        phone: dto.phone,
+        verified: true,
+        createdAt: { gt: new Date(Date.now() - OTP_REGISTRATION_WINDOW_MS) },
+      },
       orderBy: { createdAt: 'desc' },
     });
 
     if (!verified) {
-      throw new BadRequestException('Numéro non vérifié. Veuillez d\'abord vérifier votre OTP.');
+      throw new BadRequestException('Numéro non vérifié ou délai expiré. Veuillez vérifier votre OTP.');
     }
 
     const existing = await this.prisma.user.findUnique({
@@ -84,11 +120,14 @@ export class AuthService {
       throw new BadRequestException('Ce numéro est déjà inscrit.');
     }
 
+    const allowedRoles: UserRole[] = [UserRole.CLIENT, UserRole.PROFESSIONAL];
+    const role = dto.role && allowedRoles.includes(dto.role) ? dto.role : UserRole.CLIENT;
+
     const user = await this.prisma.user.create({
       data: {
         phone: dto.phone,
         fullName: dto.fullName,
-        role: dto.role || UserRole.CLIENT,
+        role,
         cityId: dto.cityId,
         countryId: dto.countryId,
       },
@@ -105,7 +144,14 @@ export class AuthService {
     });
 
     if (!record || record.expiresAt < new Date()) {
+      if (record) {
+        await this.prisma.refreshToken.delete({ where: { id: record.id } });
+      }
       throw new UnauthorizedException('Token invalide ou expiré');
+    }
+
+    if (!record.user.isActive) {
+      throw new UnauthorizedException('Compte suspendu');
     }
 
     await this.prisma.refreshToken.delete({ where: { id: record.id } });

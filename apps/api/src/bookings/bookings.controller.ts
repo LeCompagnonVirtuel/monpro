@@ -1,20 +1,24 @@
-import { Controller, Get, Post, Patch, Param, Body, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Param, Body, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { BookingsService } from './bookings.service';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { BookingStatus } from '@prisma/client';
+import { CreateBookingDto } from './dto/create-booking.dto';
+import { UpdateBookingStatusDto } from './dto/update-booking-status.dto';
 
 @ApiTags('Bookings')
 @Controller('bookings')
-@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class BookingsController {
   constructor(private bookingsService: BookingsService) {}
 
   @Post()
   @ApiOperation({ summary: 'Créer une réservation à partir d\'un devis accepté' })
-  create(@Body() body: { quoteId: string; scheduledDate: Date; scheduledTime?: string; addressId?: string }) {
-    return this.bookingsService.createFromQuote(body.quoteId, body);
+  create(
+    @CurrentUser('id') userId: string,
+    @Body() body: CreateBookingDto,
+  ) {
+    return this.bookingsService.createFromQuote(body.quoteId, body, userId);
   }
 
   @Get(':id')
@@ -36,7 +40,11 @@ export class BookingsController {
 
   @Patch(':id/status')
   @ApiOperation({ summary: 'Modifier le statut d\'une réservation' })
-  updateStatus(@Param('id') id: string, @Body('status') status: BookingStatus) {
-    return this.bookingsService.updateStatus(id, status);
+  updateStatus(
+    @Param('id') id: string,
+    @CurrentUser('id') userId: string,
+    @Body() body: UpdateBookingStatusDto,
+  ) {
+    return this.bookingsService.updateStatus(id, body.status, userId);
   }
 }

@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Put, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Put, Param, Body, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { PrismaService } from '../prisma/prisma.service';
+import { SetAvailabilityDto } from './dto/set-availability.dto';
 
 @ApiTags('Professionals')
 @Controller('professionals/:professionalId/availability')
@@ -23,7 +24,7 @@ export class AvailabilityController {
   @ApiOperation({ summary: 'Définir les disponibilités' })
   async setAvailability(
     @Param('professionalId') professionalId: string,
-    @Body() body: { slots: { dayOfWeek: number; startTime: string; endTime: string; isActive: boolean }[] },
+    @Body() body: SetAvailabilityDto,
   ) {
     await this.prisma.professionalAvailability.deleteMany({ where: { professionalId } });
 

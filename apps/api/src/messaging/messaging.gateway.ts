@@ -6,6 +6,7 @@ import {
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { JwtService } from '@nestjs/jwt';
 import { MessagingService } from './messaging.service';
 
 @WebSocketGateway({ cors: { origin: '*' }, namespace: '/chat' })
@@ -15,13 +16,26 @@ export class MessagingGateway implements OnGatewayConnection, OnGatewayDisconnec
 
   private connectedUsers = new Map<string, string>();
 
-  constructor(private messagingService: MessagingService) {}
+  constructor(
+    private messagingService: MessagingService,
+    private jwtService: JwtService,
+  ) {}
 
   handleConnection(client: Socket) {
-    const userId = client.handshake.query.userId as string;
-    if (userId) {
+    const token = client.handshake.auth?.token || client.handshake.headers?.authorization?.replace('Bearer ', '');
+    if (!token) {
+      client.disconnect();
+      return;
+    }
+
+    try {
+      const payload = this.jwtService.verify(token);
+      const userId = payload.sub;
       this.connectedUsers.set(client.id, userId);
       client.join(`user_${userId}`);
+      (client as any).userId = userId;
+    } catch {
+      client.disconnect();
     }
   }
 
@@ -45,13 +59,21 @@ export class MessagingGateway implements OnGatewayConnection, OnGatewayDisconnec
   }
 
   @SubscribeMessage('joinConversation')
-  handleJoinConversation(client: Socket, conversationId: string) {
+  async handleJoinConversation(client: Socket, conversationId: string) {
+    const userId = this.connectedUsers.get(client.id);
+    if (!userId) return;
+
+    const conversation = await this.messagingService.findConversation(conversationId);
+    if (!conversation || !conversation.participants.some(p => p.userId === userId)) {
+      return;
+    }
     client.join(`conversation_${conversationId}`);
   }
 
   @SubscribeMessage('typing')
   handleTyping(client: Socket, payload: { conversationId: string }) {
     const userId = this.connectedUsers.get(client.id);
+    if (!userId) return;
     client.to(`conversation_${payload.conversationId}`).emit('userTyping', { userId });
   }
 }

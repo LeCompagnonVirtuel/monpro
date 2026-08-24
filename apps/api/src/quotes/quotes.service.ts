@@ -1,12 +1,13 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { QuoteStatus, ServiceRequestStatus } from '@prisma/client';
+import { validateQuoteTransition } from '../common/state-machines';
 
 @Injectable()
 export class QuotesService {
   constructor(private prisma: PrismaService) {}
 
-  async create(professionalId: string, data: {
+  async create(userId: string, data: {
     serviceRequestId: string;
     laborCost: number;
     materialCost?: number;
@@ -15,6 +16,12 @@ export class QuotesService {
     estimatedDuration?: string;
     validUntil?: Date;
   }) {
+    const professional = await this.prisma.professional.findUnique({
+      where: { userId },
+    });
+    if (!professional) throw new NotFoundException('Profil professionnel non trouvé');
+    const professionalId = professional.id;
+
     const request = await this.prisma.serviceRequest.findUnique({
       where: { id: data.serviceRequestId },
     });
@@ -57,6 +64,7 @@ export class QuotesService {
 
     if (!quote) throw new NotFoundException('Devis non trouvé');
     if (quote.serviceRequest.clientId !== clientId) throw new ForbiddenException();
+    validateQuoteTransition(quote.status, QuoteStatus.ACCEPTED);
 
     await this.prisma.quote.update({
       where: { id },
@@ -84,6 +92,7 @@ export class QuotesService {
 
     if (!quote) throw new NotFoundException('Devis non trouvé');
     if (quote.serviceRequest.clientId !== clientId) throw new ForbiddenException();
+    validateQuoteTransition(quote.status, QuoteStatus.REJECTED);
 
     return this.prisma.quote.update({ where: { id }, data: { status: QuoteStatus.REJECTED } });
   }

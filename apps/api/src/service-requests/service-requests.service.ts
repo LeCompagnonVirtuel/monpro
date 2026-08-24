@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ServiceRequestStatus, UrgencyLevel } from '@prisma/client';
+import { validateServiceRequestTransition } from '../common/state-machines';
 
 @Injectable()
 export class ServiceRequestsService {
@@ -49,7 +50,7 @@ export class ServiceRequestsService {
     return this.findOne(request.id, clientId);
   }
 
-  async findOne(id: string, userId?: string) {
+  async findOne(id: string, _userId?: string) {
     const request = await this.prisma.serviceRequest.findUnique({
       where: { id },
       include: {
@@ -72,8 +73,10 @@ export class ServiceRequestsService {
     return request;
   }
 
-  async findByClient(clientId: string, status?: ServiceRequestStatus, page = 1, limit = 20) {
-    const skip = (page - 1) * limit;
+  async findByClient(clientId: string, status?: ServiceRequestStatus, page?: number, limit?: number) {
+    const p = Number(page) || 1;
+    const l = Number(limit) || 20;
+    const skip = (p - 1) * l;
     const where: any = { clientId };
     if (status) where.status = status;
 
@@ -81,7 +84,7 @@ export class ServiceRequestsService {
       this.prisma.serviceRequest.findMany({
         where,
         skip,
-        take: limit,
+        take: l,
         orderBy: { createdAt: 'desc' },
         include: {
           service: { include: { subcategory: { include: { category: true } } } },
@@ -92,7 +95,7 @@ export class ServiceRequestsService {
       this.prisma.serviceRequest.count({ where }),
     ]);
 
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return { data, total, page: p, limit: l, totalPages: Math.ceil(total / l) };
   }
 
   async findForProfessional(professionalId: string, page = 1, limit = 20) {
@@ -137,6 +140,8 @@ export class ServiceRequestsService {
     const request = await this.prisma.serviceRequest.findUnique({ where: { id } });
     if (!request) throw new NotFoundException('Demande non trouvée');
     if (request.clientId !== userId) throw new ForbiddenException();
+
+    validateServiceRequestTransition(request.status, status);
 
     return this.prisma.serviceRequest.update({ where: { id }, data: { status } });
   }

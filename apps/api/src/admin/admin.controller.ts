@@ -5,7 +5,10 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { UserRole, VerificationStatus, BookingStatus, PaymentStatus } from '@prisma/client';
+import { UserRole, BookingStatus, PaymentStatus } from '@prisma/client';
+import { VerifyProfessionalDto } from './dto/verify-professional.dto';
+import { CreateCommissionDto } from './dto/create-commission.dto';
+import { UpdateCommissionDto } from './dto/update-commission.dto';
 
 @ApiTags('Admin')
 @Controller('admin')
@@ -32,7 +35,7 @@ export class AdminController {
   verify(
     @Param('id') id: string,
     @CurrentUser('id') adminId: string,
-    @Body() body: { status: VerificationStatus; reason?: string },
+    @Body() body: VerifyProfessionalDto,
   ) {
     return this.adminService.verifyProfessional(id, adminId, body.status, body.reason);
   }
@@ -51,14 +54,14 @@ export class AdminController {
 
   @Post('commissions')
   @ApiOperation({ summary: 'Créer une commission' })
-  createCommission(@Body() body: { categoryId?: string; rate: number; isDefault?: boolean }) {
+  createCommission(@Body() body: CreateCommissionDto) {
     return this.adminService.createCommission(body);
   }
 
   @Patch('commissions/:id')
   @ApiOperation({ summary: 'Modifier une commission' })
-  updateCommission(@Param('id') id: string, @Body('rate') rate: number) {
-    return this.adminService.updateCommission(id, rate);
+  updateCommission(@Param('id') id: string, @Body() body: UpdateCommissionDto) {
+    return this.adminService.updateCommission(id, body.rate);
   }
 
   @Get('bookings')

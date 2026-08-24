@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { QuotesService } from './quotes.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { CreateQuoteDto } from './dto/create-quote.dto';
 
 @ApiTags('Quotes')
 @Controller('quotes')
@@ -13,7 +14,7 @@ export class QuotesController {
 
   @Post()
   @ApiOperation({ summary: 'Envoyer un devis (professionnel)' })
-  create(@Body() body: any, @Body('professionalId') professionalId: string) {
+  create(@CurrentUser('id') professionalId: string, @Body() body: CreateQuoteDto) {
     return this.quotesService.create(professionalId, body);
   }
 

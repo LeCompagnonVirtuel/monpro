@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ServiceRequestsService } from './service-requests.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { CreateServiceRequestDto } from './dto/create-service-request.dto';
 import { ServiceRequestStatus } from '@prisma/client';
 
 @ApiTags('Service Requests')
@@ -14,7 +15,7 @@ export class ServiceRequestsController {
 
   @Post()
   @ApiOperation({ summary: 'Créer une demande de service' })
-  create(@CurrentUser('id') userId: string, @Body() body: any) {
+  create(@CurrentUser('id') userId: string, @Body() body: CreateServiceRequestDto) {
     return this.serviceRequestsService.create(userId, body);
   }
 

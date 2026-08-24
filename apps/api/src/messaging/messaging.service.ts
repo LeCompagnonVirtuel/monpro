@@ -79,6 +79,13 @@ export class MessagingService {
     return message;
   }
 
+  async findConversation(conversationId: string) {
+    return this.prisma.conversation.findUnique({
+      where: { id: conversationId },
+      include: { participants: true },
+    });
+  }
+
   async markAsRead(conversationId: string, userId: string) {
     await this.prisma.message.updateMany({
       where: { conversationId, senderId: { not: userId }, isRead: false },

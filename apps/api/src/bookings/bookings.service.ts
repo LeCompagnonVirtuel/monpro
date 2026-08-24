@@ -1,18 +1,22 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { BookingStatus, ServiceRequestStatus, QuoteStatus } from '@prisma/client';
+import { validateBookingTransition } from '../common/state-machines';
 
 @Injectable()
 export class BookingsService {
   constructor(private prisma: PrismaService) {}
 
-  async createFromQuote(quoteId: string, data: { scheduledDate: Date; scheduledTime?: string; addressId?: string }) {
+  async createFromQuote(quoteId: string, data: { scheduledDate: Date; scheduledTime?: string; addressId?: string }, userId: string) {
     const quote = await this.prisma.quote.findUnique({
       where: { id: quoteId },
       include: { serviceRequest: true },
     });
 
     if (!quote) throw new NotFoundException('Devis non trouvé');
+    if (quote.serviceRequest.clientId !== userId) {
+      throw new ForbiddenException('Vous ne pouvez créer une réservation que pour vos propres demandes');
+    }
     if (quote.status !== QuoteStatus.ACCEPTED) throw new BadRequestException('Ce devis n\'a pas été accepté');
 
     const existing = await this.prisma.booking.findUnique({
@@ -79,19 +83,39 @@ export class BookingsService {
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  async updateStatus(id: string, status: BookingStatus) {
-    const update: any = { status };
+  async updateStatus(id: string, status: BookingStatus, userId: string) {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id },
+      include: { serviceRequest: true, professional: true },
+    });
+    if (!booking) throw new NotFoundException('Réservation non trouvée');
 
+    const isClient = booking.serviceRequest.clientId === userId;
+    const isProfessional = booking.professional.userId === userId;
+    if (!isClient && !isProfessional) {
+      throw new ForbiddenException('Accès interdit à cette réservation');
+    }
+
+    validateBookingTransition(booking.status, status);
+
+    if (status === BookingStatus.CANCELLED && !isClient) {
+      throw new ForbiddenException('Seul le client peut annuler une réservation');
+    }
+    if (status === BookingStatus.IN_PROGRESS && !isProfessional) {
+      throw new ForbiddenException('Seul le professionnel peut démarrer l\'intervention');
+    }
+    if (status === BookingStatus.COMPLETED && !isProfessional) {
+      throw new ForbiddenException('Seul le professionnel peut terminer l\'intervention');
+    }
+
+    const update: any = { status };
     if (status === BookingStatus.IN_PROGRESS) update.startedAt = new Date();
     if (status === BookingStatus.COMPLETED) {
       update.completedAt = new Date();
-      const booking = await this.prisma.booking.findUnique({ where: { id } });
-      if (booking) {
-        await this.prisma.serviceRequest.update({
-          where: { id: booking.serviceRequestId },
-          data: { status: ServiceRequestStatus.COMPLETED },
-        });
-      }
+      await this.prisma.serviceRequest.update({
+        where: { id: booking.serviceRequestId },
+        data: { status: ServiceRequestStatus.COMPLETED },
+      });
     }
     if (status === BookingStatus.CANCELLED) update.cancelledAt = new Date();
 

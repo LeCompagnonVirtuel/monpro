@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum, Matches, MinLength } from 'class-validator';
+import { IsString, IsOptional, IsEnum, Matches, MinLength, MaxLength, IsUUID } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 
@@ -10,21 +10,23 @@ export class RegisterDto {
 
   @ApiProperty({ example: 'Kouassi Aman' })
   @IsString()
-  @MinLength(2)
+  @MinLength(2, { message: 'Le nom doit contenir au moins 2 caractères' })
+  @MaxLength(100, { message: 'Le nom ne peut dépasser 100 caractères' })
+  @Matches(/^[\p{L}\s'-]+$/u, { message: 'Le nom contient des caractères invalides' })
   fullName: string;
 
-  @ApiPropertyOptional({ enum: UserRole, default: UserRole.CLIENT })
+  @ApiPropertyOptional({ enum: [UserRole.CLIENT, UserRole.PROFESSIONAL], default: UserRole.CLIENT })
   @IsOptional()
-  @IsEnum(UserRole)
+  @IsEnum([UserRole.CLIENT, UserRole.PROFESSIONAL], { message: 'Rôle invalide' })
   role?: UserRole;
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
+  @IsUUID('4', { message: 'ID ville invalide' })
   cityId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
+  @IsUUID('4', { message: 'ID pays invalide' })
   countryId?: string;
 }

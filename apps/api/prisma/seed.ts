@@ -3,39 +3,43 @@ import { PrismaClient, UserRole, VerificationStatus } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding MONPRO database...');
+  console.log('Seeding MONPRO database (idempotent)...');
 
-  // Country
+  // ─── GEOGRAPHY ──────────────────────────────────────────────────────────
   const ci = await prisma.country.upsert({
     where: { code: 'CI' },
     update: {},
-    create: { name: 'Côte d\'Ivoire', code: 'CI', dialCode: '+225', currency: 'XOF' },
+    create: { name: "Côte d'Ivoire", code: 'CI', dialCode: '+225', currency: 'XOF' },
   });
 
-  // Region
-  const abidjanRegion = await prisma.region.create({
-    data: { name: 'District d\'Abidjan', countryId: ci.id },
-  });
+  let abidjanRegion = await prisma.region.findFirst({ where: { name: "District d'Abidjan", countryId: ci.id } });
+  if (!abidjanRegion) {
+    abidjanRegion = await prisma.region.create({ data: { name: "District d'Abidjan", countryId: ci.id } });
+  }
 
-  // City
-  const abidjan = await prisma.city.create({
-    data: { name: 'Abidjan', regionId: abidjanRegion.id },
-  });
+  let abidjan = await prisma.city.findFirst({ where: { name: 'Abidjan', regionId: abidjanRegion.id } });
+  if (!abidjan) {
+    abidjan = await prisma.city.create({ data: { name: 'Abidjan', regionId: abidjanRegion.id } });
+  }
 
-  // Districts
-  const districts = await Promise.all(
-    ['Cocody', 'Plateau', 'Marcory', 'Treichville', 'Yopougon', 'Abobo', 'Adjamé', 'Koumassi', 'Port-Bouët', 'Attécoubé'].map((name) =>
-      prisma.district.create({ data: { name, cityId: abidjan.id } }),
-    ),
-  );
+  const districtNames = ['Cocody', 'Plateau', 'Marcory', 'Treichville', 'Yopougon', 'Abobo', 'Adjamé', 'Koumassi', 'Port-Bouët', 'Attécoubé'];
+  const districts: any[] = [];
+  for (const name of districtNames) {
+    let district = await prisma.district.findFirst({ where: { name, cityId: abidjan.id } });
+    if (!district) {
+      district = await prisma.district.create({ data: { name, cityId: abidjan.id } });
+    }
+    districts.push(district);
+  }
 
-  // Neighborhoods for Cocody
   const cocody = districts[0];
-  await Promise.all(
-    ['Riviera', 'Angré', 'II Plateaux', 'Riviera Faya', 'Palmeraie', 'Bonoumin', 'Ambassade'].map((name) =>
-      prisma.neighborhood.create({ data: { name, districtId: cocody.id } }),
-    ),
-  );
+  const neighborhoods = ['Riviera', 'Angré', 'II Plateaux', 'Riviera Faya', 'Palmeraie', 'Bonoumin', 'Ambassade'];
+  for (const name of neighborhoods) {
+    const existing = await prisma.neighborhood.findFirst({ where: { name, districtId: cocody.id } });
+    if (!existing) {
+      await prisma.neighborhood.create({ data: { name, districtId: cocody.id } });
+    }
+  }
 
   // ─── CATEGORIES & SERVICES ──────────────────────────────────────────────
   const categoriesData = [
@@ -130,127 +134,123 @@ async function main() {
   ];
 
   for (const catData of categoriesData) {
-    const category = await prisma.category.create({
-      data: { name: catData.name, slug: catData.slug, sortOrder: catData.sortOrder },
+    const category = await prisma.category.upsert({
+      where: { slug: catData.slug },
+      update: { name: catData.name, sortOrder: catData.sortOrder },
+      create: { name: catData.name, slug: catData.slug, sortOrder: catData.sortOrder },
     });
 
     for (const subData of catData.subcategories) {
-      const subcategory = await prisma.subcategory.create({
-        data: { name: subData.name, slug: subData.slug, categoryId: category.id },
+      const subcategory = await prisma.subcategory.upsert({
+        where: { slug: subData.slug },
+        update: { name: subData.name, categoryId: category.id },
+        create: { name: subData.name, slug: subData.slug, categoryId: category.id },
       });
 
       for (const serviceName of subData.services) {
-        const serviceSlug = serviceName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-        await prisma.service.create({
-          data: { name: serviceName, slug: `${subData.slug}-${serviceSlug}`, subcategoryId: subcategory.id },
+        const serviceSlug = `${subData.slug}-${serviceName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`;
+        await prisma.service.upsert({
+          where: { slug: serviceSlug },
+          update: { name: serviceName, subcategoryId: subcategory.id },
+          create: { name: serviceName, slug: serviceSlug, subcategoryId: subcategory.id },
         });
       }
     }
   }
 
   // ─── DEMO USERS ─────────────────────────────────────────────────────────
-  const adminUser = await prisma.user.create({
-    data: {
+  const adminUser = await prisma.user.upsert({
+    where: { phone: '+2250100000000' },
+    update: {},
+    create: {
       phone: '+2250100000000',
-      fullName: 'Admin MONPRO',
+      fullName: '[DEMO] Admin MONPRO',
       role: UserRole.ADMIN,
       countryId: ci.id,
       cityId: abidjan.id,
     },
   });
 
-  const clientUser = await prisma.user.create({
-    data: {
+  const clientUser = await prisma.user.upsert({
+    where: { phone: '+2250700000001' },
+    update: {},
+    create: {
       phone: '+2250700000001',
-      fullName: 'Konan Aya',
+      fullName: '[DEMO] Konan Aya',
       role: UserRole.CLIENT,
       countryId: ci.id,
       cityId: abidjan.id,
     },
   });
 
-  const proUser = await prisma.user.create({
-    data: {
+  const proUser = await prisma.user.upsert({
+    where: { phone: '+2250700000002' },
+    update: {},
+    create: {
       phone: '+2250700000002',
-      fullName: 'Diallo Ibrahim',
+      fullName: '[DEMO] Diallo Ibrahim',
       role: UserRole.PROFESSIONAL,
       countryId: ci.id,
       cityId: abidjan.id,
     },
   });
 
-  // Get plomberie services
   const plomberieServices = await prisma.service.findMany({
     where: { subcategory: { slug: 'plomberie' } },
   });
 
-  const professional = await prisma.professional.create({
-    data: {
-      userId: proUser.id,
-      businessName: 'Diallo Plomberie',
-      description: 'Plombier professionnel avec 8 ans d\'expérience à Abidjan. Spécialisé dans les réparations et installations sanitaires.',
-      experienceYears: 8,
-      verificationStatus: VerificationStatus.VERIFIED,
-      verifiedAt: new Date(),
-      averageRating: 4.7,
-      totalReviews: 23,
-      totalInterventions: 45,
-      responseRate: 0.92,
-      completionRate: 0.95,
-      isAvailable: true,
-    },
-  });
-
-  // Add professional services
-  for (const service of plomberieServices) {
-    await prisma.professionalService.create({
+  let professional = await prisma.professional.findUnique({ where: { userId: proUser.id } });
+  if (!professional) {
+    professional = await prisma.professional.create({
       data: {
-        professionalId: professional.id,
-        serviceId: service.id,
-        priceMin: 5000,
-        priceMax: 50000,
+        userId: proUser.id,
+        businessName: '[DEMO] Diallo Plomberie',
+        description: 'Plombier professionnel avec 8 ans d\'expérience à Abidjan.',
+        experienceYears: 8,
+        verificationStatus: VerificationStatus.VERIFIED,
+        verifiedAt: new Date(),
+        averageRating: 4.7,
+        totalReviews: 23,
+        totalInterventions: 45,
+        responseRate: 0.92,
+        completionRate: 0.95,
+        isAvailable: true,
       },
+    });
+
+    for (const service of plomberieServices) {
+      await prisma.professionalService.upsert({
+        where: { professionalId_serviceId: { professionalId: professional.id, serviceId: service.id } },
+        update: {},
+        create: { professionalId: professional.id, serviceId: service.id, priceMin: 5000, priceMax: 50000 },
+      });
+    }
+
+    await prisma.professionalZone.create({
+      data: { professionalId: professional.id, name: 'Cocody et environs', latitude: 5.3599, longitude: -3.9942, radiusKm: 10 },
+    });
+
+    for (let day = 1; day <= 6; day++) {
+      await prisma.professionalAvailability.create({
+        data: { professionalId: professional.id, dayOfWeek: day, startTime: '08:00', endTime: '18:00' },
+      });
+    }
+  }
+
+  // ─── COMMISSION CONFIG (global default) ─────────────────────────────────
+  const existingConfig = await prisma.commissionConfig.findFirst({ where: { isDefault: true } });
+  if (!existingConfig) {
+    await prisma.commissionConfig.create({
+      data: { rate: 0.10, isDefault: true },
     });
   }
 
-  // Add professional zone
-  await prisma.professionalZone.create({
-    data: {
-      professionalId: professional.id,
-      name: 'Cocody et environs',
-      latitude: 5.3599,
-      longitude: -3.9942,
-      radiusKm: 10,
-    },
-  });
-
-  // Add availability
-  for (let day = 1; day <= 6; day++) {
-    await prisma.professionalAvailability.create({
-      data: {
-        professionalId: professional.id,
-        dayOfWeek: day,
-        startTime: '08:00',
-        endTime: '18:00',
-      },
-    });
-  }
-
-  // Commission config
-  await prisma.commissionConfig.create({
-    data: { rate: 0.10, isDefault: true },
-  });
-
-  console.log('✅ Seed completed');
-  console.log(`   Admin: ${adminUser.phone}`);
-  console.log(`   Client: ${clientUser.phone}`);
-  console.log(`   Pro: ${proUser.phone}`);
-  console.log(`   Categories: ${categoriesData.length}`);
+  console.log('Seed completed successfully (idempotent)');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Seed failed:', e);
+    console.error('Seed error:', e);
     process.exit(1);
   })
   .finally(async () => {

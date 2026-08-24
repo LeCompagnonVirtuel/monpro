@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { VerificationStatus } from '@prisma/client';
+import { Prisma, VerificationStatus } from '@prisma/client';
 
 @Injectable()
 export class ProfessionalsService {
@@ -51,6 +51,26 @@ export class ProfessionalsService {
         { businessName: { contains: filters.search, mode: 'insensitive' } },
         { description: { contains: filters.search, mode: 'insensitive' } },
       ];
+    }
+
+    if (filters?.latitude != null && filters?.longitude != null) {
+      const radiusKm = filters.radiusKm || 15;
+      const nearbyIds = await this.prisma.$queryRaw<{ professionalId: string }[]>(
+        Prisma.sql`
+          SELECT DISTINCT "professionalId" FROM (
+            SELECT "professionalId", "radiusKm",
+              6371 * acos(
+                LEAST(1.0, cos(radians(${filters.latitude})) * cos(radians(latitude))
+                * cos(radians(longitude) - radians(${filters.longitude}))
+                + sin(radians(${filters.latitude})) * sin(radians(latitude)))
+              ) AS distance_km
+            FROM professional_zones
+            WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+          ) sub
+          WHERE distance_km <= LEAST(COALESCE("radiusKm", 15), ${radiusKm})
+        `,
+      );
+      where.id = { in: nearbyIds.map((r) => r.professionalId) };
     }
 
     let orderBy: any = { averageRating: 'desc' };
@@ -150,13 +170,50 @@ export class ProfessionalsService {
   }
 
   async matchForRequest(serviceId: string, latitude?: number, longitude?: number) {
+    let geoFilteredIds: string[] | null = null;
+    const distances = new Map<string, number>();
+
+    if (latitude != null && longitude != null) {
+      const nearbyZones = await this.prisma.$queryRaw<
+        { professionalId: string; distance_km: number }[]
+      >(Prisma.sql`
+        SELECT "professionalId", distance_km FROM (
+          SELECT "professionalId", "radiusKm",
+            6371 * acos(
+              LEAST(1.0, cos(radians(${latitude})) * cos(radians(latitude))
+              * cos(radians(longitude) - radians(${longitude}))
+              + sin(radians(${latitude})) * sin(radians(latitude)))
+            ) AS distance_km
+          FROM professional_zones
+          WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+        ) sub
+        WHERE distance_km <= COALESCE("radiusKm", 15)
+      `);
+
+      geoFilteredIds = [...new Set(nearbyZones.map((z) => z.professionalId))];
+      for (const z of nearbyZones) {
+        const existing = distances.get(z.professionalId);
+        if (existing == null || z.distance_km < existing) {
+          distances.set(z.professionalId, z.distance_km);
+        }
+      }
+
+      if (geoFilteredIds.length === 0) return [];
+    }
+
+    const where: any = {
+      verificationStatus: VerificationStatus.VERIFIED,
+      isAvailable: true,
+      services: { some: { serviceId } },
+      user: { isActive: true },
+    };
+
+    if (geoFilteredIds) {
+      where.id = { in: geoFilteredIds };
+    }
+
     const professionals = await this.prisma.professional.findMany({
-      where: {
-        verificationStatus: VerificationStatus.VERIFIED,
-        isAvailable: true,
-        services: { some: { serviceId } },
-        user: { isActive: true },
-      },
+      where,
       include: {
         user: { select: { id: true, fullName: true, avatarUrl: true } },
         services: { where: { serviceId }, include: { service: true } },
@@ -177,7 +234,11 @@ export class ProfessionalsService {
       score += pro.responseRate * 20;
       score -= (1 - pro.completionRate) * 30;
       if (pro.verificationStatus === VerificationStatus.VERIFIED) score += 15;
-      return { ...pro, matchScore: Math.round(score) };
+      const distanceKm = distances.get(pro.id);
+      if (distanceKm != null) {
+        score += Math.max(0, 20 - distanceKm);
+      }
+      return { ...pro, matchScore: Math.round(score), distanceKm: distanceKm ?? null };
     }).sort((a, b) => b.matchScore - a.matchScore);
   }
 }

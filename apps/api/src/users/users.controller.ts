@@ -6,6 +6,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { UserRole } from '@prisma/client';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -24,7 +25,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Modifier son profil' })
-  updateMe(@CurrentUser('id') userId: string, @Body() body: { fullName?: string; avatarUrl?: string; cityId?: string }) {
+  updateMe(@CurrentUser('id') userId: string, @Body() body: UpdateUserDto) {
     return this.usersService.updateProfile(userId, body);
   }
 

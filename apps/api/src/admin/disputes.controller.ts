@@ -6,6 +6,9 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { UserRole, DisputeStatus } from '@prisma/client';
+import { CreateDisputeDto } from './dto/create-dispute.dto';
+import { ResolveDisputeDto } from './dto/resolve-dispute.dto';
+import { CreateReportDto } from './dto/create-report.dto';
 
 @ApiTags('Disputes & Reports')
 @Controller('disputes')
@@ -16,7 +19,7 @@ export class DisputesController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Signaler un litige' })
-  create(@CurrentUser('id') userId: string, @Body() body: { bookingId: string; reason: string; description?: string }) {
+  create(@CurrentUser('id') userId: string, @Body() body: CreateDisputeDto) {
     return this.disputesService.create(userId, body);
   }
 
@@ -34,15 +37,15 @@ export class DisputesController {
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Résoudre un litige (admin)' })
-  resolve(@Param('id') id: string, @CurrentUser('id') adminId: string, @Body('resolution') resolution: string) {
-    return this.disputesService.resolve(id, adminId, resolution);
+  resolve(@Param('id') id: string, @CurrentUser('id') adminId: string, @Body() body: ResolveDisputeDto) {
+    return this.disputesService.resolve(id, adminId, body.resolution);
   }
 
   @Post('reports')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Signaler un utilisateur' })
-  createReport(@CurrentUser('id') userId: string, @Body() body: { reportedId: string; reason: string; description?: string }) {
+  createReport(@CurrentUser('id') userId: string, @Body() body: CreateReportDto) {
     return this.disputesService.createReport(userId, body);
   }
 

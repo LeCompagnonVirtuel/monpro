@@ -21,6 +21,7 @@ export interface WebhookParseResult {
 
 export interface IPaymentProvider {
   initiate(request: PaymentInitiateRequest): Promise<PaymentInitiateResponse>;
+  verifyWebhookSignature(payload: any, signature: string | undefined): boolean;
   parseWebhook(payload: any): WebhookParseResult;
   checkStatus(providerRef: string): Promise<{ status: string }>;
 }

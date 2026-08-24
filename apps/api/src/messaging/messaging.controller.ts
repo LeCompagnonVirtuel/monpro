@@ -3,6 +3,8 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { MessagingService } from './messaging.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { CreateConversationDto } from './dto/create-conversation.dto';
+import { SendMessageDto } from './dto/send-message.dto';
 
 @ApiTags('Messaging')
 @Controller('conversations')
@@ -19,8 +21,8 @@ export class MessagingController {
 
   @Post()
   @ApiOperation({ summary: 'Créer/ouvrir une conversation' })
-  createConversation(@CurrentUser('id') userId: string, @Body('recipientId') recipientId: string) {
-    return this.messagingService.getOrCreateConversation(userId, recipientId);
+  createConversation(@CurrentUser('id') userId: string, @Body() body: CreateConversationDto) {
+    return this.messagingService.getOrCreateConversation(userId, body.recipientId);
   }
 
   @Get(':id/messages')
@@ -39,7 +41,7 @@ export class MessagingController {
   sendMessage(
     @Param('id') id: string,
     @CurrentUser('id') userId: string,
-    @Body() body: { content: string; imageUrl?: string },
+    @Body() body: SendMessageDto,
   ) {
     return this.messagingService.sendMessage(id, userId, body.content, body.imageUrl);
   }

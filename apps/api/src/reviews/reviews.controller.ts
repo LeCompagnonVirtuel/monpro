@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ReviewsService } from './reviews.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { CreateReviewDto } from './dto/create-review.dto';
 
 @ApiTags('Reviews')
 @Controller('reviews')
@@ -13,7 +14,7 @@ export class ReviewsController {
 
   @Post()
   @ApiOperation({ summary: 'Donner un avis' })
-  create(@CurrentUser('id') userId: string, @Body() body: any) {
+  create(@CurrentUser('id') userId: string, @Body() body: CreateReviewDto) {
     return this.reviewsService.create(userId, body);
   }
 
@@ -29,7 +30,7 @@ export class ReviewsController {
 
   @Patch(':id/respond')
   @ApiOperation({ summary: 'Répondre à un avis (professionnel)' })
-  respond(@Param('id') id: string, @Body('professionalId') professionalId: string, @Body('response') response: string) {
+  respond(@Param('id') id: string, @CurrentUser('id') professionalId: string, @Body('response') response: string) {
     return this.reviewsService.respond(id, professionalId, response);
   }
 }

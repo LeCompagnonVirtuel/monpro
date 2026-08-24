@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DisputeStatus } from '@prisma/client';
+import { validateDisputeTransition } from '../common/state-machines';
 
 @Injectable()
 export class DisputesService {
@@ -40,6 +41,8 @@ export class DisputesService {
   async resolve(id: string, adminId: string, resolution: string) {
     const dispute = await this.prisma.dispute.findUnique({ where: { id } });
     if (!dispute) throw new NotFoundException('Litige non trouvé');
+
+    validateDisputeTransition(dispute.status, DisputeStatus.RESOLVED);
 
     return this.prisma.dispute.update({
       where: { id },

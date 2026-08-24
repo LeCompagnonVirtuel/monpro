@@ -199,6 +199,8 @@ model User {
   notifications    Notification[]
   refreshTokens    RefreshToken[]
   sentMessages     Message[]
+  deviceTokens     DeviceToken[]
+  businesses       Business[]
 
   @@index([phone])
   @@index([role])
@@ -275,14 +277,15 @@ model Professional {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
-  services       ProfessionalService[]
-  zones          ProfessionalZone[]
-  availability   ProfessionalAvailability[]
-  portfolio      PortfolioItem[]
-  kycDocuments   KycDocument[]
-  quotes         Quote[]
-  bookings       Booking[]
-  reviews        Review[]
+  services           ProfessionalService[]
+  zones              ProfessionalZone[]
+  availability       ProfessionalAvailability[]
+  portfolio          PortfolioItem[]
+  kycDocuments       KycDocument[]
+  quotes             Quote[]
+  bookings           Booking[]
+  reviews            Review[]
+  businessMemberships BusinessMember[]
 
   @@index([verificationStatus])
   @@index([averageRating])
@@ -372,7 +375,8 @@ model Category {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  subcategories Subcategory[]
+  subcategories     Subcategory[]
+  commissionConfigs CommissionConfig[]
 
   @@map("categories")
 }
@@ -502,8 +506,9 @@ model Booking {
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
-  payment Payment?
-  review  Review?
+  payment      Payment?
+  review       Review?
+  intervention Intervention?
 
   @@index([professionalId])
   @@index([status])
@@ -528,32 +533,39 @@ model Payment {
   updatedAt       DateTime        @updatedAt
 
   transactions PaymentTransaction[]
+  ledgerEntries LedgerEntry[]
 
   @@index([status])
   @@map("payments")
 }
 
 model PaymentTransaction {
-  id          String   @id @default(uuid())
+  id          String          @id @default(uuid())
   paymentId   String
-  payment     Payment  @relation(fields: [paymentId], references: [id])
+  payment     Payment         @relation(fields: [paymentId], references: [id])
   provider    PaymentProvider
-  providerRef String?
+  providerRef String
   amount      Int
   status      PaymentStatus
+  processedAt DateTime?
   metadata    Json?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime        @default(now())
 
+  @@unique([provider, providerRef])
+  @@index([providerRef])
   @@map("payment_transactions")
 }
 
 model CommissionConfig {
-  id           String   @id @default(uuid())
-  categoryId   String?
-  rate         Float
-  isDefault    Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             String    @id @default(uuid())
+  categoryId     String?
+  category       Category? @relation(fields: [categoryId], references: [id])
+  serviceId      String?
+  professionalId String?
+  rate           Float
+  isDefault      Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@map("commission_configs")
 }
@@ -700,4 +712,117 @@ model AuditLog {
   @@index([entity, entityId])
   @@index([userId])
   @@map("audit_logs")
+}
+
+// ─── LEDGER ─────────────────────────────────────────────────────────────────────
+
+enum LedgerEntryType {
+  PAYMENT_RECEIVED
+  PLATFORM_FEE
+  PROFESSIONAL_EARNING
+  REFUND
+  PAYOUT
+}
+
+enum LedgerDirection {
+  CREDIT
+  DEBIT
+}
+
+model LedgerEntry {
+  id            String          @id @default(uuid())
+  paymentId     String
+  payment       Payment         @relation(fields: [paymentId], references: [id])
+  accountId     String
+  type          LedgerEntryType
+  direction     LedgerDirection
+  amount        Int
+  currency      String          @default("XOF")
+  balanceAfter  Int?
+  metadata      Json?
+  createdAt     DateTime        @default(now())
+
+  @@index([accountId])
+  @@index([paymentId])
+  @@map("ledger_entries")
+}
+
+// ─── INTERVENTION ───────────────────────────────────────────────────────────────
+
+model Intervention {
+  id               String    @id @default(uuid())
+  bookingId        String    @unique
+  booking          Booking   @relation(fields: [bookingId], references: [id])
+  arrivedAt        DateTime?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  beforePhotos     String[]
+  afterPhotos      String[]
+  completionNotes  String?
+  clientConfirmed  Boolean   @default(false)
+  clientConfirmedAt DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("interventions")
+}
+
+// ─── DEVICE TOKENS ──────────────────────────────────────────────────────────────
+
+enum DevicePlatform {
+  IOS
+  ANDROID
+  WEB
+}
+
+model DeviceToken {
+  id         String         @id @default(uuid())
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token      String
+  platform   DevicePlatform
+  deviceId   String?
+  isActive   Boolean        @default(true)
+  lastUsedAt DateTime?
+  createdAt  DateTime       @default(now())
+
+  @@unique([userId, token])
+  @@index([userId, isActive])
+  @@map("device_tokens")
+}
+
+// ─── BUSINESS ───────────────────────────────────────────────────────────────────
+
+model Business {
+  id              String   @id @default(uuid())
+  ownerId         String
+  owner           User     @relation(fields: [ownerId], references: [id])
+  name            String
+  registrationNo  String?
+  description     String?
+  logoUrl         String?
+  phone           String?
+  email           String?
+  address         String?
+  isVerified      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  members BusinessMember[]
+
+  @@index([ownerId])
+  @@map("businesses")
+}
+
+model BusinessMember {
+  id             String       @id @default(uuid())
+  businessId     String
+  business       Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  professionalId String
+  professional   Professional @relation(fields: [professionalId], references: [id])
+  role           String       @default("member")
+  joinedAt       DateTime     @default(now())
+
+  @@unique([businessId, professionalId])
+  @@map("business_members")
 }

@@ -19,7 +19,12 @@ import { FavoritesModule } from './favorites/favorites.module';
 import { GeographyModule } from './geography/geography.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { AdminModule } from './admin/admin.module';
+import { LedgerModule } from './ledger/ledger.module';
+import { InterventionsModule } from './interventions/interventions.module';
+import { DeviceTokensModule } from './device-tokens/device-tokens.module';
+import { BusinessesModule } from './businesses/businesses.module';
 import { HealthController } from './health.controller';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 
@@ -44,9 +49,14 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
     GeographyModule,
     UploadsModule,
     AdminModule,
+    LedgerModule,
+    InterventionsModule,
+    DeviceTokensModule,
+    BusinessesModule,
   ],
   controllers: [HealthController],
   providers: [
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },
     { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
