@@ -32,9 +32,9 @@ async function bootstrap() {
 
   app.enableShutdownHooks();
 
-  if (process.env.STORAGE_PROVIDER === 'local' || !process.env.STORAGE_PROVIDER) {
-    const express = await import('express');
-    app.use('/uploads', express.default.static('uploads'));
+  if (!isProduction && (process.env.STORAGE_PROVIDER === 'local' || !process.env.STORAGE_PROVIDER)) {
+    const { static: serveStatic } = await import('express');
+    app.use('/uploads', serveStatic('uploads'));
   }
 
   const swaggerConfig = new DocumentBuilder()
