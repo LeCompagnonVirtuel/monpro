@@ -1,5 +1,7 @@
 FROM node:20-alpine AS builder
 
+RUN apk add --no-cache openssl
+
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -14,6 +16,7 @@ RUN npm run build
 # Production stage
 FROM node:20-alpine AS runner
 
+RUN apk add --no-cache openssl
 RUN addgroup -g 1001 -S appgroup && adduser -S appuser -u 1001 -G appgroup
 
 WORKDIR /app
