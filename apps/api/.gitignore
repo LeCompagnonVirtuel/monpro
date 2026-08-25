@@ -4,4 +4,4 @@ coverage/
 *.tsbuildinfo
 .env
 .env.local
-uploads/
+/uploads/
