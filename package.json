@@ -4,6 +4,7 @@
   "scripts": {
     "dev:api": "pnpm --filter @monpro/api dev",
     "dev:admin": "pnpm --filter @monpro/admin dev",
+    "dev:mobile": "pnpm --filter @monpro/mobile start",
     "build:api": "pnpm --filter @monpro/api build",
     "build:admin": "pnpm --filter @monpro/admin build",
     "lint": "turbo lint",
