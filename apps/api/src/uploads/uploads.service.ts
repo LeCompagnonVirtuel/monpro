@@ -38,10 +38,16 @@ export class UploadsService {
   }
 
   async deleteFile(url: string): Promise<void> {
+    if (url.startsWith('http')) {
+      const match = url.match(/monpro\/([^/]+)\/([^.]+)/);
+      if (!match || !ALLOWED_FOLDERS.includes(match[1])) return;
+      await this.storageProvider.delete(`uploads/${match[1]}/${match[2]}`);
+      return;
+    }
+
     const relativePath = url.replace('/uploads/', '');
     const parts = relativePath.split('/');
     if (parts.length !== 2 || !ALLOWED_FOLDERS.includes(parts[0])) return;
-
     await this.storageProvider.delete(`uploads/${parts[0]}/${path.basename(parts[1])}`);
   }
 }
