@@ -1,27 +1,34 @@
 export const colors = {
-  primary: '#1B4332',
-  primaryLight: '#2D6A4F',
-  primaryDark: '#132F23',
-  secondary: '#D4A017',
-  secondaryLight: '#E8B931',
-  accent: '#40916C',
-  background: '#FAFAFA',
+  // Navy — brand principal
+  primary: '#071F49',
+  primaryLight: '#0B2A5B',
+  primaryDark: '#051636',
+  // Gold — CTA, accents, elements actifs
+  secondary: '#FFB800',
+  secondaryLight: '#F5A623',
+  accent: '#FFB800',
+  // Surfaces
+  background: '#F7F9FC',
   surface: '#FFFFFF',
-  surfaceSecondary: '#F5F5F5',
-  text: '#1A1A1A',
-  textSecondary: '#6B7280',
-  textTertiary: '#9CA3AF',
+  surfaceSecondary: '#F0F4FA',
+  // Text
+  text: '#10213D',
+  textSecondary: '#64748B',
+  textTertiary: '#94A3B8',
   textInverse: '#FFFFFF',
-  border: '#E5E7EB',
-  borderLight: '#F3F4F6',
-  success: '#059669',
-  successLight: '#D1FAE5',
-  warning: '#D97706',
+  // Borders
+  border: '#E5EAF2',
+  borderLight: '#F1F5F9',
+  // Status
+  success: '#16A34A',
+  successLight: '#DCFCE7',
+  warning: '#F59E0B',
   warningLight: '#FEF3C7',
   error: '#DC2626',
   errorLight: '#FEE2E2',
   info: '#2563EB',
   infoLight: '#DBEAFE',
+  // Overlay
   overlay: 'rgba(0, 0, 0, 0.5)',
   transparent: 'transparent',
 } as const;

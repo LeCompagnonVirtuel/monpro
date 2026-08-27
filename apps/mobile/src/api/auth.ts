@@ -22,35 +22,48 @@ export interface AuthTokens {
   refreshToken: string;
 }
 
-export interface AuthResponse {
-  user?: {
-    id: string;
-    phone: string;
-    fullName: string;
-    role: string;
-  };
+export interface VerifyOtpExistingUser {
+  isNewUser: false;
+  user: { id: string; fullName: string; role: 'CLIENT' | 'PROFESSIONAL' | 'ADMIN' };
   accessToken: string;
   refreshToken: string;
-  isNewUser?: boolean;
+}
+
+export interface VerifyOtpNewUser {
+  isNewUser: true;
+  phone: string;
+}
+
+export type VerifyOtpResponse = VerifyOtpExistingUser | VerifyOtpNewUser;
+
+export interface RegisterResponse {
+  user: { id: string; phone: string; fullName: string; role: string };
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface RequestOtpResponse {
+  message: string;
+  expiresIn: number;
 }
 
 export const authApi = {
   requestOtp(payload: RequestOtpPayload) {
-    return apiClient.post<{ success: boolean; data: { message: string } }>(
+    return apiClient.post<{ success: boolean; data: RequestOtpResponse }>(
       '/auth/request-otp',
       payload,
     );
   },
 
   verifyOtp(payload: VerifyOtpPayload) {
-    return apiClient.post<{ success: boolean; data: AuthResponse }>(
+    return apiClient.post<{ success: boolean; data: VerifyOtpResponse }>(
       '/auth/verify-otp',
       payload,
     );
   },
 
   register(payload: RegisterPayload) {
-    return apiClient.post<{ success: boolean; data: AuthResponse }>(
+    return apiClient.post<{ success: boolean; data: RegisterResponse }>(
       '/auth/register',
       payload,
     );

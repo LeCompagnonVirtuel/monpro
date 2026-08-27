@@ -1,11 +1,8 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import Constants from 'expo-constants';
 import { tokenStorage } from '@/lib/storage';
+import { API_BASE_URL } from '@/lib/config';
 
-const BASE_URL =
-  Constants.expoConfig?.extra?.apiUrl ||
-  process.env.EXPO_PUBLIC_API_URL ||
-  'https://monpro-api.onrender.com/api/v1';
+const BASE_URL = API_BASE_URL;
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -28,6 +25,11 @@ type FailedRequest = {
 
 let isRefreshing = false;
 let failedQueue: FailedRequest[] = [];
+let onSessionExpired: (() => void) | null = null;
+
+export function setSessionExpiredHandler(handler: () => void) {
+  onSessionExpired = handler;
+}
 
 function processQueue(error: unknown, token: string | null) {
   failedQueue.forEach((req) => {
@@ -49,6 +51,10 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    if (originalRequest.url?.includes('/auth/refresh')) {
+      return Promise.reject(error);
+    }
+
     if (isRefreshing) {
       return new Promise<string>((resolve, reject) => {
         failedQueue.push({ resolve, reject });
@@ -67,7 +73,7 @@ apiClient.interceptors.response.use(
         throw new Error('No refresh token');
       }
 
-      const { data } = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken });
+      const { data } = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken }, { timeout: 15000 });
       const newAccessToken: string = data.data?.accessToken || data.accessToken;
       const newRefreshToken: string = data.data?.refreshToken || data.refreshToken;
 
@@ -79,6 +85,7 @@ apiClient.interceptors.response.use(
     } catch (refreshError) {
       processQueue(refreshError, null);
       await tokenStorage.clearTokens();
+      onSessionExpired?.();
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;

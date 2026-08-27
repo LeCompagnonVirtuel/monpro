@@ -1,43 +1,69 @@
 import { create } from 'zustand';
 import { tokenStorage } from '@/lib/storage';
-import { User } from '@/api/users';
+import { authApi } from '@/api/auth';
+import { usersApi } from '@/api/users';
+import { queryClient } from '@/lib/query-client';
+
+type Role = 'CLIENT' | 'PROFESSIONAL' | 'ADMIN';
 
 interface AuthState {
-  user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  setUser: (user: User | null) => void;
-  setLoading: (loading: boolean) => void;
-  login: (user: User, accessToken: string, refreshToken: string) => Promise<void>;
+  role: Role | null;
+  userId: string | null;
+  login: (userId: string, role: Role, accessToken: string, refreshToken: string) => Promise<void>;
   logout: () => Promise<void>;
-  restoreSession: () => Promise<boolean>;
+  restoreSession: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
   isAuthenticated: false,
   isLoading: true,
+  role: null,
+  userId: null,
 
-  setUser: (user) => set({ user, isAuthenticated: !!user }),
-
-  setLoading: (isLoading) => set({ isLoading }),
-
-  login: async (user, accessToken, refreshToken) => {
+  login: async (userId, role, accessToken, refreshToken) => {
     await tokenStorage.setTokens(accessToken, refreshToken);
-    set({ user, isAuthenticated: true, isLoading: false });
+    set({ userId, role, isAuthenticated: true, isLoading: false });
   },
 
   logout: async () => {
+    try {
+      await authApi.logout();
+    } catch {
+      // Network failure shouldn't block local cleanup
+    }
     await tokenStorage.clearTokens();
-    set({ user: null, isAuthenticated: false, isLoading: false });
+    queryClient.clear();
+    set({ userId: null, role: null, isAuthenticated: false, isLoading: false });
   },
 
   restoreSession: async () => {
     const token = await tokenStorage.getAccessToken();
     if (!token) {
       set({ isLoading: false });
-      return false;
+      return;
     }
-    return true;
+
+    try {
+      const { data } = await usersApi.getMe();
+      const user = data.data;
+
+      if (!user.isActive) {
+        await tokenStorage.clearTokens();
+        set({ isLoading: false });
+        return;
+      }
+
+      set({
+        userId: user.id,
+        role: user.role,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } catch {
+      await tokenStorage.clearTokens();
+      set({ isLoading: false });
+    }
   },
 }));

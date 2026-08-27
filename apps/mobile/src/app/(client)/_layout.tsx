@@ -1,65 +1,34 @@
-import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useTranslation } from 'react-i18next';
-import { colors } from '@/theme/colors';
+import { Redirect, Stack } from 'expo-router';
+import { useAuthStore } from '@/stores/auth.store';
 
 export default function ClientLayout() {
-  const { t } = useTranslation();
+  const { isAuthenticated, role } = useAuthStore();
+
+  if (!isAuthenticated) {
+    return <Redirect href="/(auth)/welcome" />;
+  }
+
+  if (role === 'PROFESSIONAL') {
+    return <Redirect href="/(professional)/dashboard" />;
+  }
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textTertiary,
-        tabBarStyle: { borderTopColor: colors.borderLight },
-      }}
-    >
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: t('tabs.home'),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="search"
-        options={{
-          title: t('tabs.search'),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="search-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="requests"
-        options={{
-          title: t('tabs.requests'),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="document-text-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="messages"
-        options={{
-          title: t('tabs.messages'),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubbles-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: t('tabs.profile'),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="category" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="service" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="professional" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="create-request" options={{ animation: 'slide_from_bottom', gestureEnabled: false }} />
+      <Stack.Screen name="request-detail" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="quotes" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="quote-detail" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="booking-detail" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="intervention" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="payment" options={{ animation: 'slide_from_bottom', gestureEnabled: false }} />
+      <Stack.Screen name="review" options={{ animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="conversation" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="favorites" options={{ animation: 'slide_from_right' }} />
+    </Stack>
   );
 }

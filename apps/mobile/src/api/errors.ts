@@ -1,5 +1,19 @@
 import { AxiosError } from 'axios';
 
+const STATUS_MESSAGES: Record<number, string> = {
+  400: 'Les données envoyées sont incorrectes.',
+  401: 'Votre session a expiré.',
+  403: "Vous n'êtes pas autorisé à effectuer cette action.",
+  404: "Cette ressource n'existe pas ou a été supprimée.",
+  409: 'Cette action a déjà été effectuée.',
+  413: 'Le fichier est trop volumineux.',
+  422: 'Les données envoyées sont invalides.',
+  429: 'Trop de tentatives. Veuillez patienter avant de réessayer.',
+  500: 'Une erreur est survenue. Veuillez réessayer.',
+  502: 'Le serveur est temporairement indisponible.',
+  503: 'Le serveur est en maintenance. Veuillez réessayer plus tard.',
+};
+
 export class ApiError {
   status: number;
   code: string;
@@ -26,7 +40,7 @@ export class ApiError {
 
     const rawMessage = Array.isArray(data.message) ? data.message[0] : data.message;
     const code = data.error || `HTTP_${status}`;
-    const message = rawMessage || 'Une erreur est survenue.';
+    const message = rawMessage || STATUS_MESSAGES[status] || 'Une erreur inattendue est survenue.';
 
     return new ApiError(status, code, message, data);
   }
