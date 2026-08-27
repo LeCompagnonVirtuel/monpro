@@ -45,6 +45,15 @@ export class ProfessionalsController {
     return this.professionalsService.matchForRequest(serviceId, latitude, longitude);
   }
 
+  @Get('me')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.PROFESSIONAL)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Mon profil professionnel' })
+  findMe(@CurrentUser('id') userId: string) {
+    return this.professionalsService.findByUserId(userId);
+  }
+
   @Get(':id')
   @Public()
   @ApiOperation({ summary: 'Profil d\'un professionnel' })

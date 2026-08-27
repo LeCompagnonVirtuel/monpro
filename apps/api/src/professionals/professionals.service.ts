@@ -96,6 +96,22 @@ export class ProfessionalsService {
     return { data: professionals, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
+  async findByUserId(userId: string) {
+    const pro = await this.prisma.professional.findUnique({
+      where: { userId },
+      include: {
+        user: { select: { id: true, fullName: true, avatarUrl: true, phone: true, createdAt: true } },
+        services: { include: { service: { include: { subcategory: { include: { category: true } } } } } },
+        zones: true,
+        availability: true,
+        portfolio: true,
+      },
+    });
+
+    if (!pro) throw new NotFoundException('Profil professionnel non trouvé');
+    return pro;
+  }
+
   async findOne(id: string) {
     const pro = await this.prisma.professional.findUnique({
       where: { id },

@@ -43,6 +43,10 @@ export interface ProfessionalMatchParams {
 }
 
 export const professionalsApi = {
+  getMe() {
+    return apiClient.get<{ success: boolean; data: Professional }>('/professionals/me');
+  },
+
   list(params?: ProfessionalListParams) {
     return apiClient.get<{ success: boolean; data: Professional[]; total: number }>(
       '/professionals',

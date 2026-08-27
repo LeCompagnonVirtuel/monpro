@@ -1,16 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { professionalsApi, Professional } from '@/api/professionals';
+import { professionalsApi } from '@/api/professionals';
 import { useAuthStore } from '@/stores/auth.store';
 
 export function useMyProfessionalProfile() {
   const userId = useAuthStore((s) => s.userId);
 
   return useQuery({
-    queryKey: ['professional', 'me', userId],
+    queryKey: ['professional', 'me'],
     queryFn: async () => {
-      const { data } = await professionalsApi.list({ limit: 100 });
-      const mine = data.data.find((p: Professional) => p.userId === userId);
-      return mine || null;
+      const { data } = await professionalsApi.getMe();
+      return data.data;
     },
     enabled: !!userId,
   });

@@ -81,8 +81,8 @@
 - **Domaine** : Profil professionnel
 - **Feature** : Récupération du profil professionnel de l'utilisateur connecté
 - **Problème** : Aucun endpoint ne permet de récupérer directement le profil professionnel par le userId du JWT. Le mobile doit lister tous les professionnels puis filtrer côté client par `userId`. Le champ `search` du `GET /professionals` ne supporte pas la recherche par userId (il cherche dans fullName, businessName, description uniquement).
-- **Contournement actuel** : `GET /professionals?limit=100` + filtrage client par `professional.userId === currentUser.id`
-- **Impact** : Fonctionne pour < 100 professionnels. Non scalable au-delà.
-- **Solution suggérée** : Ajouter `GET /api/v1/professionals/me` qui utilise le userId du JWT pour faire `prisma.professional.findUnique({ where: { userId } })` avec les mêmes includes que `findOne`
+- **Contournement actuel** : ~~`GET /professionals?limit=100` + filtrage client~~ → remplacé par `GET /professionals/me`
+- **Impact** : Résolu — endpoint dédié, scalable, sécurisé par RolesGuard(PROFESSIONAL)
+- **Solution appliquée** : `GET /api/v1/professionals/me` utilise le userId du JWT → `prisma.professional.findUnique({ where: { userId } })` avec includes complets
 - **Priorité** : HAUTE
-- **Statut** : EN ATTENTE
+- **Statut** : ✅ RÉSOLU
