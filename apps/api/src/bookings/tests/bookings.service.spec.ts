@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { ForbiddenException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { BookingsService } from '../bookings.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { NotificationsService } from '../../notifications/notifications.service';
 import { BookingStatus, QuoteStatus, ServiceRequestStatus } from '@prisma/client';
 
 describe('BookingsService — IDOR & Authorization', () => {
@@ -17,7 +18,14 @@ describe('BookingsService — IDOR & Authorization', () => {
       findMany: jest.fn(),
       count: jest.fn(),
     },
+    professional: { findUnique: jest.fn().mockResolvedValue({ id: 'pro-1', userId: 'user-pro-1' }) },
     serviceRequest: { update: jest.fn() },
+    $transaction: jest.fn().mockImplementation((promises) => Promise.all(promises)),
+  };
+
+  const mockNotifications = {
+    create: jest.fn().mockResolvedValue(undefined),
+    sendPush: jest.fn().mockResolvedValue(undefined),
   };
 
   beforeEach(async () => {
@@ -25,6 +33,7 @@ describe('BookingsService — IDOR & Authorization', () => {
       providers: [
         BookingsService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: NotificationsService, useValue: mockNotifications },
       ],
     }).compile();
 

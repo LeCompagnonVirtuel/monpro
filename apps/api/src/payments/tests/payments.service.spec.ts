@@ -3,6 +3,8 @@ import { ForbiddenException, NotFoundException, BadRequestException } from '@nes
 import { PaymentsService } from '../payments.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PaymentProviderFactory } from '../providers/payment-provider.factory';
+import { LedgerService } from '../../ledger/ledger.service';
+import { NotificationsService } from '../../notifications/notifications.service';
 import { BookingStatus, PaymentProvider, PaymentStatus } from '@prisma/client';
 
 describe('PaymentsService — IDOR & Financial Security', () => {
@@ -30,10 +32,21 @@ describe('PaymentsService — IDOR & Financial Security', () => {
       findUnique: jest.fn(),
       update: jest.fn(),
     },
+    ledgerEntry: { count: jest.fn().mockResolvedValue(0) },
+    professional: { findUnique: jest.fn().mockResolvedValue({ id: 'pro-1', userId: 'user-pro-1' }) },
   };
 
   const mockProviderFactory = {
     getProvider: jest.fn().mockReturnValue(mockProvider),
+  };
+
+  const mockLedger = {
+    recordPayment: jest.fn().mockResolvedValue(undefined),
+  };
+
+  const mockNotifications = {
+    create: jest.fn().mockResolvedValue(undefined),
+    sendPush: jest.fn().mockResolvedValue(undefined),
   };
 
   beforeEach(async () => {
@@ -42,6 +55,8 @@ describe('PaymentsService — IDOR & Financial Security', () => {
         PaymentsService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: PaymentProviderFactory, useValue: mockProviderFactory },
+        { provide: LedgerService, useValue: mockLedger },
+        { provide: NotificationsService, useValue: mockNotifications },
       ],
     }).compile();
 
@@ -125,6 +140,7 @@ describe('PaymentsService — IDOR & Financial Security', () => {
       mockPrisma.booking.findUnique.mockResolvedValue({
         id: 'booking-1',
         professionalId: 'pro-1',
+        professional: { userId: 'user-pro-1' },
         serviceRequest: { clientId: 'client-A' },
       });
 
@@ -137,6 +153,7 @@ describe('PaymentsService — IDOR & Financial Security', () => {
       mockPrisma.booking.findUnique.mockResolvedValue({
         id: 'booking-1',
         professionalId: 'pro-1',
+        professional: { userId: 'user-pro-1' },
         serviceRequest: { clientId: 'client-A' },
       });
       mockPrisma.payment.findUnique.mockResolvedValue({ id: 'pay-1', amount: 20000 });
@@ -145,15 +162,16 @@ describe('PaymentsService — IDOR & Financial Security', () => {
       expect(result).toBeDefined();
     });
 
-    it('should ALLOW access by professional', async () => {
+    it('should ALLOW access by professional (using userId, not professionalId)', async () => {
       mockPrisma.booking.findUnique.mockResolvedValue({
         id: 'booking-1',
         professionalId: 'pro-1',
+        professional: { userId: 'user-pro-1' },
         serviceRequest: { clientId: 'client-A' },
       });
       mockPrisma.payment.findUnique.mockResolvedValue({ id: 'pay-1', amount: 20000 });
 
-      const result = await service.findByBooking('booking-1', 'pro-1');
+      const result = await service.findByBooking('booking-1', 'user-pro-1');
       expect(result).toBeDefined();
     });
   });
@@ -174,10 +192,14 @@ describe('PaymentsService — IDOR & Financial Security', () => {
         paymentId: 'pay-1',
         providerRef: 'REF-1',
         processedAt: null,
-        payment: { id: 'pay-1' },
+        payment: { id: 'pay-1', bookingId: 'booking-1', amount: 20000, commission: 3000, professionalAmount: 17000 },
       });
       mockPrisma.paymentTransaction.update.mockResolvedValue({});
       mockPrisma.payment.update.mockResolvedValue({});
+      mockPrisma.booking.findUnique.mockResolvedValue({
+        id: 'booking-1', professionalId: 'pro-1',
+        serviceRequest: { clientId: 'client-1' },
+      });
 
       const result = await service.handleWebhook(PaymentProvider.ORANGE_MONEY, { status: 'success' });
       expect(result.status).toBe(PaymentStatus.COMPLETED);
