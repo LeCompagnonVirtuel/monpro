@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { BookingStatus } from '@prisma/client';
+import { BookingStatus, NotificationType } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ReviewsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   async create(clientId: string, data: {
     bookingId: string;
@@ -46,13 +50,29 @@ export class ReviewsService {
     });
 
     await this.updateProfessionalRating(booking.professionalId);
+
+    const professional = await this.prisma.professional.findUnique({ where: { id: booking.professionalId } });
+    if (professional) {
+      await this.notifications.create(
+        professional.userId,
+        NotificationType.NEW_REVIEW,
+        'Nouvel avis',
+        `Un client vous a attribué ${data.overallRating}/5`,
+        { bookingId: data.bookingId, reviewId: review.id },
+      );
+    }
+
     return review;
   }
 
-  async respond(reviewId: string, professionalId: string, response: string) {
+  async respond(reviewId: string, userId: string, response: string) {
     const review = await this.prisma.review.findUnique({ where: { id: reviewId } });
     if (!review) throw new NotFoundException('Avis non trouvé');
-    if (review.professionalId !== professionalId) throw new ForbiddenException();
+
+    const professional = await this.prisma.professional.findUnique({ where: { userId } });
+    if (!professional || review.professionalId !== professional.id) {
+      throw new ForbiddenException('Vous ne pouvez répondre qu\'à vos propres avis');
+    }
 
     return this.prisma.review.update({
       where: { id: reviewId },

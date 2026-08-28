@@ -51,7 +51,7 @@ export class InterventionsController {
 
   @Get(':bookingId')
   @ApiOperation({ summary: 'Détail intervention' })
-  findByBooking(@Param('bookingId') bookingId: string) {
-    return this.interventionsService.findByBooking(bookingId);
+  findByBooking(@Param('bookingId') bookingId: string, @CurrentUser('id') userId: string) {
+    return this.interventionsService.findByBooking(bookingId, userId);
   }
 }

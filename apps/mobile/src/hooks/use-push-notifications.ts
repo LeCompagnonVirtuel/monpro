@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { apiClient } from '@/api/client';
+import { tokenStorage } from '@/lib/storage';
 import { useAuthStore } from '@/stores/auth.store';
 
 Notifications.setNotificationHandler({
@@ -43,6 +44,7 @@ export function usePushNotifications() {
             token,
             platform: Platform.OS === 'ios' ? 'IOS' : 'ANDROID',
           });
+          await tokenStorage.setPushToken(token);
           registeredToken.current = token;
         }
       } catch {

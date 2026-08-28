@@ -1,9 +1,14 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationType } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class InterventionsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   async create(bookingId: string, professionalUserId: string) {
     const booking = await this.prisma.booking.findUnique({
@@ -25,10 +30,26 @@ export class InterventionsService {
 
   async markArrived(bookingId: string, professionalUserId: string) {
     const intervention = await this.getAndValidateProfessional(bookingId, professionalUserId);
-    return this.prisma.intervention.update({
+    const result = await this.prisma.intervention.update({
       where: { id: intervention.id },
       data: { arrivedAt: new Date() },
     });
+
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { serviceRequest: true },
+    });
+    if (booking) {
+      await this.notifications.create(
+        booking.serviceRequest.clientId,
+        NotificationType.PROFESSIONAL_ARRIVING,
+        'Le professionnel est arrivé',
+        'Le professionnel est sur place pour votre intervention',
+        { bookingId },
+      );
+    }
+
+    return result;
   }
 
   async start(bookingId: string, professionalUserId: string, beforePhotos: string[]) {
@@ -43,7 +64,7 @@ export class InterventionsService {
     const intervention = await this.getAndValidateProfessional(bookingId, professionalUserId);
     if (!intervention.startedAt) throw new BadRequestException('L\'intervention n\'a pas encore commencé');
 
-    return this.prisma.intervention.update({
+    const result = await this.prisma.intervention.update({
       where: { id: intervention.id },
       data: {
         completedAt: new Date(),
@@ -51,6 +72,22 @@ export class InterventionsService {
         completionNotes: data.completionNotes,
       },
     });
+
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { serviceRequest: true },
+    });
+    if (booking) {
+      await this.notifications.create(
+        booking.serviceRequest.clientId,
+        NotificationType.INTERVENTION_COMPLETED,
+        'Intervention terminée',
+        'Le professionnel a terminé l\'intervention. Veuillez confirmer.',
+        { bookingId },
+      );
+    }
+
+    return result;
   }
 
   async clientConfirm(bookingId: string, clientUserId: string) {
@@ -73,7 +110,19 @@ export class InterventionsService {
     });
   }
 
-  async findByBooking(bookingId: string) {
+  async findByBooking(bookingId: string, userId?: string) {
+    if (userId) {
+      const booking = await this.prisma.booking.findUnique({
+        where: { id: bookingId },
+        include: { serviceRequest: true, professional: true },
+      });
+      if (!booking) throw new NotFoundException('Réservation non trouvée');
+      const isClient = booking.serviceRequest.clientId === userId;
+      const isProfessional = booking.professional.userId === userId;
+      if (!isClient && !isProfessional) {
+        throw new ForbiddenException('Accès interdit');
+      }
+    }
     return this.prisma.intervention.findUnique({ where: { bookingId } });
   }
 

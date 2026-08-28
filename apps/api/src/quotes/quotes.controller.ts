@@ -20,18 +20,19 @@ export class QuotesController {
 
   @Get('request/:requestId')
   @ApiOperation({ summary: 'Devis pour une demande' })
-  findByRequest(@Param('requestId') requestId: string) {
-    return this.quotesService.findByRequest(requestId);
+  findByRequest(@Param('requestId') requestId: string, @CurrentUser('id') userId: string) {
+    return this.quotesService.findByRequest(requestId, userId);
   }
 
   @Get('professional/:professionalId')
   @ApiOperation({ summary: 'Mes devis envoyés (professionnel)' })
   findByProfessional(
     @Param('professionalId') professionalId: string,
+    @CurrentUser('id') userId: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
-    return this.quotesService.findByProfessional(professionalId, page, limit);
+    return this.quotesService.findByProfessional(professionalId, page, limit, userId);
   }
 
   @Patch(':id/accept')

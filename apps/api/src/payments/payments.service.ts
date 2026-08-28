@@ -1,13 +1,17 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { PaymentStatus, PaymentProvider, BookingStatus } from '@prisma/client';
+import { PaymentStatus, PaymentProvider, BookingStatus, NotificationType } from '@prisma/client';
 import { PaymentProviderFactory } from './providers/payment-provider.factory';
+import { LedgerService } from '../ledger/ledger.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class PaymentsService {
   constructor(
     private prisma: PrismaService,
     private providerFactory: PaymentProviderFactory,
+    private ledger: LedgerService,
+    private notifications: NotificationsService,
   ) {}
 
   async initiate(bookingId: string, provider: PaymentProvider, phoneNumber: string, userId: string) {
@@ -92,6 +96,44 @@ export class PaymentsService {
       },
     });
 
+    if (result.success) {
+      const payment = transaction.payment;
+      const existingEntries = await this.prisma.ledgerEntry.count({ where: { paymentId: payment.id } });
+      if (existingEntries === 0) {
+        const booking = await this.prisma.booking.findUnique({
+          where: { id: payment.bookingId },
+          include: { serviceRequest: true },
+        });
+        if (booking) {
+          await this.ledger.recordPayment(
+            payment.id,
+            booking.serviceRequest.clientId,
+            booking.professionalId,
+            payment.amount,
+            payment.commission,
+            payment.professionalAmount,
+          );
+          await this.notifications.create(
+            booking.serviceRequest.clientId,
+            NotificationType.NEW_PAYMENT,
+            'Paiement confirmé',
+            `Votre paiement de ${payment.amount} XOF a été confirmé`,
+            { bookingId: booking.id },
+          );
+          const professional = await this.prisma.professional.findUnique({ where: { id: booking.professionalId } });
+          if (professional) {
+            await this.notifications.create(
+              professional.userId,
+              NotificationType.NEW_PAYMENT,
+              'Paiement reçu',
+              `Vous avez reçu ${payment.professionalAmount} XOF`,
+              { bookingId: booking.id },
+            );
+          }
+        }
+      }
+    }
+
     return { received: true, status };
   }
 
@@ -136,10 +178,12 @@ export class PaymentsService {
   async findByBooking(bookingId: string, userId: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
-      include: { serviceRequest: true },
+      include: { serviceRequest: true, professional: true },
     });
     if (!booking) throw new NotFoundException('Réservation non trouvée');
-    if (booking.serviceRequest.clientId !== userId && booking.professionalId !== userId) {
+    const isClient = booking.serviceRequest.clientId === userId;
+    const isProfessional = booking.professional.userId === userId;
+    if (!isClient && !isProfessional) {
       throw new ForbiddenException('Accès interdit');
     }
     return this.prisma.payment.findUnique({

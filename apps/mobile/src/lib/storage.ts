@@ -3,6 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 const KEYS = {
   ACCESS_TOKEN: 'monpro_access_token',
   REFRESH_TOKEN: 'monpro_refresh_token',
+  PUSH_TOKEN: 'monpro_push_token',
 } as const;
 
 export const tokenStorage = {
@@ -22,5 +23,17 @@ export const tokenStorage = {
   async clearTokens(): Promise<void> {
     await SecureStore.deleteItemAsync(KEYS.ACCESS_TOKEN);
     await SecureStore.deleteItemAsync(KEYS.REFRESH_TOKEN);
+  },
+
+  async getPushToken(): Promise<string | null> {
+    return SecureStore.getItemAsync(KEYS.PUSH_TOKEN);
+  },
+
+  async setPushToken(token: string): Promise<void> {
+    await SecureStore.setItemAsync(KEYS.PUSH_TOKEN, token);
+  },
+
+  async clearPushToken(): Promise<void> {
+    await SecureStore.deleteItemAsync(KEYS.PUSH_TOKEN);
   },
 };

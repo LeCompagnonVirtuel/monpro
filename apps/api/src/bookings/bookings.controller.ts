@@ -23,19 +23,20 @@ export class BookingsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Détail d\'une réservation' })
-  findOne(@Param('id') id: string) {
-    return this.bookingsService.findOne(id);
+  findOne(@Param('id') id: string, @CurrentUser('id') userId: string) {
+    return this.bookingsService.findOne(id, userId);
   }
 
   @Get('professional/:professionalId')
   @ApiOperation({ summary: 'Réservations d\'un professionnel' })
-  findByProfessional(
+  async findByProfessional(
     @Param('professionalId') professionalId: string,
+    @CurrentUser('id') userId: string,
     @Query('status') status?: BookingStatus,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
-    return this.bookingsService.findByProfessional(professionalId, status, page, limit);
+    return this.bookingsService.findByProfessional(professionalId, status, page, limit, userId);
   }
 
   @Patch(':id/status')

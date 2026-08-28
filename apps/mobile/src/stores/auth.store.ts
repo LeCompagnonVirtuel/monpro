@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { tokenStorage } from '@/lib/storage';
 import { authApi } from '@/api/auth';
 import { usersApi } from '@/api/users';
+import { apiClient } from '@/api/client';
 import { queryClient } from '@/lib/query-client';
 
 type Role = 'CLIENT' | 'PROFESSIONAL' | 'ADMIN';
@@ -29,6 +30,11 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: async () => {
     try {
+      const pushToken = await tokenStorage.getPushToken();
+      if (pushToken) {
+        await apiClient.delete(`/device-tokens/${encodeURIComponent(pushToken)}`).catch(() => {});
+        await tokenStorage.clearPushToken();
+      }
       await authApi.logout();
     } catch {
       // Network failure shouldn't block local cleanup

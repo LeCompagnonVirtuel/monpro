@@ -98,6 +98,15 @@ export class ServiceRequestsService {
     return { data, total, page: p, limit: l, totalPages: Math.ceil(total / l) };
   }
 
+  async findForProfessionalByUserId(userId: string, page?: number, limit?: number) {
+    const pro = await this.prisma.professional.findUnique({
+      where: { userId },
+      include: { services: true },
+    });
+    if (!pro) throw new NotFoundException('Profil professionnel non trouvé');
+    return this.findForProfessional(pro.id, page, limit);
+  }
+
   async findForProfessional(professionalId: string, page = 1, limit = 20) {
     const pro = await this.prisma.professional.findUnique({
       where: { id: professionalId },

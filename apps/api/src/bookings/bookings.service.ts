@@ -1,11 +1,15 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { BookingStatus, ServiceRequestStatus, QuoteStatus } from '@prisma/client';
+import { BookingStatus, ServiceRequestStatus, QuoteStatus, NotificationType } from '@prisma/client';
 import { validateBookingTransition } from '../common/state-machines';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class BookingsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   async createFromQuote(quoteId: string, data: { scheduledDate: Date; scheduledTime?: string; addressId?: string }, userId: string) {
     const quote = await this.prisma.quote.findUnique({
@@ -24,28 +28,40 @@ export class BookingsService {
     });
     if (existing) throw new BadRequestException('Une réservation existe déjà pour cette demande');
 
-    const booking = await this.prisma.booking.create({
-      data: {
-        serviceRequestId: quote.serviceRequestId,
-        quoteId: quote.id,
-        professionalId: quote.professionalId,
-        scheduledDate: data.scheduledDate,
-        scheduledTime: data.scheduledTime,
-        addressId: data.addressId || quote.serviceRequest.addressId,
-        totalAmount: quote.totalAmount,
-        status: BookingStatus.CONFIRMED,
-      },
-    });
+    const [booking] = await this.prisma.$transaction([
+      this.prisma.booking.create({
+        data: {
+          serviceRequestId: quote.serviceRequestId,
+          quoteId: quote.id,
+          professionalId: quote.professionalId,
+          scheduledDate: data.scheduledDate,
+          scheduledTime: data.scheduledTime,
+          addressId: data.addressId || quote.serviceRequest.addressId,
+          totalAmount: quote.totalAmount,
+          status: BookingStatus.CONFIRMED,
+        },
+      }),
+      this.prisma.serviceRequest.update({
+        where: { id: quote.serviceRequestId },
+        data: { status: ServiceRequestStatus.SCHEDULED },
+      }),
+    ]);
 
-    await this.prisma.serviceRequest.update({
-      where: { id: quote.serviceRequestId },
-      data: { status: ServiceRequestStatus.SCHEDULED },
-    });
+    const professional = await this.prisma.professional.findUnique({ where: { id: quote.professionalId } });
+    if (professional) {
+      await this.notifications.create(
+        professional.userId,
+        NotificationType.BOOKING_CONFIRMED,
+        'Nouvelle réservation',
+        `Une réservation de ${quote.totalAmount} XOF a été créée`,
+        { bookingId: booking.id },
+      );
+    }
 
     return this.findOne(booking.id);
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, userId?: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id },
       include: {
@@ -58,10 +74,23 @@ export class BookingsService {
       },
     });
     if (!booking) throw new NotFoundException('Réservation non trouvée');
+    if (userId) {
+      const isClient = booking.serviceRequest.clientId === userId;
+      const isProfessional = booking.professional.userId === userId;
+      if (!isClient && !isProfessional) {
+        throw new ForbiddenException('Accès interdit à cette réservation');
+      }
+    }
     return booking;
   }
 
-  async findByProfessional(professionalId: string, status?: BookingStatus, page = 1, limit = 20) {
+  async findByProfessional(professionalId: string, status?: BookingStatus, page = 1, limit = 20, userId?: string) {
+    if (userId) {
+      const professional = await this.prisma.professional.findUnique({ where: { id: professionalId } });
+      if (!professional || professional.userId !== userId) {
+        throw new ForbiddenException('Accès interdit');
+      }
+    }
     const skip = (page - 1) * limit;
     const where: any = { professionalId };
     if (status) where.status = status;
@@ -110,14 +139,19 @@ export class BookingsService {
 
     const update: any = { status };
     if (status === BookingStatus.IN_PROGRESS) update.startedAt = new Date();
-    if (status === BookingStatus.COMPLETED) {
-      update.completedAt = new Date();
-      await this.prisma.serviceRequest.update({
-        where: { id: booking.serviceRequestId },
-        data: { status: ServiceRequestStatus.COMPLETED },
-      });
-    }
+    if (status === BookingStatus.COMPLETED) update.completedAt = new Date();
     if (status === BookingStatus.CANCELLED) update.cancelledAt = new Date();
+
+    if (status === BookingStatus.COMPLETED) {
+      const [result] = await this.prisma.$transaction([
+        this.prisma.booking.update({ where: { id }, data: update }),
+        this.prisma.serviceRequest.update({
+          where: { id: booking.serviceRequestId },
+          data: { status: ServiceRequestStatus.COMPLETED },
+        }),
+      ]);
+      return result;
+    }
 
     return this.prisma.booking.update({ where: { id }, data: update });
   }
