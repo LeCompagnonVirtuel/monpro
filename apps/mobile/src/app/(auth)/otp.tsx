@@ -56,9 +56,9 @@ export default function OtpScreen() {
       } else {
         await login(result.user.id, result.user.role, result.accessToken, result.refreshToken);
         if (result.user.role === 'PROFESSIONAL') {
-          router.replace('/(professional)/dashboard');
+          router.replace('/(professional)/(tabs)/dashboard');
         } else {
-          router.replace('/(client)/home');
+          router.replace('/(client)/(tabs)/home');
         }
       }
     } catch (err) {

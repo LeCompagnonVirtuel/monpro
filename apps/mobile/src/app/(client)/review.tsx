@@ -6,7 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
-import { Text, Button, Divider } from '@/components/ui';
+import { Text, Button, Divider, Skeleton } from '@/components/ui';
+import { ErrorState } from '@/components/feedback/ErrorState';
 import { useBooking } from '@/hooks/use-bookings';
 import { useCreateReview } from '@/hooks/use-create-review';
 
@@ -21,7 +22,7 @@ const DIMENSIONS: { key: string; label: string; field: 'qualityRating' | 'punctu
 
 export default function ReviewScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
-  const { data: booking } = useBooking(bookingId);
+  const { data: booking, isLoading: bookingLoading, isError: bookingError, refetch } = useBooking(bookingId);
   const createReview = useCreateReview();
 
   const [overallRating, setOverallRating] = useState(0);
@@ -50,6 +51,53 @@ export default function ReviewScreen() {
       Alert.alert('Erreur', 'Impossible de publier votre avis. Veuillez réessayer.');
     }
   };
+
+  if (bookingLoading) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <Header />
+        <View style={styles.scrollContent}>
+          <View style={styles.skeletonIntro}>
+            <Skeleton width="80%" height={28} />
+            <Skeleton width="50%" height={18} />
+          </View>
+          <View style={styles.skeletonRating}>
+            <Skeleton width="40%" height={22} />
+            <View style={styles.skeletonStars}>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} width={40} height={40} style={styles.skeletonStar} />
+              ))}
+            </View>
+          </View>
+          <View style={styles.skeletonDimensions}>
+            {[1, 2, 3, 4].map((i) => (
+              <View key={i} style={styles.skeletonDimRow}>
+                <Skeleton width="45%" height={16} />
+                <Skeleton width="30%" height={24} />
+              </View>
+            ))}
+          </View>
+          <View style={styles.skeletonComment}>
+            <Skeleton width="50%" height={22} />
+            <Skeleton width="100%" height={100} />
+          </View>
+          <Skeleton width="100%" height={52} style={styles.skeletonCta} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (bookingError || (!bookingLoading && !booking)) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <Header />
+        <ErrorState
+          message="Impossible de charger les informations de la réservation."
+          onRetry={() => refetch()}
+        />
+      </SafeAreaView>
+    );
+  }
 
   if (submitted) {
     return (
@@ -193,4 +241,12 @@ const styles = StyleSheet.create({
   commentSection: { paddingVertical: spacing.lg, gap: spacing.sm },
   commentInput: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: spacing.md, minHeight: 100, textAlignVertical: 'top', fontSize: 14, color: colors.text, backgroundColor: colors.surface },
   actions: { paddingTop: spacing.xl },
+  skeletonIntro: { paddingVertical: spacing.xl, gap: spacing.md },
+  skeletonRating: { paddingVertical: spacing.lg, alignItems: 'center', gap: spacing.lg },
+  skeletonStars: { flexDirection: 'row', gap: spacing.sm },
+  skeletonStar: { borderRadius: radius.sm },
+  skeletonDimensions: { paddingVertical: spacing.lg, gap: spacing.lg },
+  skeletonDimRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  skeletonComment: { paddingVertical: spacing.lg, gap: spacing.md },
+  skeletonCta: { marginTop: spacing.xl, borderRadius: radius.md },
 });

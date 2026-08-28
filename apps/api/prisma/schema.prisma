@@ -161,7 +161,7 @@ model District {
 }
 
 model Neighborhood {
-  id         String @id @default(uuid())
+  id         String   @id @default(uuid())
   name       String
   districtId String
   district   District @relation(fields: [districtId], references: [id])
@@ -174,33 +174,33 @@ model Neighborhood {
 // ─── USERS ──────────────────────────────────────────────────────────────────────
 
 model User {
-  id            String    @id @default(uuid())
-  phone         String    @unique
-  email         String?   @unique
-  fullName      String
-  avatarUrl     String?
-  role          UserRole  @default(CLIENT)
-  countryId     String?
-  country       Country?  @relation(fields: [countryId], references: [id])
-  cityId        String?
-  city          City?     @relation(fields: [cityId], references: [id])
-  isActive      Boolean   @default(true)
-  lastLoginAt   DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  deletedAt     DateTime?
+  id          String    @id @default(uuid())
+  phone       String    @unique
+  email       String?   @unique
+  fullName    String
+  avatarUrl   String?
+  role        UserRole  @default(CLIENT)
+  countryId   String?
+  country     Country?  @relation(fields: [countryId], references: [id])
+  cityId      String?
+  city        City?     @relation(fields: [cityId], references: [id])
+  isActive    Boolean   @default(true)
+  lastLoginAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
 
-  professional     Professional?
-  addresses        Address[]
-  serviceRequests  ServiceRequest[]
-  favorites        Favorite[]
-  reviews          Review[]
-  conversations    ConversationParticipant[]
-  notifications    Notification[]
-  refreshTokens    RefreshToken[]
-  sentMessages     Message[]
-  deviceTokens     DeviceToken[]
-  businesses       Business[]
+  professional    Professional?
+  addresses       Address[]
+  serviceRequests ServiceRequest[]
+  favorites       Favorite[]
+  reviews         Review[]
+  conversations   ConversationParticipant[]
+  notifications   Notification[]
+  refreshTokens   RefreshToken[]
+  sentMessages    Message[]
+  deviceTokens    DeviceToken[]
+  businesses      Business[]
 
   @@index([phone])
   @@index([role])
@@ -235,19 +235,19 @@ model OtpCode {
 // ─── ADDRESS ────────────────────────────────────────────────────────────────────
 
 model Address {
-  id              String        @id @default(uuid())
-  userId          String
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  label           String?
-  fullAddress     String
-  districtId      String?
-  district        District?     @relation(fields: [districtId], references: [id])
-  neighborhoodId  String?
-  neighborhood    Neighborhood? @relation(fields: [neighborhoodId], references: [id])
-  latitude        Float?
-  longitude       Float?
-  isDefault       Boolean       @default(false)
-  createdAt       DateTime      @default(now())
+  id             String        @id @default(uuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label          String?
+  fullAddress    String
+  districtId     String?
+  district       District?     @relation(fields: [districtId], references: [id])
+  neighborhoodId String?
+  neighborhood   Neighborhood? @relation(fields: [neighborhoodId], references: [id])
+  latitude       Float?
+  longitude      Float?
+  isDefault      Boolean       @default(false)
+  createdAt      DateTime      @default(now())
 
   serviceRequests ServiceRequest[]
   bookings        Booking[]
@@ -277,14 +277,14 @@ model Professional {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
-  services           ProfessionalService[]
-  zones              ProfessionalZone[]
-  availability       ProfessionalAvailability[]
-  portfolio          PortfolioItem[]
-  kycDocuments       KycDocument[]
-  quotes             Quote[]
-  bookings           Booking[]
-  reviews            Review[]
+  services            ProfessionalService[]
+  zones               ProfessionalZone[]
+  availability        ProfessionalAvailability[]
+  portfolio           PortfolioItem[]
+  kycDocuments        KycDocument[]
+  quotes              Quote[]
+  bookings            Booking[]
+  reviews             Review[]
   businessMemberships BusinessMember[]
 
   @@index([verificationStatus])
@@ -344,18 +344,18 @@ model PortfolioItem {
 }
 
 model KycDocument {
-  id             String          @id @default(uuid())
-  professionalId String
-  professional   Professional    @relation(fields: [professionalId], references: [id], onDelete: Cascade)
-  documentType   KycDocumentType
-  documentNumber String?
-  frontUrl       String
-  backUrl        String?
-  selfieUrl      String?
-  status         KycStatus       @default(PENDING)
-  submittedAt    DateTime        @default(now())
-  reviewedAt     DateTime?
-  reviewedBy     String?
+  id              String          @id @default(uuid())
+  professionalId  String
+  professional    Professional    @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  documentType    KycDocumentType
+  documentNumber  String?
+  frontUrl        String
+  backUrl         String?
+  selfieUrl       String?
+  status          KycStatus       @default(PENDING)
+  submittedAt     DateTime        @default(now())
+  reviewedAt      DateTime?
+  reviewedBy      String?
   rejectionReason String?
 
   @@map("kyc_documents")
@@ -417,24 +417,24 @@ model Service {
 // ─── SERVICE REQUESTS ───────────────────────────────────────────────────────────
 
 model ServiceRequest {
-  id          String               @id @default(uuid())
-  clientId    String
-  client      User                 @relation(fields: [clientId], references: [id])
-  serviceId   String
-  service     Service              @relation(fields: [serviceId], references: [id])
-  title       String
-  description String
-  urgency     UrgencyLevel         @default(NORMAL)
-  status      ServiceRequestStatus @default(DRAFT)
-  addressId   String?
-  address     Address?             @relation(fields: [addressId], references: [id])
-  latitude    Float?
-  longitude   Float?
-  preferredDate DateTime?
+  id                 String               @id @default(uuid())
+  clientId           String
+  client             User                 @relation(fields: [clientId], references: [id])
+  serviceId          String
+  service            Service              @relation(fields: [serviceId], references: [id])
+  title              String
+  description        String
+  urgency            UrgencyLevel         @default(NORMAL)
+  status             ServiceRequestStatus @default(DRAFT)
+  addressId          String?
+  address            Address?             @relation(fields: [addressId], references: [id])
+  latitude           Float?
+  longitude          Float?
+  preferredDate      DateTime?
   preferredTimeStart String?
   preferredTimeEnd   String?
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
 
   media   RequestMedia[]
   quotes  Quote[]
@@ -460,21 +460,21 @@ model RequestMedia {
 // ─── QUOTES ─────────────────────────────────────────────────────────────────────
 
 model Quote {
-  id               String         @id @default(uuid())
-  serviceRequestId String
-  serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id])
-  professionalId   String
-  professional     Professional   @relation(fields: [professionalId], references: [id])
-  laborCost        Int
-  materialCost     Int            @default(0)
-  transportCost    Int            @default(0)
-  totalAmount      Int
-  description      String?
+  id                String         @id @default(uuid())
+  serviceRequestId  String
+  serviceRequest    ServiceRequest @relation(fields: [serviceRequestId], references: [id])
+  professionalId    String
+  professional      Professional   @relation(fields: [professionalId], references: [id])
+  laborCost         Int
+  materialCost      Int            @default(0)
+  transportCost     Int            @default(0)
+  totalAmount       Int
+  description       String?
   estimatedDuration String?
-  validUntil       DateTime?
-  status           QuoteStatus    @default(PENDING)
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  validUntil        DateTime?
+  status            QuoteStatus    @default(PENDING)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 
   booking Booking?
 
@@ -486,25 +486,25 @@ model Quote {
 // ─── BOOKINGS ───────────────────────────────────────────────────────────────────
 
 model Booking {
-  id               String         @id @default(uuid())
-  serviceRequestId String         @unique
-  serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id])
-  quoteId          String         @unique
-  quote            Quote          @relation(fields: [quoteId], references: [id])
-  professionalId   String
-  professional     Professional   @relation(fields: [professionalId], references: [id])
-  addressId        String?
-  address          Address?       @relation(fields: [addressId], references: [id])
-  scheduledDate    DateTime
-  scheduledTime    String?
-  status           BookingStatus  @default(PENDING)
-  startedAt        DateTime?
-  completedAt      DateTime?
-  cancelledAt      DateTime?
+  id                 String         @id @default(uuid())
+  serviceRequestId   String         @unique
+  serviceRequest     ServiceRequest @relation(fields: [serviceRequestId], references: [id])
+  quoteId            String         @unique
+  quote              Quote          @relation(fields: [quoteId], references: [id])
+  professionalId     String
+  professional       Professional   @relation(fields: [professionalId], references: [id])
+  addressId          String?
+  address            Address?       @relation(fields: [addressId], references: [id])
+  scheduledDate      DateTime
+  scheduledTime      String?
+  status             BookingStatus  @default(PENDING)
+  startedAt          DateTime?
+  completedAt        DateTime?
+  cancelledAt        DateTime?
   cancellationReason String?
-  totalAmount      Int
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  totalAmount        Int
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
 
   payment      Payment?
   review       Review?
@@ -518,21 +518,21 @@ model Booking {
 // ─── PAYMENTS ───────────────────────────────────────────────────────────────────
 
 model Payment {
-  id              String          @id @default(uuid())
-  bookingId       String          @unique
-  booking         Booking         @relation(fields: [bookingId], references: [id])
-  amount          Int
-  commission      Int
+  id                 String           @id @default(uuid())
+  bookingId          String           @unique
+  booking            Booking          @relation(fields: [bookingId], references: [id])
+  amount             Int
+  commission         Int
   professionalAmount Int
-  commissionRate  Float
-  provider        PaymentProvider?
-  providerRef     String?
-  status          PaymentStatus   @default(PENDING)
-  paidAt          DateTime?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  commissionRate     Float
+  provider           PaymentProvider?
+  providerRef        String?
+  status             PaymentStatus    @default(PENDING)
+  paidAt             DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
 
-  transactions PaymentTransaction[]
+  transactions  PaymentTransaction[]
   ledgerEntries LedgerEntry[]
 
   @@index([status])
@@ -573,22 +573,22 @@ model CommissionConfig {
 // ─── REVIEWS ────────────────────────────────────────────────────────────────────
 
 model Review {
-  id             String       @id @default(uuid())
-  bookingId      String       @unique
-  booking        Booking      @relation(fields: [bookingId], references: [id])
-  clientId       String
-  client         User         @relation(fields: [clientId], references: [id])
-  professionalId String
-  professional   Professional @relation(fields: [professionalId], references: [id])
-  overallRating  Int
-  qualityRating  Int?
-  punctualityRating Int?
+  id                  String       @id @default(uuid())
+  bookingId           String       @unique
+  booking             Booking      @relation(fields: [bookingId], references: [id])
+  clientId            String
+  client              User         @relation(fields: [clientId], references: [id])
+  professionalId      String
+  professional        Professional @relation(fields: [professionalId], references: [id])
+  overallRating       Int
+  qualityRating       Int?
+  punctualityRating   Int?
   communicationRating Int?
-  valuePriceRating Int?
-  comment        String?
-  response       String?
-  respondedAt    DateTime?
-  createdAt      DateTime     @default(now())
+  valuePriceRating    Int?
+  comment             String?
+  response            String?
+  respondedAt         DateTime?
+  createdAt           DateTime     @default(now())
 
   @@index([professionalId])
   @@map("reviews")
@@ -730,17 +730,17 @@ enum LedgerDirection {
 }
 
 model LedgerEntry {
-  id            String          @id @default(uuid())
-  paymentId     String
-  payment       Payment         @relation(fields: [paymentId], references: [id])
-  accountId     String
-  type          LedgerEntryType
-  direction     LedgerDirection
-  amount        Int
-  currency      String          @default("XOF")
-  balanceAfter  Int?
-  metadata      Json?
-  createdAt     DateTime        @default(now())
+  id           String          @id @default(uuid())
+  paymentId    String
+  payment      Payment         @relation(fields: [paymentId], references: [id])
+  accountId    String
+  type         LedgerEntryType
+  direction    LedgerDirection
+  amount       Int
+  currency     String          @default("XOF")
+  balanceAfter Int?
+  metadata     Json?
+  createdAt    DateTime        @default(now())
 
   @@index([accountId])
   @@index([paymentId])
@@ -750,19 +750,19 @@ model LedgerEntry {
 // ─── INTERVENTION ───────────────────────────────────────────────────────────────
 
 model Intervention {
-  id               String    @id @default(uuid())
-  bookingId        String    @unique
-  booking          Booking   @relation(fields: [bookingId], references: [id])
-  arrivedAt        DateTime?
-  startedAt        DateTime?
-  completedAt      DateTime?
-  beforePhotos     String[]
-  afterPhotos      String[]
-  completionNotes  String?
-  clientConfirmed  Boolean   @default(false)
+  id                String    @id @default(uuid())
+  bookingId         String    @unique
+  booking           Booking   @relation(fields: [bookingId], references: [id])
+  arrivedAt         DateTime?
+  startedAt         DateTime?
+  completedAt       DateTime?
+  beforePhotos      String[]
+  afterPhotos       String[]
+  completionNotes   String?
+  clientConfirmed   Boolean   @default(false)
   clientConfirmedAt DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   @@map("interventions")
 }
@@ -794,19 +794,19 @@ model DeviceToken {
 // ─── BUSINESS ───────────────────────────────────────────────────────────────────
 
 model Business {
-  id              String   @id @default(uuid())
-  ownerId         String
-  owner           User     @relation(fields: [ownerId], references: [id])
-  name            String
-  registrationNo  String?
-  description     String?
-  logoUrl         String?
-  phone           String?
-  email           String?
-  address         String?
-  isVerified      Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(uuid())
+  ownerId        String
+  owner          User     @relation(fields: [ownerId], references: [id])
+  name           String
+  registrationNo String?
+  description    String?
+  logoUrl        String?
+  phone          String?
+  email          String?
+  address        String?
+  isVerified     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   members BusinessMember[]
 

@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/query-client';
 import { useAuthStore } from '@/stores/auth.store';
@@ -8,7 +9,16 @@ import { setSessionExpiredHandler } from '@/api/client';
 import { useSocket } from '@/hooks/use-socket';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { OfflineBanner } from '@/components/feedback/OfflineBanner';
+import { hasCompletedOnboarding } from '@/lib/onboarding';
 import '@/lib/i18n';
+
+SplashScreen.preventAutoHideAsync();
+
+let onboardingChecked = false;
+
+export function getOnboardingChecked() {
+  return onboardingChecked;
+}
 
 function AppServices() {
   useSocket();
@@ -19,14 +29,27 @@ function AppServices() {
 export default function RootLayout() {
   const restoreSession = useAuthStore((s) => s.restoreSession);
   const logout = useAuthStore((s) => s.logout);
+  const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
     setSessionExpiredHandler(() => {
       logout();
     });
-    restoreSession();
+
+    Promise.all([
+      restoreSession(),
+      hasCompletedOnboarding(),
+    ]).then(([, onboardingCompleted]) => {
+      onboardingChecked = onboardingCompleted;
+      setAppReady(true);
+      SplashScreen.hideAsync();
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (!appReady) {
+    return null;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -34,6 +57,7 @@ export default function RootLayout() {
       <OfflineBanner />
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(onboarding)" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(client)" />
         <Stack.Screen name="(professional)" />
