@@ -23,16 +23,22 @@ import { LedgerModule } from './ledger/ledger.module';
 import { InterventionsModule } from './interventions/interventions.module';
 import { DeviceTokensModule } from './device-tokens/device-tokens.module';
 import { BusinessesModule } from './businesses/businesses.module';
+import { RealtimeModule } from './realtime/realtime.module';
 import { HealthController } from './health.controller';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
+    ThrottlerModule.forRoot([
+      { name: 'default', ttl: 60000, limit: 100 },
+      { name: 'sensitive', ttl: 60000, limit: 10 },
+    ]),
     PrismaModule,
+    RealtimeModule,
     AuthModule,
     UsersModule,
     ProfessionalsModule,
@@ -60,6 +66,7 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },
     { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: AuditLogInterceptor },
   ],
 })
 export class AppModule {}

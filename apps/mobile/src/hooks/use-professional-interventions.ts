@@ -20,10 +20,9 @@ export function useCreateIntervention() {
       const { data } = await interventionsApi.create(bookingId);
       return data.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pro-intervention'] });
+    onSuccess: (_data, bookingId) => {
+      queryClient.invalidateQueries({ queryKey: ['pro-intervention', bookingId] });
       queryClient.invalidateQueries({ queryKey: ['pro-bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['pro-dashboard'] });
     },
   });
 }

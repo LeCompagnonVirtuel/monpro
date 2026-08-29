@@ -3,12 +3,15 @@ import { PrismaService } from '../prisma/prisma.service';
 import { BookingStatus, ServiceRequestStatus, QuoteStatus, NotificationType } from '@prisma/client';
 import { validateBookingTransition } from '../common/state-machines';
 import { NotificationsService } from '../notifications/notifications.service';
+import { RealtimeService } from '../realtime/realtime.service';
+import { paginate } from '../common/utils/pagination';
 
 @Injectable()
 export class BookingsService {
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationsService,
+    private realtimeService: RealtimeService,
   ) {}
 
   async createFromQuote(quoteId: string, data: { scheduledDate: Date; scheduledTime?: string; addressId?: string }, userId: string) {
@@ -56,6 +59,11 @@ export class BookingsService {
         `Une réservation de ${quote.totalAmount} XOF a été créée`,
         { bookingId: booking.id },
       );
+
+      this.realtimeService.emitToUser(professional.userId, {
+        type: 'booking.created',
+        entityId: booking.id,
+      });
     }
 
     return this.findOne(booking.id);
@@ -84,14 +92,14 @@ export class BookingsService {
     return booking;
   }
 
-  async findByProfessional(professionalId: string, status?: BookingStatus, page = 1, limit = 20, userId?: string) {
+  async findByProfessional(professionalId: string, status?: BookingStatus, page?: number, limit?: number, userId?: string) {
     if (userId) {
       const professional = await this.prisma.professional.findUnique({ where: { id: professionalId } });
       if (!professional || professional.userId !== userId) {
         throw new ForbiddenException('Accès interdit');
       }
     }
-    const skip = (page - 1) * limit;
+    const { page: p, limit: l, skip } = paginate(page, limit);
     const where: any = { professionalId };
     if (status) where.status = status;
 
@@ -109,7 +117,7 @@ export class BookingsService {
       this.prisma.booking.count({ where }),
     ]);
 
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return { data, total, page: p, limit: l, totalPages: Math.ceil(total / l) };
   }
 
   async updateStatus(id: string, status: BookingStatus, userId: string) {
@@ -142,6 +150,12 @@ export class BookingsService {
     if (status === BookingStatus.COMPLETED) update.completedAt = new Date();
     if (status === BookingStatus.CANCELLED) update.cancelledAt = new Date();
 
+    const eventPayload = {
+      type: 'booking.status_changed' as const,
+      entityId: id,
+      metadata: { status },
+    };
+
     if (status === BookingStatus.COMPLETED) {
       const [result] = await this.prisma.$transaction([
         this.prisma.booking.update({ where: { id }, data: update }),
@@ -150,9 +164,18 @@ export class BookingsService {
           data: { status: ServiceRequestStatus.COMPLETED },
         }),
       ]);
+
+      this.realtimeService.emitToUser(booking.serviceRequest.clientId, eventPayload);
+      this.realtimeService.emitToUser(booking.professional.userId, eventPayload);
+
       return result;
     }
 
-    return this.prisma.booking.update({ where: { id }, data: update });
+    const result = await this.prisma.booking.update({ where: { id }, data: update });
+
+    this.realtimeService.emitToUser(booking.serviceRequest.clientId, eventPayload);
+    this.realtimeService.emitToUser(booking.professional.userId, eventPayload);
+
+    return result;
   }
 }

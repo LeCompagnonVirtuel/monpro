@@ -49,15 +49,15 @@ export function ProfessionalSearchCard({ professional }: ProfessionalSearchCardP
             {profession}
           </Text>
 
-          {professional.rating != null && (
+          {professional.averageRating != null && (
             <View style={styles.ratingRow}>
               <Ionicons name="star" size={14} color={colors.secondary} />
               <Text variant="caption" style={styles.ratingValue}>
-                {professional.rating.toFixed(1)}
+                {professional.averageRating.toFixed(1)}
               </Text>
-              {professional.reviewCount != null && (
+              {professional.totalReviews != null && (
                 <Text variant="caption" color={colors.textTertiary}>
-                  ({professional.reviewCount} avis)
+                  ({professional.totalReviews} avis)
                 </Text>
               )}
             </View>

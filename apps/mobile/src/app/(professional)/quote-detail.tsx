@@ -56,7 +56,7 @@ export default function QuoteDetailScreen() {
         </View>
 
         <View style={styles.amountCard}>
-          <Text variant="h2" color={colors.primary}>{formatCurrency(quote.totalCost)}</Text>
+          <Text variant="h2" color={colors.primary}>{formatCurrency(quote.totalAmount)}</Text>
           <Text variant="bodySmall" color={colors.textTertiary}>Montant total</Text>
         </View>
 

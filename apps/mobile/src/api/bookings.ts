@@ -6,8 +6,8 @@ export type BookingStatus =
 
 export interface Booking {
   id: string;
+  serviceRequestId: string;
   quoteId: string;
-  clientId: string;
   professionalId: string;
   scheduledDate: string;
   scheduledTime?: string;
@@ -15,7 +15,7 @@ export interface Booking {
   totalAmount: number;
   addressId?: string;
   createdAt: string;
-  quote?: { id: string; totalCost: number };
+  quote?: { id: string; totalAmount: number };
   professional?: { id: string; businessName?: string; user?: { fullName: string } };
 }
 

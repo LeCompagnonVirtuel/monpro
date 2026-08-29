@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException, ForbiddenException 
 import { PrismaService } from '../prisma/prisma.service';
 import { BookingStatus, NotificationType } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
+import { paginate } from '../common/utils/pagination';
 
 @Injectable()
 export class ReviewsService {
@@ -80,19 +81,19 @@ export class ReviewsService {
     });
   }
 
-  async findByProfessional(professionalId: string, page = 1, limit = 20) {
-    const skip = (page - 1) * limit;
+  async findByProfessional(professionalId: string, page?: number, limit?: number) {
+    const { page: p, limit: l, skip } = paginate(page, limit);
     const [data, total] = await Promise.all([
       this.prisma.review.findMany({
         where: { professionalId },
         skip,
-        take: limit,
+        take: l,
         orderBy: { createdAt: 'desc' },
         include: { client: { select: { fullName: true, avatarUrl: true } } },
       }),
       this.prisma.review.count({ where: { professionalId } }),
     ]);
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return { data, total, page: p, limit: l, totalPages: Math.ceil(total / l) };
   }
 
   private async updateProfessionalRating(professionalId: string) {

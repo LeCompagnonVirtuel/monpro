@@ -30,9 +30,9 @@ export function useUpdateBookingStatus() {
     mutationFn: async ({ id, status }: { id: string; status: BookingStatus }) => {
       await bookingsApi.updateStatus(id, status);
     },
-    onSuccess: () => {
+    onSuccess: (_data, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['pro-bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['pro-booking'] });
+      queryClient.invalidateQueries({ queryKey: ['pro-booking', id] });
       queryClient.invalidateQueries({ queryKey: ['pro-dashboard'] });
     },
   });

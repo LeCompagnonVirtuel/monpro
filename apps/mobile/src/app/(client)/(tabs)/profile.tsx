@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { Skeleton } from '@/components/ui';
+import { ErrorState } from '@/components/feedback/ErrorState';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfileIdentity } from '@/components/profile/ProfileIdentity';
 import { PremiumBanner } from '@/components/profile/PremiumBanner';
@@ -41,6 +42,15 @@ export default function ProfileScreen() {
           <Skeleton width={180} height={24} />
           <Skeleton width={120} height={16} />
         </View>
+      </View>
+    );
+  }
+
+  if (me.error) {
+    return (
+      <View style={styles.container}>
+        <ProfileHeader />
+        <ErrorState message="Impossible de charger votre profil" onRetry={() => me.refetch()} />
       </View>
     );
   }

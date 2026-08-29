@@ -7,10 +7,15 @@ export interface Payment {
   id: string;
   bookingId: string;
   amount: number;
-  provider: PaymentProvider;
+  commission: number;
+  professionalAmount: number;
+  commissionRate: number;
+  provider?: PaymentProvider;
+  providerRef?: string;
   status: PaymentStatus;
-  reference?: string;
+  paidAt?: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface InitiatePaymentPayload {

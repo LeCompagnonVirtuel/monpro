@@ -1,7 +1,9 @@
-import { Controller, Post, Get, Param, Body, Headers, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, Headers, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { PaymentsService } from './payments.service';
 import { PaymentProvider } from '@prisma/client';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { PaymentProviderFactory } from './providers/payment-provider.factory';
@@ -9,6 +11,7 @@ import { InitiatePaymentDto } from './dto/initiate-payment.dto';
 
 @ApiTags('Payments')
 @Controller('payments')
+@UseGuards(JwtAuthGuard)
 export class PaymentsController {
   constructor(
     private paymentsService: PaymentsService,
@@ -16,6 +19,7 @@ export class PaymentsController {
   ) {}
 
   @Post()
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Initier un paiement' })
   initiate(

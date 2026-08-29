@@ -2,12 +2,14 @@ import { Injectable, NotFoundException, ForbiddenException, BadRequestException 
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationType } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
+import { RealtimeService } from '../realtime/realtime.service';
 
 @Injectable()
 export class InterventionsService {
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationsService,
+    private realtimeService: RealtimeService,
   ) {}
 
   async create(bookingId: string, professionalUserId: string) {
@@ -47,6 +49,12 @@ export class InterventionsService {
         'Le professionnel est sur place pour votre intervention',
         { bookingId },
       );
+
+      this.realtimeService.emitToUser(booking.serviceRequest.clientId, {
+        type: 'intervention.updated',
+        entityId: result.id,
+        metadata: { bookingId, status: 'arrived' },
+      });
     }
 
     return result;
@@ -54,10 +62,24 @@ export class InterventionsService {
 
   async start(bookingId: string, professionalUserId: string, beforePhotos: string[]) {
     const intervention = await this.getAndValidateProfessional(bookingId, professionalUserId);
-    return this.prisma.intervention.update({
+    const result = await this.prisma.intervention.update({
       where: { id: intervention.id },
       data: { startedAt: new Date(), beforePhotos },
     });
+
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { serviceRequest: true },
+    });
+    if (booking) {
+      this.realtimeService.emitToUser(booking.serviceRequest.clientId, {
+        type: 'intervention.updated',
+        entityId: result.id,
+        metadata: { bookingId, status: 'started' },
+      });
+    }
+
+    return result;
   }
 
   async complete(bookingId: string, professionalUserId: string, data: { afterPhotos: string[]; completionNotes?: string }) {
@@ -85,6 +107,12 @@ export class InterventionsService {
         'Le professionnel a terminé l\'intervention. Veuillez confirmer.',
         { bookingId },
       );
+
+      this.realtimeService.emitToUser(booking.serviceRequest.clientId, {
+        type: 'intervention.updated',
+        entityId: result.id,
+        metadata: { bookingId, status: 'completed' },
+      });
     }
 
     return result;
@@ -93,7 +121,7 @@ export class InterventionsService {
   async clientConfirm(bookingId: string, clientUserId: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
-      include: { serviceRequest: true },
+      include: { serviceRequest: true, professional: true },
     });
     if (!booking) throw new NotFoundException('Réservation non trouvée');
     if (booking.serviceRequest.clientId !== clientUserId) {
@@ -104,10 +132,18 @@ export class InterventionsService {
     if (!intervention) throw new NotFoundException('Intervention non trouvée');
     if (!intervention.completedAt) throw new BadRequestException('L\'intervention n\'est pas terminée');
 
-    return this.prisma.intervention.update({
+    const result = await this.prisma.intervention.update({
       where: { id: intervention.id },
       data: { clientConfirmed: true, clientConfirmedAt: new Date() },
     });
+
+    this.realtimeService.emitToUser(booking.professional.userId, {
+      type: 'intervention.confirmed',
+      entityId: result.id,
+      metadata: { bookingId },
+    });
+
+    return result;
   }
 
   async findByBooking(bookingId: string, userId?: string) {

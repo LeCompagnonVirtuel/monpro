@@ -5,7 +5,61 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
 
+const REQUIRED_ENV_VARS = [
+  'DATABASE_URL',
+  'JWT_SECRET',
+] as const;
+
+const PRODUCTION_REQUIRED_ENV_VARS = [
+  'CORS_ORIGINS',
+] as const;
+
+function validateEnvironment(): void {
+  const logger = new Logger('EnvValidation');
+  const isProduction = process.env.NODE_ENV === 'production';
+  const missing: string[] = [];
+
+  for (const key of REQUIRED_ENV_VARS) {
+    if (!process.env[key]) missing.push(key);
+  }
+
+  if (isProduction) {
+    for (const key of PRODUCTION_REQUIRED_ENV_VARS) {
+      if (!process.env[key]) missing.push(key);
+    }
+
+    if (process.env.OTP_PROVIDER === 'africas_talking') {
+      if (!process.env.AFRICAS_TALKING_API_KEY) missing.push('AFRICAS_TALKING_API_KEY (required when OTP_PROVIDER=africas_talking)');
+      if (!process.env.AFRICAS_TALKING_USERNAME) missing.push('AFRICAS_TALKING_USERNAME (required when OTP_PROVIDER=africas_talking)');
+    }
+
+    if (process.env.JWT_SECRET === 'CHANGE_ME_IN_PRODUCTION') {
+      logger.fatal('JWT_SECRET is still the default value. Set a secure secret in production.');
+      process.exit(1);
+    }
+  }
+
+  if (missing.length > 0) {
+    logger.fatal(`Missing required environment variables: ${missing.join(', ')}`);
+    process.exit(1);
+  }
+
+  const validNodeEnvs = ['development', 'test', 'production'];
+  const nodeEnv = process.env.NODE_ENV || 'development';
+  if (!validNodeEnvs.includes(nodeEnv)) {
+    logger.warn(`Invalid NODE_ENV "${nodeEnv}". Valid values: ${validNodeEnvs.join(', ')}`);
+  }
+
+  const validOtpProviders = ['dev', 'africas_talking'];
+  const otpProvider = process.env.OTP_PROVIDER || 'dev';
+  if (!validOtpProviders.includes(otpProvider)) {
+    logger.warn(`Invalid OTP_PROVIDER "${otpProvider}". Valid values: ${validOtpProviders.join(', ')}`);
+  }
+}
+
 async function bootstrap() {
+  validateEnvironment();
+
   const logger = new Logger('Bootstrap');
   const isProduction = process.env.NODE_ENV === 'production';
 
@@ -74,6 +128,10 @@ async function bootstrap() {
   }
 
   app.getHttpAdapter().get('/api/openapi.json', (_req, res) => {
+    if (isProduction && !process.env.SWAGGER_EXPOSED) {
+      res.status(404).json({ message: 'Not found' });
+      return;
+    }
     res.json(document);
   });
 

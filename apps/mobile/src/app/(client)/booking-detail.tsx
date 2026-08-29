@@ -130,7 +130,7 @@ export default function BookingDetailScreen() {
 
           <View style={styles.detailSection}>
             <DetailRow label="Professionnel" value={acceptedQuote.professional?.businessName || acceptedQuote.professional?.user?.fullName || '-'} />
-            <DetailRow label="Montant" value={formatCurrency(acceptedQuote.totalCost)} />
+            <DetailRow label="Montant" value={formatCurrency(acceptedQuote.totalAmount)} />
             {acceptedQuote.estimatedDuration && (
               <DetailRow label="Délai" value={acceptedQuote.estimatedDuration} />
             )}

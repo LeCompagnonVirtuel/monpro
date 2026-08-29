@@ -1,12 +1,14 @@
-import { Controller, Post, Patch, Get, Param, Body } from '@nestjs/common';
+import { Controller, Post, Patch, Get, Param, Body, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { InterventionsService } from './interventions.service';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { StartInterventionDto } from './dto/start-intervention.dto';
 import { CompleteInterventionDto } from './dto/complete-intervention.dto';
 
 @ApiTags('Interventions')
 @Controller('interventions')
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class InterventionsController {
   constructor(private interventionsService: InterventionsService) {}

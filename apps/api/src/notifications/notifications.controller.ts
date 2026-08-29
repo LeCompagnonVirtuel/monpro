@@ -17,15 +17,21 @@ export class NotificationsController {
     return this.notificationsService.findByUser(userId, page, limit);
   }
 
-  @Patch(':id/read')
-  @ApiOperation({ summary: 'Marquer une notification comme lue' })
-  markAsRead(@Param('id') id: string, @CurrentUser('id') userId: string) {
-    return this.notificationsService.markAsRead(id, userId);
+  @Get('unread-count')
+  @ApiOperation({ summary: 'Nombre de notifications non lues' })
+  getUnreadCount(@CurrentUser('id') userId: string) {
+    return this.notificationsService.getUnreadCount(userId);
   }
 
   @Patch('read-all')
   @ApiOperation({ summary: 'Tout marquer comme lu' })
   markAllAsRead(@CurrentUser('id') userId: string) {
     return this.notificationsService.markAllAsRead(userId);
+  }
+
+  @Patch(':id/read')
+  @ApiOperation({ summary: 'Marquer une notification comme lue' })
+  markAsRead(@Param('id') id: string, @CurrentUser('id') userId: string) {
+    return this.notificationsService.markAsRead(id, userId);
   }
 }

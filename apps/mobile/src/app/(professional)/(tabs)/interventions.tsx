@@ -94,7 +94,7 @@ function BookingCard({ booking }: { booking: Booking }) {
         </View>
       </View>
       <View style={styles.cardContent}>
-        <Text variant="body" numberOfLines={1}>{booking.quote?.totalCost ? formatCurrency(booking.quote.totalCost) : '-'}</Text>
+        <Text variant="body" numberOfLines={1}>{booking.quote?.totalAmount ? formatCurrency(booking.quote.totalAmount) : '-'}</Text>
         <Text variant="bodySmall" color={colors.textSecondary}>{formatDate(booking.scheduledDate)}</Text>
       </View>
       <View style={[styles.statusBadge, { backgroundColor: config.color + '15' }]}>

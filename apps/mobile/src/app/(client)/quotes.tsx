@@ -45,7 +45,7 @@ export default function QuotesScreen() {
     );
   }
 
-  const sorted = [...quotes].sort((a, b) => a.totalCost - b.totalCost);
+  const sorted = [...quotes].sort((a, b) => a.totalAmount - b.totalAmount);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -82,7 +82,7 @@ function QuoteCard({ quote, rank, requestId }: { quote: Quote; rank: number; req
     <Pressable
       style={styles.card}
       onPress={() => router.push({ pathname: '/(client)/quote-detail', params: { quoteId: quote.id, requestId } })}
-      accessibilityLabel={`Devis ${rank} de ${proName}, ${formatCurrency(quote.totalCost)}`}
+      accessibilityLabel={`Devis ${rank} de ${proName}, ${formatCurrency(quote.totalAmount)}`}
     >
       <View style={styles.cardHeader}>
         <Avatar
@@ -97,16 +97,16 @@ function QuoteCard({ quote, rank, requestId }: { quote: Quote; rank: number; req
               <Ionicons name="checkmark-circle" size={16} color={colors.success} />
             )}
           </View>
-          {quote.professional?.rating != null && (
+          {quote.professional?.averageRating != null && (
             <View style={styles.ratingRow}>
               <Ionicons name="star" size={14} color={colors.secondary} />
               <Text variant="bodySmall" color={colors.textSecondary}>
-                {quote.professional.rating.toFixed(1)}
+                {quote.professional.averageRating.toFixed(1)}
               </Text>
             </View>
           )}
         </View>
-        <Text variant="h2" color={colors.primary}>{formatCurrency(quote.totalCost)}</Text>
+        <Text variant="h2" color={colors.primary}>{formatCurrency(quote.totalAmount)}</Text>
       </View>
 
       <View style={styles.cardDetails}>

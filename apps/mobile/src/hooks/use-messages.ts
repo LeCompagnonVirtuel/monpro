@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { messagingApi, Message } from '@/api/messaging';
+import { messagingApi } from '@/api/messaging';
 
 const PAGE_SIZE = 30;
 
@@ -35,12 +35,7 @@ export function useSendMessage() {
       const { data } = await messagingApi.sendMessage(params.conversationId, params.content, params.imageUrl);
       return data.data;
     },
-    onSuccess: (message: Message) => {
-      queryClient.setQueryData<Message[]>(['messages', message.conversationId], (old: Message[] | undefined) => {
-        if (!old) return [message];
-        if (old.some((m: Message) => m.id === message.id)) return old;
-        return [...old, message];
-      });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
   });

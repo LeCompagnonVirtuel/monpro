@@ -133,6 +133,8 @@ export default function HomeScreen() {
                 <Skeleton key={i} width={140} height={140} borderRadius={16} />
               ))}
             </ScrollView>
+          ) : services.error ? (
+            <ErrorState message="Erreur de chargement" onRetry={() => services.refetch()} />
           ) : (
             <FlatList
               horizontal

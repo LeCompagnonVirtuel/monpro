@@ -46,7 +46,7 @@ export class ProfessionalsController {
   }
 
   @Get('me')
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.PROFESSIONAL)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Mon profil professionnel' })
@@ -70,6 +70,7 @@ export class ProfessionalsController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Modifier le profil professionnel' })
   async update(@Param('id') id: string, @CurrentUser('id') userId: string, @Body() body: UpdateProfessionalDto) {

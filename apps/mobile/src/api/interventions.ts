@@ -3,15 +3,16 @@ import { apiClient } from './client';
 export interface Intervention {
   id: string;
   bookingId: string;
-  status: string;
-  beforePhotos?: string[];
-  afterPhotos?: string[];
+  beforePhotos: string[];
+  afterPhotos: string[];
   completionNotes?: string;
   arrivedAt?: string;
   startedAt?: string;
   completedAt?: string;
-  confirmedAt?: string;
+  clientConfirmed: boolean;
+  clientConfirmedAt?: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export const interventionsApi = {

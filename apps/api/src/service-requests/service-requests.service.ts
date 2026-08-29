@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { PrismaService } from '../prisma/prisma.service';
 import { ServiceRequestStatus, UrgencyLevel } from '@prisma/client';
 import { validateServiceRequestTransition } from '../common/state-machines';
+import { paginate } from '../common/utils/pagination';
 
 @Injectable()
 export class ServiceRequestsService {
@@ -50,7 +51,7 @@ export class ServiceRequestsService {
     return this.findOne(request.id, clientId);
   }
 
-  async findOne(id: string, _userId?: string) {
+  async findOne(id: string, userId?: string) {
     const request = await this.prisma.serviceRequest.findUnique({
       where: { id },
       include: {
@@ -70,13 +71,24 @@ export class ServiceRequestsService {
     });
 
     if (!request) throw new NotFoundException('Demande non trouvée');
+
+    if (userId) {
+      const isClient = request.clientId === userId;
+      if (!isClient) {
+        const professional = await this.prisma.professional.findUnique({ where: { userId } });
+        if (!professional) throw new ForbiddenException('Accès interdit');
+        const hasQuoted = await this.prisma.quote.findFirst({
+          where: { serviceRequestId: id, professionalId: professional.id },
+        });
+        if (!hasQuoted) throw new ForbiddenException('Accès interdit');
+      }
+    }
+
     return request;
   }
 
   async findByClient(clientId: string, status?: ServiceRequestStatus, page?: number, limit?: number) {
-    const p = Number(page) || 1;
-    const l = Number(limit) || 20;
-    const skip = (p - 1) * l;
+    const { page: p, limit: l, skip } = paginate(page, limit);
     const where: any = { clientId };
     if (status) where.status = status;
 

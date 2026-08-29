@@ -3,6 +3,8 @@ import { tokenStorage } from '@/lib/storage';
 import { queryClient } from '@/lib/query-client';
 import { Message, Conversation } from '@/api/messaging';
 import { API_BASE_URL } from '@/lib/config';
+import { RealtimeEvent } from '@/types/realtime';
+import { logger } from '@/lib/logger';
 
 const SOCKET_URL = API_BASE_URL.replace('/api/v1', '');
 
@@ -13,10 +15,12 @@ export type ConnectionStatus = 'connected' | 'disconnected' | 'connecting' | 'er
 type StatusListener = (status: ConnectionStatus) => void;
 type MessageListener = (message: Message) => void;
 type TypingListener = (data: { userId: string }) => void;
+type RealtimeListener = (event: RealtimeEvent) => void;
 
 const statusListeners = new Set<StatusListener>();
 const messageListeners = new Set<MessageListener>();
 const typingListeners = new Set<TypingListener>();
+const realtimeListeners = new Set<RealtimeListener>();
 
 function notifyStatus(status: ConnectionStatus) {
   statusListeners.forEach((fn) => fn(status));
@@ -52,8 +56,9 @@ export const socketService = {
       notifyStatus('disconnected');
     });
 
-    socket.on('connect_error', async () => {
+    socket.on('connect_error', async (err) => {
       isConnecting = false;
+      logger.warn('Socket connection error', { message: err.message });
       const freshToken = await tokenStorage.getAccessToken();
       if (freshToken && socket) {
         socket.auth = { token: freshToken };
@@ -69,6 +74,24 @@ export const socketService = {
     socket.on('userTyping', (data: { userId: string }) => {
       typingListeners.forEach((fn) => fn(data));
     });
+
+    const domainEvents: RealtimeEvent['type'][] = [
+      'notification.created',
+      'quote.created',
+      'quote.accepted',
+      'quote.rejected',
+      'booking.created',
+      'booking.status_changed',
+      'intervention.updated',
+      'intervention.confirmed',
+      'payment.updated',
+    ];
+
+    for (const eventType of domainEvents) {
+      socket.on(eventType, (event: RealtimeEvent) => {
+        realtimeListeners.forEach((fn) => fn({ ...event, type: eventType }));
+      });
+    }
   },
 
   disconnect() {
@@ -106,6 +129,11 @@ export const socketService = {
   onTyping(fn: TypingListener) {
     typingListeners.add(fn);
     return () => { typingListeners.delete(fn); };
+  },
+
+  onRealtimeEvent(fn: RealtimeListener) {
+    realtimeListeners.add(fn);
+    return () => { realtimeListeners.delete(fn); };
   },
 
   isConnected() {

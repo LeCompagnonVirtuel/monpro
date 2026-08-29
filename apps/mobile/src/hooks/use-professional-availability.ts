@@ -28,7 +28,7 @@ export function useSetAvailability() {
     },
     onSuccess: (_data, { professionalId }) => {
       queryClient.invalidateQueries({ queryKey: ['pro-availability', professionalId] });
-      queryClient.invalidateQueries({ queryKey: ['professional'] });
+      queryClient.invalidateQueries({ queryKey: ['professional', 'me'] });
     },
   });
 }

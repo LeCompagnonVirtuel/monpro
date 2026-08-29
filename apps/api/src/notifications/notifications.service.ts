@@ -2,6 +2,8 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationType } from '@prisma/client';
 import { IPushNotificationProvider, PUSH_NOTIFICATION_PROVIDER } from './providers/push-notification.interface';
+import { RealtimeService } from '../realtime/realtime.service';
+import { paginate } from '../common/utils/pagination';
 
 @Injectable()
 export class NotificationsService {
@@ -10,11 +12,18 @@ export class NotificationsService {
   constructor(
     private prisma: PrismaService,
     @Inject(PUSH_NOTIFICATION_PROVIDER) private pushProvider: IPushNotificationProvider,
+    private realtimeService: RealtimeService,
   ) {}
 
   async create(userId: string, type: NotificationType, title: string, body: string, data?: Record<string, string>) {
     const notification = await this.prisma.notification.create({
       data: { userId, type, title, body, data },
+    });
+
+    this.realtimeService.emitToUser(userId, {
+      type: 'notification.created',
+      entityId: notification.id,
+      metadata: { type, title, body },
     });
 
     await this.sendPush(userId, title, body, data);
@@ -43,8 +52,8 @@ export class NotificationsService {
     }
   }
 
-  async findByUser(userId: string, page = 1, limit = 30) {
-    const skip = (page - 1) * limit;
+  async findByUser(userId: string, page?: number, limit?: number) {
+    const { page: p, limit: l, skip } = paginate(page, limit || 30);
     const [data, total] = await Promise.all([
       this.prisma.notification.findMany({
         where: { userId },
@@ -56,7 +65,14 @@ export class NotificationsService {
     ]);
 
     const unreadCount = await this.prisma.notification.count({ where: { userId, isRead: false } });
-    return { data, total, unreadCount, page, limit };
+    return { data, total, unreadCount, page: p, limit: l };
+  }
+
+  async getUnreadCount(userId: string): Promise<{ count: number }> {
+    const count = await this.prisma.notification.count({
+      where: { userId, isRead: false },
+    });
+    return { count };
   }
 
   async markAsRead(id: string, userId: string) {

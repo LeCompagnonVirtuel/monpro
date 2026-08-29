@@ -18,8 +18,8 @@ const STEPS = [
   { key: 'confirmed', label: 'Confirmée', icon: 'shield-checkmark-outline' as const },
 ];
 
-function getStep(intervention: { arrivedAt?: string; startedAt?: string; completedAt?: string; confirmedAt?: string }) {
-  if (intervention.confirmedAt) return 4;
+function getStep(intervention: { arrivedAt?: string; startedAt?: string; completedAt?: string; clientConfirmedAt?: string }) {
+  if (intervention.clientConfirmedAt) return 4;
   if (intervention.completedAt) return 3;
   if (intervention.startedAt) return 2;
   if (intervention.arrivedAt) return 1;
@@ -105,8 +105,8 @@ export default function ProfessionalInterventionScreen() {
                   {step.key === 'completed' && intervention.completedAt && (
                     <Text variant="bodySmall" color={colors.textSecondary}>{formatDate(intervention.completedAt)}</Text>
                   )}
-                  {step.key === 'confirmed' && intervention.confirmedAt && (
-                    <Text variant="bodySmall" color={colors.textSecondary}>{formatDate(intervention.confirmedAt)}</Text>
+                  {step.key === 'confirmed' && intervention.clientConfirmedAt && (
+                    <Text variant="bodySmall" color={colors.textSecondary}>{formatDate(intervention.clientConfirmedAt)}</Text>
                   )}
                 </View>
               </View>

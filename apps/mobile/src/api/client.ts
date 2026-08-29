@@ -1,6 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { tokenStorage } from '@/lib/storage';
 import { API_BASE_URL } from '@/lib/config';
+import { logger } from '@/lib/logger';
 
 const BASE_URL = API_BASE_URL;
 
@@ -48,6 +49,13 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
     if (error.response?.status !== 401 || originalRequest._retry) {
+      if (!error.response || error.response.status >= 500) {
+        logger.error('API request failed', {
+          url: originalRequest.url,
+          method: originalRequest.method,
+          status: error.response?.status,
+        });
+      }
       return Promise.reject(error);
     }
 
@@ -83,6 +91,7 @@ apiClient.interceptors.response.use(
       originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
       return apiClient(originalRequest);
     } catch (refreshError) {
+      logger.error('Token refresh failed', { reason: refreshError instanceof Error ? refreshError.message : 'unknown' });
       processQueue(refreshError, null);
       await tokenStorage.clearTokens();
       onSessionExpired?.();

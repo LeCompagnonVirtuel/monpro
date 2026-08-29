@@ -1,11 +1,13 @@
-import { Controller, Post, Delete, Body, Param } from '@nestjs/common';
+import { Controller, Post, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { DeviceTokensService } from './device-tokens.service';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { RegisterDeviceTokenDto } from './dto/register-device-token.dto';
 
 @ApiTags('Device Tokens')
 @Controller('device-tokens')
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class DeviceTokensController {
   constructor(private deviceTokensService: DeviceTokensService) {}

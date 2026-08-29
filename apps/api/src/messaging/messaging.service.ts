@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { paginate } from '../common/utils/pagination';
 
 @Injectable()
 export class MessagingService {
@@ -39,13 +40,13 @@ export class MessagingService {
     });
   }
 
-  async getMessages(conversationId: string, userId: string, page = 1, limit = 50) {
+  async getMessages(conversationId: string, userId: string, page?: number, limit?: number) {
     const participant = await this.prisma.conversationParticipant.findUnique({
       where: { conversationId_userId: { conversationId, userId } },
     });
     if (!participant) throw new ForbiddenException('Vous n\'avez pas accès à cette conversation');
 
-    const skip = (page - 1) * limit;
+    const { page: p, limit: l, skip } = paginate(page, limit || 50);
     const [messages, total] = await Promise.all([
       this.prisma.message.findMany({
         where: { conversationId },
@@ -57,7 +58,7 @@ export class MessagingService {
       this.prisma.message.count({ where: { conversationId } }),
     ]);
 
-    return { data: messages.reverse(), total, page, limit };
+    return { data: messages.reverse(), total, page: p, limit: l };
   }
 
   async sendMessage(conversationId: string, senderId: string, content: string, imageUrl?: string) {

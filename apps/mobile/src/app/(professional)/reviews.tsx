@@ -56,7 +56,7 @@ export default function ReviewsScreen() {
       {profile && (
         <View style={styles.summaryBar}>
           <Ionicons name="star" size={18} color={colors.warning} />
-          <Text variant="h3">{profile.rating?.toFixed(1) || '-'}</Text>
+          <Text variant="h3">{profile.averageRating?.toFixed(1) || '-'}</Text>
           <Text variant="bodySmall" color={colors.textSecondary}>({data?.total || 0} avis)</Text>
         </View>
       )}

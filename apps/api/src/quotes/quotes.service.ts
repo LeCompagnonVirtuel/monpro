@@ -3,12 +3,15 @@ import { PrismaService } from '../prisma/prisma.service';
 import { QuoteStatus, ServiceRequestStatus, NotificationType } from '@prisma/client';
 import { validateQuoteTransition } from '../common/state-machines';
 import { NotificationsService } from '../notifications/notifications.service';
+import { RealtimeService } from '../realtime/realtime.service';
+import { paginate } from '../common/utils/pagination';
 
 @Injectable()
 export class QuotesService {
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationsService,
+    private realtimeService: RealtimeService,
   ) {}
 
   async create(userId: string, data: {
@@ -65,6 +68,12 @@ export class QuotesService {
       { serviceRequestId: data.serviceRequestId, quoteId: quote.id },
     );
 
+    this.realtimeService.emitToUser(request.clientId, {
+      type: 'quote.created',
+      entityId: quote.id,
+      metadata: { serviceRequestId: data.serviceRequestId },
+    });
+
     return quote;
   }
 
@@ -102,6 +111,12 @@ export class QuotesService {
         'Votre devis a été accepté par le client',
         { serviceRequestId: quote.serviceRequestId, quoteId: id },
       );
+
+      this.realtimeService.emitToUser(accepted.professional.userId, {
+        type: 'quote.accepted',
+        entityId: id,
+        metadata: { serviceRequestId: quote.serviceRequestId },
+      });
     }
 
     return this.prisma.quote.findUnique({ where: { id }, include: { professional: { include: { user: true } } } });
@@ -110,14 +125,22 @@ export class QuotesService {
   async reject(id: string, clientId: string) {
     const quote = await this.prisma.quote.findUnique({
       where: { id },
-      include: { serviceRequest: true },
+      include: { serviceRequest: true, professional: true },
     });
 
     if (!quote) throw new NotFoundException('Devis non trouvé');
     if (quote.serviceRequest.clientId !== clientId) throw new ForbiddenException();
     validateQuoteTransition(quote.status, QuoteStatus.REJECTED);
 
-    return this.prisma.quote.update({ where: { id }, data: { status: QuoteStatus.REJECTED } });
+    await this.prisma.quote.update({ where: { id }, data: { status: QuoteStatus.REJECTED } });
+
+    this.realtimeService.emitToUser(quote.professional.userId, {
+      type: 'quote.rejected',
+      entityId: id,
+      metadata: { serviceRequestId: quote.serviceRequestId },
+    });
+
+    return quote;
   }
 
   async findByRequest(serviceRequestId: string, userId?: string) {
@@ -144,24 +167,24 @@ export class QuotesService {
     });
   }
 
-  async findByProfessional(professionalId: string, page = 1, limit = 20, userId?: string) {
+  async findByProfessional(professionalId: string, page?: number, limit?: number, userId?: string) {
     if (userId) {
       const professional = await this.prisma.professional.findUnique({ where: { id: professionalId } });
       if (!professional || professional.userId !== userId) {
         throw new ForbiddenException('Accès interdit');
       }
     }
-    const skip = (page - 1) * limit;
+    const { page: p, limit: l, skip } = paginate(page, limit);
     const [data, total] = await Promise.all([
       this.prisma.quote.findMany({
         where: { professionalId },
         skip,
-        take: limit,
+        take: l,
         orderBy: { createdAt: 'desc' },
         include: { serviceRequest: { include: { service: true, client: { select: { fullName: true } } } } },
       }),
       this.prisma.quote.count({ where: { professionalId } }),
     ]);
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return { data, total, page: p, limit: l, totalPages: Math.ceil(total / l) };
   }
 }

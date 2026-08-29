@@ -8,7 +8,9 @@ import { useAuthStore } from '@/stores/auth.store';
 import { setSessionExpiredHandler } from '@/api/client';
 import { useSocket } from '@/hooks/use-socket';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
+import { useRealtimeSync } from '@/hooks/use-realtime-sync';
 import { OfflineBanner } from '@/components/feedback/OfflineBanner';
+import { GlobalErrorBoundary } from '@/components/feedback/GlobalErrorBoundary';
 import { hasCompletedOnboarding } from '@/lib/onboarding';
 import '@/lib/i18n';
 
@@ -23,6 +25,7 @@ export function getOnboardingChecked() {
 function AppServices() {
   useSocket();
   usePushNotifications();
+  useRealtimeSync();
   return null;
 }
 
@@ -52,16 +55,18 @@ export default function RootLayout() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AppServices />
-      <OfflineBanner />
-      <StatusBar style="dark" />
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(onboarding)" />
-        <Stack.Screen name="(auth)" />
-        <Stack.Screen name="(client)" />
-        <Stack.Screen name="(professional)" />
-      </Stack>
-    </QueryClientProvider>
+    <GlobalErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AppServices />
+        <OfflineBanner />
+        <StatusBar style="dark" />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(onboarding)" />
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(client)" />
+          <Stack.Screen name="(professional)" />
+        </Stack>
+      </QueryClientProvider>
+    </GlobalErrorBoundary>
   );
 }

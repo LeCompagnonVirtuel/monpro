@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { StyleSheet, View, FlatList, Pressable, ScrollView } from 'react-native';
+import { StyleSheet, View, FlatList, Pressable, ScrollView, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
@@ -150,6 +150,9 @@ export default function MessagesScreen() {
         ListHeaderComponent={renderHeader}
         ListFooterComponent={renderFooter}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={false} onRefresh={refetch} tintColor={colors.primary} />
+        }
       />
 
       <Pressable

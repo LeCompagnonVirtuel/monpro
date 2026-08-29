@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { paginate } from '../common/utils/pagination';
 
 @Injectable()
 export class UsersService {
@@ -19,9 +20,7 @@ export class UsersService {
   }
 
   async findAll(filters?: { role?: string; search?: string; page?: number; limit?: number }) {
-    const page = filters?.page || 1;
-    const limit = filters?.limit || 20;
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = paginate(filters?.page, filters?.limit);
 
     const where: any = { deletedAt: null };
     if (filters?.role) where.role = filters.role;

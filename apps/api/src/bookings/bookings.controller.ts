@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Patch, Param, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Param, Body, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { BookingsService } from './bookings.service';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { BookingStatus } from '@prisma/client';
 import { CreateBookingDto } from './dto/create-booking.dto';
@@ -8,6 +9,7 @@ import { UpdateBookingStatusDto } from './dto/update-booking-status.dto';
 
 @ApiTags('Bookings')
 @Controller('bookings')
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class BookingsController {
   constructor(private bookingsService: BookingsService) {}

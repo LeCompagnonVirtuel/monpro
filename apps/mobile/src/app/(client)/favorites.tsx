@@ -1,4 +1,4 @@
-import { StyleSheet, View, FlatList, Pressable } from 'react-native';
+import { StyleSheet, View, FlatList, Pressable, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -57,6 +57,9 @@ export default function FavoritesScreen() {
           />
         )}
         contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl refreshing={false} onRefresh={refetch} tintColor={colors.primary} />
+        }
       />
     </SafeAreaView>
   );
@@ -87,11 +90,11 @@ function FavoriteRow({ professional, onPress, onRemove }: { professional: Profes
             {professional.services.map((s) => s.name).join(', ')}
           </Text>
         )}
-        {professional.rating && (
+        {professional.averageRating && (
           <View style={styles.ratingRow}>
             <Ionicons name="star" size={12} color={colors.warning} />
             <Text variant="bodySmall" color={colors.textSecondary}>
-              {professional.rating.toFixed(1)} ({professional.reviewCount || 0} avis)
+              {professional.averageRating.toFixed(1)} ({professional.totalReviews || 0} avis)
             </Text>
           </View>
         )}

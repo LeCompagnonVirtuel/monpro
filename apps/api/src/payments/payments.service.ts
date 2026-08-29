@@ -4,6 +4,7 @@ import { PaymentStatus, PaymentProvider, BookingStatus, NotificationType } from 
 import { PaymentProviderFactory } from './providers/payment-provider.factory';
 import { LedgerService } from '../ledger/ledger.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { RealtimeService } from '../realtime/realtime.service';
 
 @Injectable()
 export class PaymentsService {
@@ -12,6 +13,7 @@ export class PaymentsService {
     private providerFactory: PaymentProviderFactory,
     private ledger: LedgerService,
     private notifications: NotificationsService,
+    private realtimeService: RealtimeService,
   ) {}
 
   async initiate(bookingId: string, provider: PaymentProvider, phoneNumber: string, userId: string) {
@@ -129,6 +131,16 @@ export class PaymentsService {
               `Vous avez reçu ${payment.professionalAmount} XOF`,
               { bookingId: booking.id },
             );
+          }
+
+          const eventPayload = {
+            type: 'payment.updated' as const,
+            entityId: payment.id,
+            metadata: { bookingId: booking.id, status },
+          };
+          this.realtimeService.emitToUser(booking.serviceRequest.clientId, eventPayload);
+          if (professional) {
+            this.realtimeService.emitToUser(professional.userId, eventPayload);
           }
         }
       }

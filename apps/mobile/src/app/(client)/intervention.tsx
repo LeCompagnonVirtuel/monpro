@@ -20,8 +20,8 @@ const INTERVENTION_STEPS = [
   { key: 'CONFIRMED', label: 'Confirmée par le client', icon: 'checkmark-circle' as const },
 ];
 
-function getStepIndex(intervention: { arrivedAt?: string; startedAt?: string; completedAt?: string; confirmedAt?: string }) {
-  if (intervention.confirmedAt) return 4;
+function getStepIndex(intervention: { arrivedAt?: string; startedAt?: string; completedAt?: string; clientConfirmedAt?: string }) {
+  if (intervention.clientConfirmedAt) return 4;
   if (intervention.completedAt) return 3;
   if (intervention.startedAt) return 2;
   if (intervention.arrivedAt) return 1;
@@ -66,7 +66,7 @@ export default function InterventionScreen() {
 
   const currentStep = getStepIndex(intervention);
   const isCompleted = !!intervention.completedAt;
-  const isConfirmed = !!intervention.confirmedAt;
+  const isConfirmed = !!intervention.clientConfirmedAt;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -197,13 +197,13 @@ export default function InterventionScreen() {
   );
 }
 
-function getTimestampForStep(index: number, intervention: { arrivedAt?: string; startedAt?: string; completedAt?: string; confirmedAt?: string; createdAt: string }) {
+function getTimestampForStep(index: number, intervention: { arrivedAt?: string; startedAt?: string; completedAt?: string; clientConfirmedAt?: string; createdAt: string }) {
   switch (index) {
     case 0: return intervention.createdAt;
     case 1: return intervention.arrivedAt;
     case 2: return intervention.startedAt;
     case 3: return intervention.completedAt;
-    case 4: return intervention.confirmedAt;
+    case 4: return intervention.clientConfirmedAt;
     default: return undefined;
   }
 }

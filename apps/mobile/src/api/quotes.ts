@@ -7,9 +7,9 @@ export interface Quote {
   serviceRequestId: string;
   professionalId: string;
   laborCost: number;
-  materialCost?: number;
-  transportCost?: number;
-  totalCost: number;
+  materialCost: number;
+  transportCost: number;
+  totalAmount: number;
   description?: string;
   estimatedDuration?: string;
   validUntil?: string;
@@ -19,7 +19,7 @@ export interface Quote {
     id: string;
     businessName?: string;
     user?: { fullName: string; avatarUrl?: string };
-    rating?: number;
+    averageRating?: number;
     isVerified: boolean;
   };
 }

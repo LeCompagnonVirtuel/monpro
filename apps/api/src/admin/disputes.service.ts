@@ -1,13 +1,26 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DisputeStatus } from '@prisma/client';
 import { validateDisputeTransition } from '../common/state-machines';
+import { paginate } from '../common/utils/pagination';
 
 @Injectable()
 export class DisputesService {
   constructor(private prisma: PrismaService) {}
 
   async create(reporterId: string, data: { bookingId: string; reason: string; description?: string }) {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: data.bookingId },
+      include: { serviceRequest: true, professional: true },
+    });
+    if (!booking) throw new NotFoundException('Réservation non trouvée');
+
+    const isClient = booking.serviceRequest.clientId === reporterId;
+    const isProfessional = booking.professional.userId === reporterId;
+    if (!isClient && !isProfessional) {
+      throw new ForbiddenException('Vous ne pouvez signaler que vos propres réservations');
+    }
+
     return this.prisma.dispute.create({
       data: {
         bookingId: data.bookingId,
@@ -19,9 +32,7 @@ export class DisputesService {
   }
 
   async findAll(filters?: { status?: DisputeStatus; page?: number; limit?: number }) {
-    const page = filters?.page || 1;
-    const limit = filters?.limit || 20;
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = paginate(filters?.page, filters?.limit);
     const where: any = {};
     if (filters?.status) where.status = filters.status;
 
@@ -66,8 +77,8 @@ export class DisputesService {
     });
   }
 
-  async getReports(page = 1, limit = 20) {
-    const skip = (page - 1) * limit;
+  async getReports(page?: number, limit?: number) {
+    const { page: p, limit: l, skip } = paginate(page, limit);
     const [data, total] = await Promise.all([
       this.prisma.report.findMany({
         where: { isResolved: false },
@@ -77,7 +88,7 @@ export class DisputesService {
       }),
       this.prisma.report.count({ where: { isResolved: false } }),
     ]);
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return { data, total, page: p, limit: l, totalPages: Math.ceil(total / l) };
   }
 
   async resolveReport(id: string, adminId: string) {

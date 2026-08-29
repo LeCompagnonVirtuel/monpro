@@ -68,8 +68,8 @@ describe('Quotes hooks', () => {
 
   it('useQuotesForRequest fetches quotes for a request', async () => {
     const mockQuotes = [
-      { id: 'q1', serviceRequestId: 'sr-1', totalCost: 20000, status: 'PENDING', laborCost: 15000, createdAt: '2024-01-01' },
-      { id: 'q2', serviceRequestId: 'sr-1', totalCost: 18500, status: 'PENDING', laborCost: 14000, createdAt: '2024-01-02' },
+      { id: 'q1', serviceRequestId: 'sr-1', totalAmount: 20000, status: 'PENDING', laborCost: 15000, materialCost: 0, transportCost: 0, createdAt: '2024-01-01' },
+      { id: 'q2', serviceRequestId: 'sr-1', totalAmount: 18500, status: 'PENDING', laborCost: 14000, materialCost: 0, transportCost: 0, createdAt: '2024-01-02' },
     ];
     (quotesApi.listForRequest as jest.Mock).mockResolvedValue({ data: { success: true, data: mockQuotes } });
 
@@ -77,7 +77,7 @@ describe('Quotes hooks', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(result.current.data).toHaveLength(2);
-    expect(result.current.data![0].totalCost).toBe(20000);
+    expect(result.current.data![0].totalAmount).toBe(20000);
     expect(quotesApi.listForRequest).toHaveBeenCalledWith('sr-1');
   });
 
@@ -87,7 +87,7 @@ describe('Quotes hooks', () => {
   });
 
   it('useAcceptQuote calls accept and returns updated quote', async () => {
-    const accepted = { id: 'q1', serviceRequestId: 'sr-1', status: 'ACCEPTED', totalCost: 20000, laborCost: 15000, createdAt: '2024-01-01' };
+    const accepted = { id: 'q1', serviceRequestId: 'sr-1', status: 'ACCEPTED', totalAmount: 20000, laborCost: 15000, materialCost: 0, transportCost: 0, createdAt: '2024-01-01' };
     (quotesApi.accept as jest.Mock).mockResolvedValue({ data: { success: true, data: accepted } });
 
     const { result } = renderHook(() => useAcceptQuote(), { wrapper: createWrapper() });
@@ -98,7 +98,7 @@ describe('Quotes hooks', () => {
   });
 
   it('useRejectQuote calls reject API', async () => {
-    const rejected = { id: 'q1', serviceRequestId: 'sr-1', status: 'REJECTED', totalCost: 20000, laborCost: 15000, createdAt: '2024-01-01' };
+    const rejected = { id: 'q1', serviceRequestId: 'sr-1', status: 'REJECTED', totalAmount: 20000, laborCost: 15000, materialCost: 0, transportCost: 0, createdAt: '2024-01-01' };
     (quotesApi.reject as jest.Mock).mockResolvedValue({ data: { success: true, data: rejected } });
 
     const { result } = renderHook(() => useRejectQuote(), { wrapper: createWrapper() });
@@ -153,7 +153,7 @@ describe('Interventions hooks', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('useIntervention fetches intervention by booking ID', async () => {
-    const mockIntervention = { id: 'i1', bookingId: 'b1', status: 'IN_PROGRESS', arrivedAt: '2024-02-01T10:00:00Z', startedAt: '2024-02-01T10:15:00Z', createdAt: '2024-02-01T09:00:00Z' };
+    const mockIntervention = { id: 'i1', bookingId: 'b1', arrivedAt: '2024-02-01T10:00:00Z', startedAt: '2024-02-01T10:15:00Z', beforePhotos: [], afterPhotos: [], clientConfirmed: false, createdAt: '2024-02-01T09:00:00Z', updatedAt: '2024-02-01T09:00:00Z' };
     (interventionsApi.getByBooking as jest.Mock).mockResolvedValue({ data: { success: true, data: mockIntervention } });
 
     const { result } = renderHook(() => useIntervention('b1'), { wrapper: createWrapper() });
@@ -246,8 +246,8 @@ describe('Reviews hooks', () => {
 
 describe('Security checks', () => {
   it('does not recalculate amounts from quote fields', () => {
-    const quote = { laborCost: 15000, materialCost: 3000, transportCost: 2000, totalCost: 20000 };
-    expect(quote.totalCost).toBe(20000);
+    const quote = { laborCost: 15000, materialCost: 3000, transportCost: 2000, totalAmount: 20000 };
+    expect(quote.totalAmount).toBe(20000);
     expect(quote.laborCost + (quote.materialCost || 0) + (quote.transportCost || 0)).toBe(20000);
   });
 

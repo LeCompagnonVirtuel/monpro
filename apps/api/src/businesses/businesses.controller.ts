@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { BusinessesService } from './businesses.service';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
@@ -8,6 +9,7 @@ import { AddMemberDto } from './dto/add-member.dto';
 
 @ApiTags('Businesses')
 @Controller('businesses')
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class BusinessesController {
   constructor(private businessesService: BusinessesService) {}

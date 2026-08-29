@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { MessagingGateway } from '../messaging.gateway';
 import { MessagingService } from '../messaging.service';
+import { RealtimeService } from '../../realtime/realtime.service';
 
 describe('MessagingGateway — WebSocket Security', () => {
   let gateway: MessagingGateway;
@@ -12,11 +13,18 @@ describe('MessagingGateway — WebSocket Security', () => {
     findConversation: jest.fn(),
   };
 
+  const mockRealtimeService = {
+    setServer: jest.fn(),
+    emitToUser: jest.fn(),
+    emitToUsers: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
         MessagingGateway,
         { provide: MessagingService, useValue: mockMessagingService },
+        { provide: RealtimeService, useValue: mockRealtimeService },
         {
           provide: JwtService,
           useValue: {

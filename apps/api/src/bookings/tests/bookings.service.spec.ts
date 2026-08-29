@@ -3,6 +3,7 @@ import { ForbiddenException, NotFoundException, BadRequestException } from '@nes
 import { BookingsService } from '../bookings.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../../notifications/notifications.service';
+import { RealtimeService } from '../../realtime/realtime.service';
 import { BookingStatus, QuoteStatus, ServiceRequestStatus } from '@prisma/client';
 
 describe('BookingsService — IDOR & Authorization', () => {
@@ -28,12 +29,18 @@ describe('BookingsService — IDOR & Authorization', () => {
     sendPush: jest.fn().mockResolvedValue(undefined),
   };
 
+  const mockRealtimeService = {
+    emitToUser: jest.fn(),
+    emitToUsers: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
         BookingsService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: NotificationsService, useValue: mockNotifications },
+        { provide: RealtimeService, useValue: mockRealtimeService },
       ],
     }).compile();
 

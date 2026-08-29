@@ -4,13 +4,15 @@ import {
   SubscribeMessage,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  OnGatewayInit,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { MessagingService } from './messaging.service';
+import { RealtimeService } from '../realtime/realtime.service';
 
-@WebSocketGateway({ cors: { origin: '*' }, namespace: '/chat' })
-export class MessagingGateway implements OnGatewayConnection, OnGatewayDisconnect {
+@WebSocketGateway({ cors: { origin: process.env.CORS_ORIGINS?.split(',') || [] }, namespace: '/chat' })
+export class MessagingGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
@@ -19,7 +21,12 @@ export class MessagingGateway implements OnGatewayConnection, OnGatewayDisconnec
   constructor(
     private messagingService: MessagingService,
     private jwtService: JwtService,
+    private realtimeService: RealtimeService,
   ) {}
+
+  afterInit() {
+    this.realtimeService.setServer(this.server);
+  }
 
   handleConnection(client: Socket) {
     const token = client.handshake.auth?.token || client.handshake.headers?.authorization?.replace('Bearer ', '');

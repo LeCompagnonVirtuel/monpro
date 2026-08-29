@@ -1,4 +1,4 @@
-import { StyleSheet, View, ScrollView, Pressable, Alert } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, Alert, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,8 +24,8 @@ const MENU_ITEMS: { icon: keyof typeof Ionicons.glyphMap; label: string; route: 
 
 export default function ProfessionalProfileScreen() {
   const logout = useAuthStore((s) => s.logout);
-  const { data: user, isLoading: userLoading, isError: userError, refetch: refetchUser } = useMe();
-  const { data: profile, isLoading: profileLoading, isError: profileError, refetch: refetchProfile } = useMyProfessionalProfile();
+  const { data: user, isLoading: userLoading, isError: userError, refetch: refetchUser, isRefetching: userRefetching } = useMe();
+  const { data: profile, isLoading: profileLoading, isError: profileError, refetch: refetchProfile, isRefetching: profileRefetching } = useMyProfessionalProfile();
 
   const isLoading = userLoading || profileLoading;
   const isError = userError || profileError;
@@ -85,8 +85,18 @@ export default function ProfessionalProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={userRefetching || profileRefetching}
+            onRefresh={() => { refetchUser(); refetchProfile(); }}
+            tintColor={colors.primary}
+          />
+        }
+      >
         <View style={styles.header}>
           <Text variant="h2">Mon profil</Text>
         </View>
@@ -107,12 +117,12 @@ export default function ProfessionalProfileScreen() {
         {profile && (
           <View style={styles.statsRow}>
             <View style={styles.stat}>
-              <Text variant="h3">{profile.rating?.toFixed(1) || '-'}</Text>
+              <Text variant="h3">{profile.averageRating?.toFixed(1) || '-'}</Text>
               <Text variant="caption" color={colors.textSecondary}>Note</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>
-              <Text variant="h3">{profile.reviewCount || 0}</Text>
+              <Text variant="h3">{profile.totalReviews || 0}</Text>
               <Text variant="caption" color={colors.textSecondary}>Avis</Text>
             </View>
             <View style={styles.statDivider} />

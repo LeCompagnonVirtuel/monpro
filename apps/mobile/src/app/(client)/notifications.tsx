@@ -1,4 +1,4 @@
-import { StyleSheet, View, FlatList, Pressable } from 'react-native';
+import { StyleSheet, View, FlatList, Pressable, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -89,6 +89,9 @@ export default function NotificationsScreen() {
           <NotificationRow notification={item} onPress={() => handlePress(item)} />
         )}
         contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl refreshing={false} onRefresh={refetch} tintColor={colors.primary} />
+        }
       />
     </SafeAreaView>
   );

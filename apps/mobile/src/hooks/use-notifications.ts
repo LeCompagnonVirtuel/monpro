@@ -15,10 +15,9 @@ export function useUnreadNotificationCount() {
   return useQuery({
     queryKey: ['notifications', 'unread-count'],
     queryFn: async () => {
-      const { data } = await notificationsApi.list({ limit: 50 });
-      return data.data.filter((n) => !n.isRead).length;
+      const { data } = await notificationsApi.getUnreadCount();
+      return data.data.count;
     },
-    refetchInterval: 30000,
   });
 }
 

@@ -9,10 +9,8 @@ export interface Professional {
   isAvailable: boolean;
   isVerified: boolean;
   verificationStatus: 'PENDING' | 'VERIFIED' | 'REJECTED' | 'SUSPENDED';
-  rating?: number;
-  reviewCount?: number;
-  latitude?: number;
-  longitude?: number;
+  averageRating: number;
+  totalReviews: number;
   user?: {
     id: string;
     fullName: string;

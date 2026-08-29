@@ -127,8 +127,8 @@ export default function PaymentScreen() {
 
           <View style={styles.detailSection}>
             <DetailRow label="Montant" value={formatCurrency(existingPayment.amount)} />
-            <DetailRow label="Moyen" value={PROVIDERS.find((p) => p.value === existingPayment.provider)?.label || existingPayment.provider} />
-            {existingPayment.reference && <DetailRow label="Référence" value={existingPayment.reference} />}
+            <DetailRow label="Moyen" value={existingPayment.provider ? (PROVIDERS.find((p) => p.value === existingPayment.provider)?.label || existingPayment.provider) : '-'} />
+            {existingPayment.providerRef && <DetailRow label="Référence" value={existingPayment.providerRef} />}
             <DetailRow label="Statut" value={statusInfo.label} />
           </View>
 

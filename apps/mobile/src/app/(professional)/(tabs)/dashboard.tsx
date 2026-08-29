@@ -152,11 +152,11 @@ export default function DashboardScreen() {
               <Pressable
                 style={styles.statCard}
                 onPress={() => router.push('/(professional)/reviews' as never)}
-                accessibilityLabel={`Note moyenne : ${profile.rating ? profile.rating.toFixed(1) : 'aucune'}`}
+                accessibilityLabel={`Note moyenne : ${profile.averageRating ? profile.averageRating.toFixed(1) : 'aucune'}`}
                 accessibilityRole="button"
               >
                 <Ionicons name="star-outline" size={20} color={colors.primary} />
-                <Text variant="h3">{profile.rating ? profile.rating.toFixed(1) : '-'}</Text>
+                <Text variant="h3">{profile.averageRating ? profile.averageRating.toFixed(1) : '-'}</Text>
                 <Text variant="caption" color={colors.textSecondary}>Note</Text>
               </Pressable>
             </View>

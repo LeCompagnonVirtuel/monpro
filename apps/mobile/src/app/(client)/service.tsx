@@ -109,12 +109,12 @@ function ProfessionalRow({ professional }: { professional: Professional }) {
               </Text>
             )}
             <View style={styles.proMeta}>
-              {professional.rating != null && (
+              {professional.averageRating != null && (
                 <View style={styles.ratingRow}>
                   <Ionicons name="star" size={14} color={colors.secondary} />
-                  <Text variant="caption">{professional.rating.toFixed(1)}</Text>
+                  <Text variant="caption">{professional.averageRating.toFixed(1)}</Text>
                   <Text variant="caption" color={colors.textTertiary}>
-                    ({professional.reviewCount || 0})
+                    ({professional.totalReviews || 0})
                   </Text>
                 </View>
               )}

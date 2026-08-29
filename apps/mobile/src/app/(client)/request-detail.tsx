@@ -147,7 +147,7 @@ export default function RequestDetailScreen() {
                     )}
                   </View>
                   <View style={styles.quoteCardBody}>
-                    <Text variant="h3" color={colors.primary}>{formatCurrency(quote.totalCost)}</Text>
+                    <Text variant="h3" color={colors.primary}>{formatCurrency(quote.totalAmount)}</Text>
                     <Badge
                       label={quote.status === 'PENDING' ? 'En attente' : quote.status === 'ACCEPTED' ? 'Accepté' : quote.status === 'REJECTED' ? 'Refusé' : 'Expiré'}
                       variant={quote.status === 'ACCEPTED' ? 'success' : quote.status === 'REJECTED' ? 'error' : 'info'}

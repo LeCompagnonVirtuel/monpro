@@ -5,6 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { PaymentProviderFactory } from '../providers/payment-provider.factory';
 import { LedgerService } from '../../ledger/ledger.service';
 import { NotificationsService } from '../../notifications/notifications.service';
+import { RealtimeService } from '../../realtime/realtime.service';
 import { BookingStatus, PaymentProvider, PaymentStatus } from '@prisma/client';
 
 describe('PaymentsService — IDOR & Financial Security', () => {
@@ -49,6 +50,11 @@ describe('PaymentsService — IDOR & Financial Security', () => {
     sendPush: jest.fn().mockResolvedValue(undefined),
   };
 
+  const mockRealtimeService = {
+    emitToUser: jest.fn(),
+    emitToUsers: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
@@ -57,6 +63,7 @@ describe('PaymentsService — IDOR & Financial Security', () => {
         { provide: PaymentProviderFactory, useValue: mockProviderFactory },
         { provide: LedgerService, useValue: mockLedger },
         { provide: NotificationsService, useValue: mockNotifications },
+        { provide: RealtimeService, useValue: mockRealtimeService },
       ],
     }).compile();
 

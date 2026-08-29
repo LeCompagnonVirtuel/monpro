@@ -24,7 +24,7 @@ export function useCreateProfessionalProfile() {
       return data.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['professional'] });
+      queryClient.invalidateQueries({ queryKey: ['professional', 'me'] });
     },
   });
 }
@@ -38,7 +38,7 @@ export function useUpdateProfessionalProfile() {
       return data.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['professional'] });
+      queryClient.invalidateQueries({ queryKey: ['professional', 'me'] });
       queryClient.invalidateQueries({ queryKey: ['pro-dashboard'] });
     },
   });

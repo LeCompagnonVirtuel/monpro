@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
@@ -15,6 +15,8 @@ const OTP_REGISTRATION_WINDOW_MS = 10 * 60 * 1000;
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
@@ -33,7 +35,13 @@ export class AuthService {
       throw new BadRequestException('Veuillez attendre 60 secondes avant de demander un nouveau code.');
     }
 
-    const { hash } = await this.otpService.generate(dto.phone);
+    let hash: string;
+    try {
+      ({ hash } = await this.otpService.generate(dto.phone));
+    } catch (error) {
+      this.logger.error(`SMS provider failed for ${dto.phone}: ${error}`);
+      throw new BadRequestException("Impossible d'envoyer le code de vérification. Veuillez réessayer.");
+    }
 
     await this.prisma.otpCode.create({
       data: {

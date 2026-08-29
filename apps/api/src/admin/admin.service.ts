@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { VerificationStatus, ServiceRequestStatus, BookingStatus, PaymentStatus } from '@prisma/client';
+import { paginate } from '../common/utils/pagination';
 
 @Injectable()
 export class AdminService {
@@ -59,8 +60,8 @@ export class AdminService {
     };
   }
 
-  async getPendingVerifications(page = 1, limit = 20) {
-    const skip = (page - 1) * limit;
+  async getPendingVerifications(page?: number, limit?: number) {
+    const { page: p, limit: l, skip } = paginate(page, limit);
     const [data, total] = await Promise.all([
       this.prisma.professional.findMany({
         where: { verificationStatus: VerificationStatus.PENDING },
@@ -75,7 +76,7 @@ export class AdminService {
       }),
       this.prisma.professional.count({ where: { verificationStatus: VerificationStatus.PENDING } }),
     ]);
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return { data, total, page: p, limit: l, totalPages: Math.ceil(total / l) };
   }
 
   async verifyProfessional(id: string, adminId: string, status: VerificationStatus, reason?: string) {
@@ -101,10 +102,11 @@ export class AdminService {
     return updated;
   }
 
-  async getRecentActivity(limit = 50) {
+  async getRecentActivity(limit?: number) {
+    const { limit: l } = paginate(1, limit);
     return this.prisma.auditLog.findMany({
       orderBy: { createdAt: 'desc' },
-      take: limit,
+      take: l,
     });
   }
 
@@ -126,9 +128,7 @@ export class AdminService {
   }
 
   async getAllBookings(filters?: { status?: BookingStatus; page?: number; limit?: number }) {
-    const page = filters?.page || 1;
-    const limit = filters?.limit || 20;
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = paginate(filters?.page, filters?.limit);
     const where: any = {};
     if (filters?.status) where.status = filters.status;
 
@@ -151,9 +151,7 @@ export class AdminService {
   }
 
   async getAllPayments(filters?: { status?: PaymentStatus; page?: number; limit?: number }) {
-    const page = filters?.page || 1;
-    const limit = filters?.limit || 20;
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = paginate(filters?.page, filters?.limit);
     const where: any = {};
     if (filters?.status) where.status = filters.status;
 

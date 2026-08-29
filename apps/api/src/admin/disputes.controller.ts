@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Patch, Param, Body, UseGuards, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { DisputesService } from './disputes.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -16,6 +17,7 @@ export class DisputesController {
   constructor(private disputesService: DisputesService) {}
 
   @Post()
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Signaler un litige' })
@@ -42,6 +44,7 @@ export class DisputesController {
   }
 
   @Post('reports')
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Signaler un utilisateur' })

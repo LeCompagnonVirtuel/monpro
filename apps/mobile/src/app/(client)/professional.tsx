@@ -93,12 +93,12 @@ export default function ProfessionalScreen() {
               <Badge label="Disponible" variant="info" />
             )}
           </View>
-          {pro.rating != null && (
+          {pro.averageRating != null && (
             <View style={styles.ratingSection}>
               <Ionicons name="star" size={20} color={colors.secondary} />
-              <Text variant="h3">{pro.rating.toFixed(1)}</Text>
+              <Text variant="h3">{pro.averageRating.toFixed(1)}</Text>
               <Text variant="bodySmall" color={colors.textSecondary}>
-                ({pro.reviewCount || 0} avis)
+                ({pro.totalReviews || 0} avis)
               </Text>
             </View>
           )}

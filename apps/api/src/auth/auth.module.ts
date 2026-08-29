@@ -6,8 +6,28 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { OtpService } from './otp.service';
 import { JwtStrategy } from './jwt.strategy';
-import { SMS_PROVIDER } from './providers/sms.interface';
+import { SMS_PROVIDER, ISmsProvider } from './providers/sms.interface';
 import { DevSmsProvider } from './providers/dev-sms.provider';
+import { AfricaSmsProvider } from './providers/africastalking-sms.provider';
+
+const smsProviderFactory = {
+  provide: SMS_PROVIDER,
+  inject: [ConfigService],
+  useFactory: (config: ConfigService): ISmsProvider => {
+    const provider = config.get<string>('OTP_PROVIDER', 'dev');
+
+    switch (provider) {
+      case 'africas_talking':
+        return new AfricaSmsProvider(config);
+      case 'dev':
+        return new DevSmsProvider();
+      default:
+        throw new Error(
+          `Unknown OTP_PROVIDER: "${provider}". Valid values: "dev", "africas_talking"`,
+        );
+    }
+  },
+};
 
 @Module({
   imports: [
@@ -26,7 +46,7 @@ import { DevSmsProvider } from './providers/dev-sms.provider';
     AuthService,
     OtpService,
     JwtStrategy,
-    { provide: SMS_PROVIDER, useClass: DevSmsProvider },
+    smsProviderFactory,
   ],
   exports: [AuthService],
 })
