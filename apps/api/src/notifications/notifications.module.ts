@@ -4,6 +4,7 @@ import { NotificationsController } from './notifications.controller';
 import { NotificationsService } from './notifications.service';
 import { PUSH_NOTIFICATION_PROVIDER } from './providers/push-notification.interface';
 import { DevPushProvider } from './providers/dev-push.provider';
+import { ExpoPushProvider } from './providers/expo-push.provider';
 
 const pushProviderFactory = {
   provide: PUSH_NOTIFICATION_PROVIDER,
@@ -12,7 +13,7 @@ const pushProviderFactory = {
     const provider = config.get<string>('PUSH_NOTIFICATION_PROVIDER', 'dev');
     switch (provider) {
       case 'expo':
-        return new DevPushProvider();
+        return new ExpoPushProvider(config);
       case 'dev':
         return new DevPushProvider();
       default:

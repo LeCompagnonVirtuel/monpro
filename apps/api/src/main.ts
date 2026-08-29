@@ -33,6 +33,14 @@ function validateEnvironment(): void {
       if (!process.env.AFRICAS_TALKING_USERNAME) missing.push('AFRICAS_TALKING_USERNAME (required when OTP_PROVIDER=africas_talking)');
     }
 
+    if (process.env.PUSH_NOTIFICATION_PROVIDER === 'expo' && !process.env.EXPO_ACCESS_TOKEN) {
+      logger.warn('EXPO_ACCESS_TOKEN is not set. Push notifications may fail.');
+    }
+
+    if (process.env.PAYMENT_MODE === 'production') {
+      logger.warn('PAYMENT_MODE=production but real payment providers are not yet implemented.');
+    }
+
     if (process.env.JWT_SECRET === 'CHANGE_ME_IN_PRODUCTION') {
       logger.fatal('JWT_SECRET is still the default value. Set a secure secret in production.');
       process.exit(1);
@@ -54,6 +62,18 @@ function validateEnvironment(): void {
   const otpProvider = process.env.OTP_PROVIDER || 'dev';
   if (!validOtpProviders.includes(otpProvider)) {
     logger.warn(`Invalid OTP_PROVIDER "${otpProvider}". Valid values: ${validOtpProviders.join(', ')}`);
+  }
+
+  const validPushProviders = ['dev', 'expo'];
+  const pushProvider = process.env.PUSH_NOTIFICATION_PROVIDER || 'dev';
+  if (!validPushProviders.includes(pushProvider)) {
+    logger.warn(`Invalid PUSH_NOTIFICATION_PROVIDER "${pushProvider}". Valid values: ${validPushProviders.join(', ')}`);
+  }
+
+  const validPaymentModes = ['dev', 'production'];
+  const paymentMode = process.env.PAYMENT_MODE || 'dev';
+  if (!validPaymentModes.includes(paymentMode)) {
+    logger.warn(`Invalid PAYMENT_MODE "${paymentMode}". Valid values: ${validPaymentModes.join(', ')}`);
   }
 }
 

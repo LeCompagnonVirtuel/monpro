@@ -6,6 +6,7 @@ import { OtpService } from './otp.service';
 import { RequestOtpDto } from './dto/request-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { RegisterDto } from './dto/register.dto';
+import { normalizePhone } from '../common/utils/phone';
 import { UserRole } from '@prisma/client';
 import { v4 as uuid } from 'uuid';
 
@@ -25,9 +26,11 @@ export class AuthService {
   ) {}
 
   async requestOtp(dto: RequestOtpDto) {
+    const phone = normalizePhone(dto.phone);
+
     const recentCount = await this.prisma.otpCode.count({
       where: {
-        phone: dto.phone,
+        phone,
         createdAt: { gt: new Date(Date.now() - 60 * 1000) },
       },
     });
@@ -37,15 +40,15 @@ export class AuthService {
 
     let hash: string;
     try {
-      ({ hash } = await this.otpService.generate(dto.phone));
+      ({ hash } = await this.otpService.generate(phone));
     } catch (error) {
-      this.logger.error(`SMS provider failed for ${dto.phone}: ${error}`);
+      this.logger.error(`SMS provider error: category=provider_failure`);
       throw new BadRequestException("Impossible d'envoyer le code de vérification. Veuillez réessayer.");
     }
 
     await this.prisma.otpCode.create({
       data: {
-        phone: dto.phone,
+        phone,
         code: hash,
         expiresAt: new Date(Date.now() + OTP_EXPIRY_MS),
       },
@@ -55,9 +58,11 @@ export class AuthService {
   }
 
   async verifyOtp(dto: VerifyOtpDto) {
+    const phone = normalizePhone(dto.phone);
+
     const otpRecord = await this.prisma.otpCode.findFirst({
       where: {
-        phone: dto.phone,
+        phone,
         verified: false,
         expiresAt: { gt: new Date() },
       },
@@ -88,7 +93,7 @@ export class AuthService {
     });
 
     const existingUser = await this.prisma.user.findUnique({
-      where: { phone: dto.phone },
+      where: { phone },
     });
 
     if (existingUser) {
@@ -107,9 +112,11 @@ export class AuthService {
   }
 
   async register(dto: RegisterDto) {
+    const phone = normalizePhone(dto.phone);
+
     const verified = await this.prisma.otpCode.findFirst({
       where: {
-        phone: dto.phone,
+        phone,
         verified: true,
         createdAt: { gt: new Date(Date.now() - OTP_REGISTRATION_WINDOW_MS) },
       },
@@ -121,7 +128,7 @@ export class AuthService {
     }
 
     const existing = await this.prisma.user.findUnique({
-      where: { phone: dto.phone },
+      where: { phone },
     });
 
     if (existing) {
@@ -133,7 +140,7 @@ export class AuthService {
 
     const user = await this.prisma.user.create({
       data: {
-        phone: dto.phone,
+        phone,
         fullName: dto.fullName,
         role,
         cityId: dto.cityId,
