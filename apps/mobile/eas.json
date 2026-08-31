@@ -17,13 +17,17 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://monpro-api.onrender.com/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://monpro-api.onrender.com/api/v1",
+        "EXPO_PUBLIC_SENTRY_DSN": "",
+        "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "preview"
       },
       "pnpm": "9.15.5"
     },
     "production": {
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://monpro-api.onrender.com/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://monpro-api.onrender.com/api/v1",
+        "EXPO_PUBLIC_SENTRY_DSN": "",
+        "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "production"
       },
       "pnpm": "9.15.5"
     }

@@ -29,6 +29,9 @@ export default function ClientLayout() {
       <Stack.Screen name="conversation" options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="favorites" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="edit-profile" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="addresses" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="settings" options={{ animation: 'slide_from_right' }} />
     </Stack>
   );
 }

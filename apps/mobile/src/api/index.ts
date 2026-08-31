@@ -16,3 +16,4 @@ export { notificationsApi } from './notifications';
 export { favoritesApi } from './favorites';
 export { geographyApi } from './geography';
 export { uploadsApi } from './uploads';
+export { kycApi } from './kyc';

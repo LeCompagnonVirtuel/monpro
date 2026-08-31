@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/react-native';
+
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 interface LogContext {
@@ -13,25 +15,21 @@ function formatMessage(level: LogLevel, message: string, context?: LogContext): 
 export const logger = {
   debug(message: string, context?: LogContext) {
     if (__DEV__) {
-      // eslint-disable-next-line no-console
       console.debug(formatMessage('debug', message, context));
     }
   },
 
   info(message: string, context?: LogContext) {
     if (__DEV__) {
-      // eslint-disable-next-line no-console
       console.info(formatMessage('info', message, context));
     }
   },
 
   warn(message: string, context?: LogContext) {
-    // eslint-disable-next-line no-console
     console.warn(formatMessage('warn', message, context));
   },
 
   error(message: string, context?: LogContext) {
-    // eslint-disable-next-line no-console
     console.error(formatMessage('error', message, context));
   },
 
@@ -40,14 +38,16 @@ export const logger = {
     const stack = error instanceof Error ? error.stack : undefined;
     logger.error(message, { ...context, stack });
 
-    // Future: hook into Sentry/Crashlytics here
-    // if (sentryEnabled) Sentry.captureException(error, { extra: context });
+    if (!__DEV__) {
+      Sentry.captureException(error, { extra: context });
+    }
   },
 
   captureMessage(message: string, level: LogLevel = 'info', context?: LogContext) {
     logger[level](message, context);
 
-    // Future: hook into Sentry/Crashlytics here
-    // if (sentryEnabled) Sentry.captureMessage(message, level);
+    if (!__DEV__) {
+      Sentry.captureMessage(message, level as any);
+    }
   },
 };

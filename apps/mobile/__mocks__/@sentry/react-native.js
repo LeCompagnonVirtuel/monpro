@@ -1,0 +1,16 @@
+module.exports = {
+  init: jest.fn(),
+  captureException: jest.fn(),
+  captureMessage: jest.fn(),
+  addBreadcrumb: jest.fn(),
+  setContext: jest.fn(),
+  setExtra: jest.fn(),
+  setExtras: jest.fn(),
+  setTag: jest.fn(),
+  setTags: jest.fn(),
+  setUser: jest.fn(),
+  withScope: jest.fn((cb) => cb({ setContext: jest.fn(), setExtra: jest.fn(), setTag: jest.fn() })),
+  flush: jest.fn().mockResolvedValue(true),
+  close: jest.fn().mockResolvedValue(true),
+  SentryError: Error,
+};

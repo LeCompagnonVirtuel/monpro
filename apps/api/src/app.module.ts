@@ -23,6 +23,7 @@ import { LedgerModule } from './ledger/ledger.module';
 import { InterventionsModule } from './interventions/interventions.module';
 import { DeviceTokensModule } from './device-tokens/device-tokens.module';
 import { BusinessesModule } from './businesses/businesses.module';
+import { KycModule } from './kyc/kyc.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { HealthController } from './health.controller';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -59,6 +60,7 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
     InterventionsModule,
     DeviceTokensModule,
     BusinessesModule,
+    KycModule,
   ],
   controllers: [HealthController],
   providers: [

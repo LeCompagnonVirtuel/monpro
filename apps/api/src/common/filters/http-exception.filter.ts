@@ -1,5 +1,6 @@
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { Response } from 'express';
+import * as Sentry from '@sentry/nestjs';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -29,6 +30,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       }
     } else {
       this.logger.error('Unhandled exception', exception instanceof Error ? exception.stack : exception);
+      Sentry.captureException(exception);
     }
 
     response.status(status).json({

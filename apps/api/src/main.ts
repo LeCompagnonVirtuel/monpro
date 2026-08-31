@@ -1,9 +1,20 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import * as Sentry from '@sentry/nestjs';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
+
+function initSentry() {
+  if (!process.env.SENTRY_DSN) return;
+
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.SENTRY_ENVIRONMENT || 'development',
+    tracesSampleRate: 0.2,
+  });
+}
 
 const REQUIRED_ENV_VARS = [
   'DATABASE_URL',
@@ -78,6 +89,7 @@ function validateEnvironment(): void {
 }
 
 async function bootstrap() {
+  initSentry();
   validateEnvironment();
 
   const logger = new Logger('Bootstrap');
