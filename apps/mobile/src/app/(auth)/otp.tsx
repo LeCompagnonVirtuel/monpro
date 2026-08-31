@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   header: {
-    paddingTop: spacing.xxxxl,
+    paddingTop: spacing.xl,
     gap: spacing.sm,
   },
   otpSection: {

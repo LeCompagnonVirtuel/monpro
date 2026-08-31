@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -32,12 +32,7 @@ export default function RegisterScreen() {
   const [role, setRole] = useState<RoleType>('CLIENT');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState(phoneParam || '+225');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [phone] = useState(phoneParam || '+225');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,10 +40,6 @@ export default function RegisterScreen() {
   const validate = (): string | null => {
     if (!firstName.trim()) return 'Veuillez renseigner votre prénom.';
     if (!lastName.trim()) return 'Veuillez renseigner votre nom.';
-    if (!phone || phone.length < 10) return 'Veuillez renseigner un numéro de téléphone valide.';
-    if (password && confirmPassword && password !== confirmPassword) {
-      return 'Les mots de passe ne correspondent pas.';
-    }
     if (!termsAccepted) {
       return "Veuillez accepter les Conditions d'utilisation et la Politique de confidentialité.";
     }
@@ -95,13 +86,13 @@ export default function RegisterScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
-          contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + spacing.sm }]}
+          contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -230,86 +221,24 @@ export default function RegisterScreen() {
               </View>
             </View>
 
-            {/* Email */}
-            <View style={styles.inputRow}>
-              <Ionicons name="mail-outline" size={18} color={colors.textTertiary} style={styles.inputIcon} />
-              <TextInput
-                style={styles.textInput}
-                placeholder="Email"
-                placeholderTextColor={colors.textTertiary}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                accessibilityLabel="Email"
-              />
-            </View>
-
-            {/* Phone */}
+            {/* Phone (read-only, from OTP verification) */}
             <View style={styles.inputRow}>
               <Ionicons name="call-outline" size={18} color={colors.textTertiary} style={styles.inputIcon} />
               <TextInput
                 style={styles.textInput}
-                placeholder="Numéro de téléphone"
-                placeholderTextColor={colors.textTertiary}
                 value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-                accessibilityLabel="Numéro de téléphone"
+                editable={false}
+                accessibilityLabel="Numéro de téléphone vérifié"
               />
+              <Ionicons name="checkmark-circle" size={18} color={colors.success} />
             </View>
 
-            {/* Password */}
-            <View style={styles.inputRow}>
-              <Ionicons name="lock-closed-outline" size={18} color={colors.textTertiary} style={styles.inputIcon} />
-              <TextInput
-                style={styles.textInput}
-                placeholder="Mot de passe"
-                placeholderTextColor={colors.textTertiary}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                accessibilityLabel="Mot de passe"
-              />
-              <Pressable
-                onPress={() => setShowPassword(!showPassword)}
-                style={styles.eyeButton}
-                accessibilityLabel={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
-                accessibilityRole="button"
-              >
-                <Ionicons
-                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                  size={20}
-                  color={colors.textTertiary}
-                />
-              </Pressable>
-            </View>
-
-            {/* Confirm password */}
-            <View style={styles.inputRow}>
-              <Ionicons name="lock-closed-outline" size={18} color={colors.textTertiary} style={styles.inputIcon} />
-              <TextInput
-                style={styles.textInput}
-                placeholder="Confirmer le mot de passe"
-                placeholderTextColor={colors.textTertiary}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry={!showConfirm}
-                accessibilityLabel="Confirmer le mot de passe"
-              />
-              <Pressable
-                onPress={() => setShowConfirm(!showConfirm)}
-                style={styles.eyeButton}
-                accessibilityLabel={showConfirm ? 'Masquer la confirmation' : 'Afficher la confirmation'}
-                accessibilityRole="button"
-              >
-                <Ionicons
-                  name={showConfirm ? 'eye-off-outline' : 'eye-outline'}
-                  size={20}
-                  color={colors.textTertiary}
-                />
-              </Pressable>
+            {/* Info: auth via OTP */}
+            <View style={styles.infoRow}>
+              <Ionicons name="information-circle-outline" size={16} color={colors.textTertiary} />
+              <Text variant="caption" color={colors.textTertiary} style={styles.infoText}>
+                {"Vous vous connectez via code SMS. Aucun mot de passe n'est nécessaire."}
+              </Text>
             </View>
 
             {/* Terms checkbox */}
@@ -420,7 +349,7 @@ export default function RegisterScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -556,9 +485,15 @@ const styles = StyleSheet.create({
     color: colors.text,
     height: '100%',
   },
-  eyeButton: {
-    padding: spacing.xs,
-    marginLeft: spacing.sm,
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+  },
+  infoText: {
+    flex: 1,
+    lineHeight: 18,
   },
   termsRow: {
     flexDirection: 'row',
