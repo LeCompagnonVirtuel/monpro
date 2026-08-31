@@ -41,6 +41,8 @@ export class AfricaSmsProvider implements ISmsProvider {
       body.append('from', this.from);
     }
 
+    this.logger.log(`Sending SMS to ${phone} via africastalking (${this.environment})`);
+
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), SMS_TIMEOUT_MS);
@@ -60,13 +62,13 @@ export class AfricaSmsProvider implements ISmsProvider {
 
       if (!response.ok) {
         const errorText = await response.text();
-        this.logger.error(`Africa's Talking SMS failed [${response.status}]: status=${response.status}`);
+        this.logger.error(`Africa's Talking SMS failed [${response.status}]: ${errorText}`);
         throw new Error('SMS delivery failed. Please try again.');
       }
 
       const data = await response.json() as {
         SMSMessageData?: {
-          Recipients?: Array<{ status: string; messageId?: string; number: string }>;
+          Recipients?: Array<{ status: string; messageId?: string; number: string; errorMessage?: string }>;
         };
       };
 
@@ -74,12 +76,13 @@ export class AfricaSmsProvider implements ISmsProvider {
       const firstRecipient = recipients[0];
 
       if (firstRecipient?.status === 'Success') {
-        this.logger.log(`SMS sent successfully to ${phone}`);
+        this.logger.log(`SMS sent successfully to ${phone}, messageId=${firstRecipient.messageId}`);
         return { success: true, messageId: firstRecipient.messageId };
       }
 
-      this.logger.error(`SMS delivery failed for ${phone}: status=${firstRecipient?.status || 'unknown'}`);
-      throw new Error('SMS delivery failed. Please try again.');
+      const errMsg = firstRecipient?.errorMessage || firstRecipient?.status || 'unknown';
+      this.logger.error(`SMS delivery failed for ${phone}: ${errMsg}`);
+      throw new Error(`SMS delivery failed: ${errMsg}`);
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
         this.logger.error(`SMS request timed out after ${SMS_TIMEOUT_MS}ms for ${phone}`);
