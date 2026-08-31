@@ -1,6 +1,6 @@
 import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { SkipThrottle } from '@nestjs/throttler';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { Public } from './common/decorators/public.decorator';
 import { PrismaService } from './prisma/prisma.service';
 
@@ -12,11 +12,13 @@ export class HealthController {
   constructor(private prisma: PrismaService) {}
 
   @Get()
+  @Throttle({ default: { limit: 0 } })
   check() {
     return { status: 'ok', timestamp: new Date().toISOString() };
   }
 
   @Get('ready')
+  @Throttle({ default: { limit: 0 } })
   async ready() {
     try {
       await this.prisma.$queryRaw`SELECT 1`;

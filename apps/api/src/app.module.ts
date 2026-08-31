@@ -35,8 +35,9 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([
-      { name: 'default', ttl: 60000, limit: 100 },
+      { name: 'default', ttl: 60000, limit: 200 },
       { name: 'sensitive', ttl: 60000, limit: 10 },
+      { name: 'health', ttl: 60000, limit: 600 },
     ]),
     PrismaModule,
     RealtimeModule,
