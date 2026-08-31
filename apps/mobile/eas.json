@@ -8,7 +8,8 @@
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_API_URL": "http://localhost:3000/api/v1"
-      }
+      },
+      "pnpm": "9.15.5"
     },
     "preview": {
       "distribution": "internal",
@@ -17,12 +18,14 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://monpro-api.onrender.com/api/v1"
-      }
+      },
+      "pnpm": "9.15.5"
     },
     "production": {
       "env": {
         "EXPO_PUBLIC_API_URL": "https://monpro-api.onrender.com/api/v1"
-      }
+      },
+      "pnpm": "9.15.5"
     }
   },
   "submit": {
