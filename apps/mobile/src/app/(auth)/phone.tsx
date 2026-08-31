@@ -11,10 +11,18 @@ import { Text, Button, Input } from '@/components/ui';
 import { authApi } from '@/api/auth';
 import { extractApiError } from '@/api/errors';
 
+function normalizePhoneInput(raw: string): string {
+  return raw.replace(/[\s\-().]/g, '');
+}
+
 const phoneSchema = z.object({
   phone: z
     .string()
-    .regex(/^\+\d{10,15}$/, 'Numéro de téléphone invalide'),
+    .transform((val) => normalizePhoneInput(val))
+    .refine(
+      (val) => /^\+\d{10,15}$/.test(val),
+      'Numéro de téléphone invalide. Format: +225 07 00 00 00 00',
+    ),
 });
 
 type PhoneForm = z.infer<typeof phoneSchema>;
@@ -33,8 +41,9 @@ export default function PhoneScreen() {
     setError(null);
 
     try {
-      await authApi.requestOtp({ phone: data.phone });
-      router.push({ pathname: '/(auth)/otp', params: { phone: data.phone } });
+      const normalizedPhone = normalizePhoneInput(data.phone);
+      await authApi.requestOtp({ phone: normalizedPhone });
+      router.push({ pathname: '/(auth)/otp', params: { phone: normalizedPhone } });
     } catch (err) {
       const apiError = extractApiError(err);
       setError(apiError.message);

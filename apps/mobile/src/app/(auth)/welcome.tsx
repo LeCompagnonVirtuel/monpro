@@ -28,8 +28,9 @@ export default function WelcomeScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async () => {
-    if (!phone || phone.length < 10) {
-      setError('Veuillez renseigner votre numéro de téléphone.');
+    const normalized = phone.replace(/[\s\-().]/g, '');
+    if (!normalized || normalized.length < 10 || !normalized.startsWith('+')) {
+      setError('Veuillez renseigner un numéro de téléphone valide.');
       return;
     }
 
@@ -37,8 +38,8 @@ export default function WelcomeScreen() {
     setError(null);
 
     try {
-      await authApi.requestOtp({ phone });
-      router.push({ pathname: '/(auth)/otp', params: { phone } });
+      await authApi.requestOtp({ phone: normalized });
+      router.push({ pathname: '/(auth)/otp', params: { phone: normalized } });
     } catch (err) {
       const apiError = extractApiError(err);
       setError(apiError.message);
