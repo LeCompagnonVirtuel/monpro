@@ -213,7 +213,7 @@ function DetailRow({ icon, label, value }: { icon: keyof typeof Ionicons.glyphMa
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
-  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { flex: 1, textAlign: 'center' },
   loadingContent: { padding: spacing.xl, gap: spacing.lg },
   scrollContent: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxxl },

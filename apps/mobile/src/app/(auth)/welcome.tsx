@@ -162,7 +162,7 @@ export default function WelcomeScreen() {
                   <Text variant="caption" color={colors.textInverse} style={styles.trustTitle}>
                     Sécurisé
                   </Text>
-                  <Text variant="caption" color="rgba(255,255,255,0.7)" style={styles.trustDesc}>
+                  <Text variant="caption" color={colors.textInverseMuted} style={styles.trustDesc}>
                     Vos données sont protégées
                   </Text>
                 </View>
@@ -176,7 +176,7 @@ export default function WelcomeScreen() {
                   <Text variant="caption" color={colors.textInverse} style={styles.trustTitle}>
                     Professionnels
                   </Text>
-                  <Text variant="caption" color="rgba(255,255,255,0.7)" style={styles.trustDesc}>
+                  <Text variant="caption" color={colors.textInverseMuted} style={styles.trustDesc}>
                     Vérifiés et certifiés
                   </Text>
                 </View>
@@ -190,7 +190,7 @@ export default function WelcomeScreen() {
                   <Text variant="caption" color={colors.textInverse} style={styles.trustTitle}>
                     Support
                   </Text>
-                  <Text variant="caption" color="rgba(255,255,255,0.7)" style={styles.trustDesc}>
+                  <Text variant="caption" color={colors.textInverseMuted} style={styles.trustDesc}>
                     Assistance rapide et dédiée
                   </Text>
                 </View>
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
   trustDivider: {
     width: 1,
     height: 50,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: colors.borderInverse,
     marginHorizontal: spacing.sm,
   },
 });

@@ -66,7 +66,7 @@ export function HomeHeader({ firstName, locationLabel }: HomeHeaderProps) {
         <Text variant="h1" color={colors.textInverse}>
           {firstName ? `Bonjour ${firstName} \u{1F44B}` : 'Bonjour \u{1F44B}'}
         </Text>
-        <Text variant="body" color="rgba(255,255,255,0.85)">
+        <Text variant="body" color={colors.textInverseSoft}>
           {"Comment pouvons-nous"}{'\n'}{"vous aider aujourd'hui ?"}
         </Text>
       </View>
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: colors.borderInverse,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs + 2,
     borderRadius: radius.full,

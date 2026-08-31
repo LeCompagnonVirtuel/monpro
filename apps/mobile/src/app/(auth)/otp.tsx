@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { StyleSheet, View, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, View, TextInput, Pressable, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/theme/colors';
@@ -93,81 +93,83 @@ export default function OtpScreen() {
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.header}>
-          <Text variant="h1">Vérification</Text>
-          <Text variant="body" color={colors.textSecondary}>
-            Entrez le code à 6 chiffres envoyé au{'\n'}
-            <Text variant="body" color={colors.text}>
-              {phone ? formatPhone(phone) : ''}
-            </Text>
-          </Text>
-        </View>
-
-        <View style={styles.otpSection}>
-          <Pressable style={styles.otpContainer} onPress={() => inputRef.current?.focus()}>
-            {Array.from({ length: OTP_LENGTH }).map((_, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.otpCell,
-                  code.length === i && styles.otpCellActive,
-                  error && styles.otpCellError,
-                ]}
-              >
-                <Text variant="h2" align="center">
-                  {code[i] || ''}
-                </Text>
-              </View>
-            ))}
-          </Pressable>
-
-          <TextInput
-            ref={inputRef}
-            style={styles.hiddenInput}
-            value={code}
-            onChangeText={handleCodeChange}
-            keyboardType="number-pad"
-            maxLength={OTP_LENGTH}
-            autoFocus
-            textContentType="oneTimeCode"
-            accessibilityLabel="Code de vérification à 6 chiffres"
-          />
-
-          {error && (
-            <Text variant="bodySmall" color={colors.error} align="center">
-              {error}
-            </Text>
-          )}
-
-          <View style={styles.resendRow}>
-            {resendTimer > 0 ? (
-              <Text variant="bodySmall" color={colors.textTertiary}>
-                Renvoyer dans {resendTimer}s
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <View style={styles.header}>
+            <Text variant="h1">Vérification</Text>
+            <Text variant="body" color={colors.textSecondary}>
+              Entrez le code à 6 chiffres envoyé au{'\n'}
+              <Text variant="body" color={colors.text}>
+                {phone ? formatPhone(phone) : ''}
               </Text>
-            ) : (
-              <Pressable onPress={handleResend} disabled={isResending}>
-                <Text variant="bodySmall" color={colors.primary}>
-                  {isResending ? 'Envoi...' : 'Renvoyer le code'}
-                </Text>
-              </Pressable>
-            )}
-          </View>
-        </View>
-
-        <View style={styles.actions}>
-          <Button
-            title="Vérifier"
-            onPress={() => verifyCode(code)}
-            loading={isLoading}
-            disabled={code.length < OTP_LENGTH || isLoading}
-            size="lg"
-          />
-          <Pressable onPress={() => router.back()}>
-            <Text variant="bodySmall" color={colors.primary} align="center">
-              Modifier le numéro
             </Text>
-          </Pressable>
-        </View>
+          </View>
+
+          <View style={styles.otpSection}>
+            <Pressable style={styles.otpContainer} onPress={() => inputRef.current?.focus()}>
+              {Array.from({ length: OTP_LENGTH }).map((_, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.otpCell,
+                    code.length === i && styles.otpCellActive,
+                    error && styles.otpCellError,
+                  ]}
+                >
+                  <Text variant="h2" align="center">
+                    {code[i] || ''}
+                  </Text>
+                </View>
+              ))}
+            </Pressable>
+
+            <TextInput
+              ref={inputRef}
+              style={styles.hiddenInput}
+              value={code}
+              onChangeText={handleCodeChange}
+              keyboardType="number-pad"
+              maxLength={OTP_LENGTH}
+              autoFocus
+              textContentType="oneTimeCode"
+              accessibilityLabel="Code de vérification à 6 chiffres"
+            />
+
+            {error && (
+              <Text variant="bodySmall" color={colors.error} align="center">
+                {error}
+              </Text>
+            )}
+
+            <View style={styles.resendRow}>
+              {resendTimer > 0 ? (
+                <Text variant="bodySmall" color={colors.textTertiary}>
+                  Renvoyer dans {resendTimer}s
+                </Text>
+              ) : (
+                <Pressable onPress={handleResend} disabled={isResending}>
+                  <Text variant="bodySmall" color={colors.primary}>
+                    {isResending ? 'Envoi...' : 'Renvoyer le code'}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.actions}>
+            <Button
+              title="Vérifier"
+              onPress={() => verifyCode(code)}
+              loading={isLoading}
+              disabled={code.length < OTP_LENGTH || isLoading}
+              size="lg"
+            />
+            <Pressable onPress={() => router.back()}>
+              <Text variant="bodySmall" color={colors.primary} align="center">
+                Modifier le numéro
+              </Text>
+            </Pressable>
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -181,6 +183,9 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
     paddingHorizontal: spacing.xxl,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   header: {
     paddingTop: spacing.xxxxl,

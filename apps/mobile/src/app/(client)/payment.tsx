@@ -254,7 +254,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
-  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { flex: 1, textAlign: 'center' },
   loadingContent: { padding: spacing.xl, gap: spacing.lg },
   scrollContent: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxxl },
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   providerSection: { paddingVertical: spacing.lg, gap: spacing.md },
   providerList: { gap: spacing.sm },
   providerCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.md, backgroundColor: colors.surface },
-  providerCardSelected: { borderColor: colors.primary, backgroundColor: '#E8F5ED' },
+  providerCardSelected: { borderColor: colors.primary, backgroundColor: colors.successLightest },
   pollingBanner: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, justifyContent: 'center', paddingVertical: spacing.md },
   devNotice: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, backgroundColor: colors.warningLight, borderRadius: radius.md, marginTop: spacing.lg },
   actions: { paddingTop: spacing.xl, gap: spacing.md },

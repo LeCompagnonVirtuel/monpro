@@ -357,26 +357,6 @@ export default function RegisterScreen() {
               {!isLoading && <Ionicons name="arrow-forward" size={20} color={colors.textInverse} />}
             </Pressable>
 
-            {/* Separator */}
-            <View style={styles.separator}>
-              <View style={styles.separatorLine} />
-              <Text variant="caption" color={colors.textTertiary} style={styles.separatorText}>
-                ou
-              </Text>
-              <View style={styles.separatorLine} />
-            </View>
-
-            {/* Google button */}
-            <Pressable
-              style={styles.googleButton}
-              accessibilityLabel="S'inscrire avec Google"
-              accessibilityRole="button"
-            >
-              <Text style={styles.googleIcon}>G</Text>
-              <Text variant="body" color={colors.primary} style={styles.googleLabel}>
-                {"S'inscrire avec Google"}
-              </Text>
-            </Pressable>
           </View>
 
           {/* Footer */}
@@ -407,7 +387,7 @@ export default function RegisterScreen() {
                   <Text variant="caption" color={colors.textInverse} style={styles.trustTitle}>
                     Sécurisé
                   </Text>
-                  <Text variant="caption" color="rgba(255,255,255,0.7)" style={styles.trustDesc}>
+                  <Text variant="caption" color={colors.textInverseMuted} style={styles.trustDesc}>
                     Vos données sont protégées
                   </Text>
                 </View>
@@ -419,7 +399,7 @@ export default function RegisterScreen() {
                   <Text variant="caption" color={colors.textInverse} style={styles.trustTitle}>
                     Professionnels
                   </Text>
-                  <Text variant="caption" color="rgba(255,255,255,0.7)" style={styles.trustDesc}>
+                  <Text variant="caption" color={colors.textInverseMuted} style={styles.trustDesc}>
                     Vérifiés et certifiés
                   </Text>
                 </View>
@@ -431,7 +411,7 @@ export default function RegisterScreen() {
                   <Text variant="caption" color={colors.textInverse} style={styles.trustTitle}>
                     Support
                   </Text>
-                  <Text variant="caption" color="rgba(255,255,255,0.7)" style={styles.trustDesc}>
+                  <Text variant="caption" color={colors.textInverseMuted} style={styles.trustDesc}>
                     Assistance rapide et dédiée
                   </Text>
                 </View>
@@ -626,40 +606,6 @@ const styles = StyleSheet.create({
   createButtonDisabled: {
     opacity: 0.6,
   },
-  separator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginVertical: spacing.xs,
-  },
-  separatorLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.border,
-  },
-  separatorText: {
-    fontSize: 13,
-  },
-  googleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 52,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: radius.xl,
-    gap: spacing.md,
-  },
-  googleIcon: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#4285F4',
-  },
-  googleLabel: {
-    fontWeight: '500',
-    fontSize: 15,
-  },
   footer: {
     marginTop: spacing.xxl,
   },
@@ -717,7 +663,7 @@ const styles = StyleSheet.create({
   trustDivider: {
     width: 1,
     height: 50,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: colors.borderInverse,
     marginHorizontal: spacing.sm,
   },
 });

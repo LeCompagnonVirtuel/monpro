@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, ScrollView, Pressable, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -29,6 +29,7 @@ export default function OnboardingScreen() {
   const { data: categories, isLoading: categoriesLoading, isError: categoriesError, refetch: refetchCategories } = useCategories();
   const createProfile = useCreateProfessionalProfile();
   const updateProfile = useUpdateProfessionalProfile();
+  const insets = useSafeAreaInsets();
 
   const [step, setStep] = useState(0);
   const [businessName, setBusinessName] = useState('');
@@ -135,7 +136,7 @@ export default function OnboardingScreen() {
           <Skeleton width="100%" height={48} style={styles.skeletonInput} />
           <Skeleton width="100%" height={48} style={styles.skeletonInput} />
         </View>
-        <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
           <Skeleton width="100%" height={48} style={styles.skeletonBtn} />
         </View>
       </SafeAreaView>

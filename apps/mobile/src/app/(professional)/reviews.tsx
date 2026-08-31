@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View, FlatList, Pressable, TextInput } from 'react-native';
+import { StyleSheet, View, FlatList, Pressable, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -61,14 +61,21 @@ export default function ReviewsScreen() {
         </View>
       )}
 
-      <FlatList
-        data={reviews}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <ReviewCard review={item} />}
-        contentContainerStyle={styles.listContent}
-        onRefresh={refetch}
-        refreshing={false}
-      />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
+        <FlatList
+          data={reviews}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <ReviewCard review={item} />}
+          contentContainerStyle={styles.listContent}
+          onRefresh={refetch}
+          refreshing={false}
+          keyboardShouldPersistTaps="handled"
+        />
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -160,7 +167,7 @@ function Header() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
-  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { flex: 1, textAlign: 'center' },
   loadingContent: { padding: spacing.lg, gap: spacing.md },
   summaryBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingVertical: spacing.sm },

@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, TextInput, Image, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, TextInput, Image, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { colors } from '@/theme/colors';
@@ -19,6 +19,7 @@ import { useCategories } from '@/hooks/use-categories';
 import { useCountries, useRegions, useCities, useDistricts } from '@/hooks/use-geography';
 import { useLocation } from '@/hooks/use-location';
 import { extractApiError } from '@/api/errors';
+import { useAuthStore } from '@/stores/auth.store';
 
 type WizardStep = 'details' | 'category' | 'informations' | 'confirmation';
 
@@ -50,6 +51,8 @@ export default function CreateRequestScreen() {
   const { data: preselectedService } = useService(serviceId);
   const { location: _location } = useLocation();
   const createRequest = useCreateServiceRequest();
+  const insets = useSafeAreaInsets();
+  const userRole = useAuthStore((s) => s.role);
 
   const [currentStep, setCurrentStep] = useState(0);
   const [title, setTitle] = useState('');
@@ -188,7 +191,7 @@ export default function CreateRequestScreen() {
         preferredTimeEnd: preferredTimeEnd || undefined,
       });
 
-      router.replace('/(client)/(tabs)/requests');
+      router.replace('/(client)/(tabs)/home');
     } catch (err) {
       const apiError = extractApiError(err);
       setError(apiError.message);
@@ -214,15 +217,17 @@ export default function CreateRequestScreen() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </Pressable>
         <Text variant="h3" style={styles.headerTitle}>Publier une demande</Text>
-        <Pressable
-          style={styles.proChip}
-          onPress={() => router.push('/(professional)/(tabs)/dashboard')}
-          accessibilityLabel="Passer en mode professionnel"
-          accessibilityRole="button"
-        >
-          <Ionicons name="calendar-outline" size={14} color={colors.primary} />
-          <Text variant="caption" color={colors.primary} style={styles.proChipText}>En tant que pro</Text>
-        </Pressable>
+        {userRole === 'PROFESSIONAL' && (
+          <Pressable
+            style={styles.proChip}
+            onPress={() => router.push('/(professional)/(tabs)/dashboard')}
+            accessibilityLabel="Passer en mode professionnel"
+            accessibilityRole="button"
+          >
+            <Ionicons name="calendar-outline" size={14} color={colors.primary} />
+            <Text variant="caption" color={colors.primary} style={styles.proChipText}>En tant que pro</Text>
+          </Pressable>
+        )}
       </View>
 
       {/* Stepper */}
@@ -254,6 +259,11 @@ export default function CreateRequestScreen() {
         ))}
       </View>
 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         {currentStep === 0 && (
           <>
@@ -1011,7 +1021,7 @@ export default function CreateRequestScreen() {
       </ScrollView>
 
       {/* CTA Button */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
         <Pressable
           style={[styles.ctaButton, !canProceed() && styles.ctaButtonDisabled]}
           onPress={currentStep === STEPS.length - 1 ? handleSubmit : goNext}
@@ -1036,6 +1046,7 @@ export default function CreateRequestScreen() {
           )}
         </Pressable>
       </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -1052,8 +1063,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   backBtn: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1271,7 +1282,7 @@ const styles = StyleSheet.create({
   },
   dateToggleActive: {
     borderColor: colors.secondary,
-    backgroundColor: '#FFFBEB',
+    backgroundColor: colors.warningLightest,
   },
   budgetHeader: {
     flexDirection: 'row',

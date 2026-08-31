@@ -145,13 +145,13 @@ function NotificationRow({ notification, onPress }: { notification: Notification
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
-  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { flex: 1, textAlign: 'center' },
   loadingContent: { padding: spacing.lg, gap: spacing.md },
   listContent: { paddingBottom: spacing.xxxl },
   notifRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.md },
   notifRowUnread: { backgroundColor: colors.surfaceSecondary },
   notifIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surfaceSecondary, alignItems: 'center', justifyContent: 'center' },
-  notifIconUnread: { backgroundColor: '#E8F5ED' },
+  notifIconUnread: { backgroundColor: colors.successLightest },
   notifContent: { flex: 1, gap: 2 },
 });

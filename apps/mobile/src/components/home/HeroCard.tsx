@@ -14,7 +14,7 @@ export function HeroCard() {
           <Text variant="h2" color={colors.textInverse} style={styles.title}>
             {"Besoin d'un pro"}{'\n'}{"fiable et qualifié ?"}
           </Text>
-          <Text variant="bodySmall" color="rgba(255,255,255,0.8)" style={styles.subtitle}>
+          <Text variant="bodySmall" color={colors.textInverseSoft} style={styles.subtitle}>
             Trouvez le professionnel idéal{'\n'}près de chez vous en quelques clics.
           </Text>
           <Pressable

@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -25,7 +25,7 @@ export function PremiumCTA() {
 
         <Pressable
           style={styles.cta}
-          onPress={() => {}}
+          onPress={() => Alert.alert('Bientôt disponible', 'MONPRO Premium arrive prochainement.')}
           accessibilityLabel="Découvrir MONPRO Premium"
           accessibilityRole="button"
         >
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(255, 184, 0, 0.2)',
+    backgroundColor: colors.secondaryMuted,
     alignItems: 'center',
     justifyContent: 'center',
   },

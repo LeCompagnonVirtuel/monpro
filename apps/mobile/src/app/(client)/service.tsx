@@ -1,6 +1,6 @@
 import { StyleSheet, View, FlatList, Pressable } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -16,6 +16,7 @@ export default function ServiceScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: service, isLoading: serviceLoading } = useService(id);
   const { location } = useLocation();
+  const insets = useSafeAreaInsets();
 
   const matchParams = id ? {
     serviceId: id,
@@ -71,7 +72,7 @@ export default function ServiceScreen() {
       )}
 
       {id && (
-        <View style={styles.ctaContainer}>
+        <View style={[styles.ctaContainer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
           <Button
             title="Demander ce service"
             onPress={() => router.push({ pathname: '/(client)/create-request', params: { serviceId: id } })}
@@ -144,8 +145,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   backBtn: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -1,5 +1,6 @@
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import { useCallback } from 'react';
+import { Alert, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import * as ImagePicker from 'expo-image-picker';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { Skeleton } from '@/components/ui';
@@ -14,13 +15,17 @@ import { ProfileLogout } from '@/components/profile/ProfileLogout';
 import { useMe } from '@/hooks/use-me';
 import { useServiceRequests } from '@/hooks/use-service-requests';
 import { useConversations } from '@/hooks/use-conversations';
+import { useUpdateProfile } from '@/hooks/use-update-profile';
 import { useAuthStore } from '@/stores/auth.store';
+import { uploadsApi } from '@/api/uploads';
 
 export default function ProfileScreen() {
   const logout = useAuthStore((s) => s.logout);
   const me = useMe();
   const requests = useServiceRequests({ limit: 100 });
   const conversations = useConversations();
+  const updateProfile = useUpdateProfile();
+  const [isUploading, setIsUploading] = useState(false);
 
   const user = me.data;
   const requestCount = requests.data?.total || 0;
@@ -32,6 +37,40 @@ export default function ProfileScreen() {
     requests.refetch();
     conversations.refetch();
   }, [me, requests, conversations]);
+
+  const handleAvatarPress = useCallback(async () => {
+    if (isUploading) return;
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission requise', 'Veuillez autoriser l\'accès à la galerie pour modifier votre photo.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (result.canceled || !result.assets[0]) return;
+
+    const asset = result.assets[0];
+    const uri = asset.uri;
+    const name = uri.split('/').pop() || 'avatar.jpg';
+    const type = asset.mimeType || 'image/jpeg';
+
+    setIsUploading(true);
+    try {
+      const { data: uploadResponse } = await uploadsApi.uploadImage({ uri, name, type }, 'avatars');
+      await updateProfile.mutateAsync({ avatarUrl: uploadResponse.data.url });
+    } catch {
+      Alert.alert('Erreur', 'Impossible de mettre à jour votre photo. Veuillez réessayer.');
+    } finally {
+      setIsUploading(false);
+    }
+  }, [isUploading, updateProfile]);
 
   if (me.isLoading) {
     return (
@@ -74,7 +113,7 @@ export default function ProfileScreen() {
           fullName={user?.fullName || ''}
           avatarUrl={user?.avatarUrl}
           location={user?.cityId ? undefined : undefined}
-          onCameraPress={() => {}}
+          onCameraPress={handleAvatarPress}
         />
 
         <View style={styles.section}>

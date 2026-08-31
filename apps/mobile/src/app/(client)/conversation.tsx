@@ -169,7 +169,7 @@ function MessageBubble({ message, isOwn }: { message: Message; isOwn: boolean })
       <Text variant="body" color={isOwn ? colors.textInverse : colors.text}>
         {message.content}
       </Text>
-      <Text variant="bodySmall" color={isOwn ? 'rgba(255,255,255,0.7)' : colors.textTertiary} align="right">
+      <Text variant="bodySmall" color={isOwn ? colors.textInverseMuted : colors.textTertiary} align="right">
         {formatRelativeDate(message.createdAt)}
       </Text>
     </View>
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.borderLight },
-  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { flex: 1, textAlign: 'center' },
   loadingContent: { flex: 1, padding: spacing.lg, gap: spacing.md, justifyContent: 'flex-end' },
   messagesContent: { paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.sm },
@@ -190,6 +190,6 @@ const styles = StyleSheet.create({
   typingBar: { paddingHorizontal: spacing.lg, paddingVertical: spacing.xs },
   composer: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderTopWidth: 1, borderTopColor: colors.borderLight, gap: spacing.sm },
   input: { flex: 1, minHeight: 40, maxHeight: 100, backgroundColor: colors.surfaceSecondary, borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, fontSize: 14, color: colors.text },
-  sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   sendBtnDisabled: { backgroundColor: colors.border },
 });

@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceSecondary,
   },
   filterTabActive: {
-    backgroundColor: '#E8F5ED',
+    backgroundColor: colors.successLightest,
   },
   loadingList: {
     padding: spacing.lg,

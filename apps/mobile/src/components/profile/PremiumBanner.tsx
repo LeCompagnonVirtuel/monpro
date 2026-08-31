@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -20,7 +20,7 @@ export function PremiumBanner({ memberSince }: PremiumBannerProps) {
         <View style={styles.leftCol}>
           <View style={styles.memberRow}>
             <Ionicons name="checkmark-circle" size={14} color={colors.success} />
-            <Text variant="caption" color="rgba(255,255,255,0.8)">
+            <Text variant="caption" color={colors.textInverseSoft}>
               Membre depuis
             </Text>
           </View>
@@ -50,7 +50,7 @@ export function PremiumBanner({ memberSince }: PremiumBannerProps) {
 
         <Pressable
           style={styles.cta}
-          onPress={() => {}}
+          onPress={() => Alert.alert('Bientôt disponible', 'MONPRO Premium arrive prochainement.')}
           accessibilityLabel="Voir les avantages Premium"
           accessibilityRole="button"
         >
@@ -61,7 +61,7 @@ export function PremiumBanner({ memberSince }: PremiumBannerProps) {
         </Pressable>
 
         <View style={styles.decoration}>
-          <Ionicons name="ribbon" size={48} color="rgba(255, 184, 0, 0.12)" />
+          <Ionicons name="ribbon" size={48} color={colors.secondaryMuted} />
         </View>
       </View>
     </View>

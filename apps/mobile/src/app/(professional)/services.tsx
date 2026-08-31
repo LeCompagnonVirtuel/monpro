@@ -1,6 +1,6 @@
 import { StyleSheet, View, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -15,6 +15,7 @@ import { useState, useCallback } from 'react';
 export default function ServicesScreen() {
   const { data: profile, isLoading, isError, refetch } = useMyProfessionalProfile();
   const [refreshing, setRefreshing] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -65,7 +66,7 @@ export default function ServicesScreen() {
           description="Vos services apparaîtront ici une fois configurés dans votre profil professionnel."
           icon="list-outline"
         />
-        <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
           <Pressable
             style={styles.editBtn}
             onPress={() => router.push('/(professional)/onboarding' as never)}

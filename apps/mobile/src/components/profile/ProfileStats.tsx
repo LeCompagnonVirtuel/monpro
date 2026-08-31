@@ -25,7 +25,7 @@ export function ProfileStats({
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <SectionHeader title="Mon activité" onSeeAll={() => {}} />
+        <SectionHeader title="Mon activité" />
 
         <View style={styles.grid}>
           <StatItem

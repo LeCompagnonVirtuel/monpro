@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { colors } from '@/theme/colors';
 
 export const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   plomberie: 'build',
@@ -16,15 +17,15 @@ export const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  plomberie: '#FFB800',
-  electricite: '#FFB800',
-  electricité: '#FFB800',
-  nettoyage: '#2563EB',
-  climatisation: '#2563EB',
-  peinture: '#F59E0B',
-  menuiserie: '#16A34A',
-  serrurerie: '#64748B',
-  jardinage: '#16A34A',
-  demenagement: '#F59E0B',
-  déménagement: '#F59E0B',
+  plomberie: colors.secondary,
+  electricite: colors.secondary,
+  electricité: colors.secondary,
+  nettoyage: colors.info,
+  climatisation: colors.info,
+  peinture: colors.warning,
+  menuiserie: colors.success,
+  serrurerie: colors.textSecondary,
+  jardinage: colors.success,
+  demenagement: colors.warning,
+  déménagement: colors.warning,
 };

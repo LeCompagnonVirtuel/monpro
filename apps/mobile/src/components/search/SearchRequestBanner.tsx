@@ -26,7 +26,7 @@ export function SearchRequestBanner({ categoryName }: SearchRequestBannerProps) 
           <Text variant="body" color={colors.textInverse} style={styles.title}>
             {`Besoin d'un ${subject} rapidement ?`}
           </Text>
-          <Text variant="caption" color="rgba(255,255,255,0.8)" style={styles.subtitle}>
+          <Text variant="caption" color={colors.textInverseSoft} style={styles.subtitle}>
             {"Décrivez votre besoin et recevez des propositions de professionnels disponibles."}
           </Text>
         </View>
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 184, 0, 0.15)',
+    backgroundColor: colors.secondaryMuted,
     alignItems: 'center',
     justifyContent: 'center',
   },

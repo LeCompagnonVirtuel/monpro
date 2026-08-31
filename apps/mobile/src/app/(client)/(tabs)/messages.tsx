@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { StyleSheet, View, FlatList, Pressable, ScrollView, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,6 +20,7 @@ import { useUnreadNotificationCount } from '@/hooks/use-notifications';
 import { Conversation } from '@/api/messaging';
 
 type FilterType = 'all' | 'requests' | 'projects' | 'notifications';
+type SortMode = 'recent' | 'unread';
 
 export default function MessagesScreen() {
   const { data: conversations, isLoading, error, refetch } = useConversations();
@@ -29,10 +30,31 @@ export default function MessagesScreen() {
 
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [showBanner, setShowBanner] = useState(true);
+  const [sortMode, setSortMode] = useState<SortMode>('recent');
 
   const handleDismissBanner = useCallback(() => setShowBanner(false), []);
 
-  const filteredConversations = conversations || [];
+  const toggleSort = useCallback(() => {
+    setSortMode((prev) => (prev === 'recent' ? 'unread' : 'recent'));
+  }, []);
+
+  const filteredConversations = useMemo(() => {
+    const list = conversations || [];
+    if (sortMode === 'unread') {
+      return [...list].sort((a, b) => {
+        if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
+        if (a.unreadCount === 0 && b.unreadCount > 0) return 1;
+        const dateA = a.lastMessage?.createdAt || a.createdAt;
+        const dateB = b.lastMessage?.createdAt || b.createdAt;
+        return new Date(dateB).getTime() - new Date(dateA).getTime();
+      });
+    }
+    return [...list].sort((a, b) => {
+      const dateA = a.lastMessage?.createdAt || a.createdAt;
+      const dateB = b.lastMessage?.createdAt || b.createdAt;
+      return new Date(dateB).getTime() - new Date(dateA).getTime();
+    });
+  }, [conversations, sortMode]);
 
   const renderHeader = () => (
     <View>
@@ -48,13 +70,14 @@ export default function MessagesScreen() {
         <Text variant="h3" style={styles.sectionTitle}>Conversations</Text>
         <Pressable
           style={styles.sortButton}
-          accessibilityLabel="Trier les conversations"
+          onPress={toggleSort}
+          accessibilityLabel={`Trier par ${sortMode === 'recent' ? 'non lus' : 'récents'}`}
           accessibilityRole="button"
         >
-          <Text variant="caption" color={colors.textSecondary} style={styles.sortText}>
-            Trier
+          <Text variant="caption" color={sortMode === 'unread' ? colors.primary : colors.textSecondary} style={styles.sortText}>
+            {sortMode === 'recent' ? 'Récents' : 'Non lus'}
           </Text>
-          <Ionicons name="options-outline" size={16} color={colors.textSecondary} />
+          <Ionicons name={sortMode === 'unread' ? 'mail-unread-outline' : 'time-outline'} size={16} color={sortMode === 'unread' ? colors.primary : colors.textSecondary} />
         </Pressable>
       </View>
     </View>

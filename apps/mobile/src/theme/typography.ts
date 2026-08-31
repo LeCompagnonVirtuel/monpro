@@ -51,6 +51,11 @@ export const typography = {
     fontWeight: '600',
     lineHeight: 20,
   },
+  micro: {
+    fontSize: 10,
+    fontWeight: '600',
+    lineHeight: 14,
+  },
 } satisfies Record<string, TextStyle>;
 
 export type TypographyVariant = keyof typeof typography;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, View, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
@@ -49,47 +49,49 @@ export default function PhoneScreen() {
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.header}>
-          <Text variant="h1">Connexion</Text>
-          <Text variant="body" color={colors.textSecondary}>
-            Entrez votre numéro de téléphone pour recevoir un code de vérification.
-          </Text>
-        </View>
-
-        <View style={styles.form}>
-          <Controller
-            control={control}
-            name="phone"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <Input
-                label="Numéro de téléphone"
-                placeholder="+225 07 00 00 00 00"
-                keyboardType="phone-pad"
-                autoFocus
-                value={value}
-                onBlur={onBlur}
-                onChangeText={onChange}
-                error={errors.phone?.message}
-              />
-            )}
-          />
-
-          {error && (
-            <Text variant="bodySmall" color={colors.error}>
-              {error}
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <View style={styles.header}>
+            <Text variant="h1">Connexion</Text>
+            <Text variant="body" color={colors.textSecondary}>
+              Entrez votre numéro de téléphone pour recevoir un code de vérification.
             </Text>
-          )}
-        </View>
+          </View>
 
-        <View style={styles.actions}>
-          <Button
-            title="Recevoir le code"
-            onPress={handleSubmit(onSubmit)}
-            loading={isLoading}
-            disabled={isLoading}
-            size="lg"
-          />
-        </View>
+          <View style={styles.form}>
+            <Controller
+              control={control}
+              name="phone"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  label="Numéro de téléphone"
+                  placeholder="+225 07 00 00 00 00"
+                  keyboardType="phone-pad"
+                  autoFocus
+                  value={value}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  error={errors.phone?.message}
+                />
+              )}
+            />
+
+            {error && (
+              <Text variant="bodySmall" color={colors.error}>
+                {error}
+              </Text>
+            )}
+          </View>
+
+          <View style={styles.actions}>
+            <Button
+              title="Recevoir le code"
+              onPress={handleSubmit(onSubmit)}
+              loading={isLoading}
+              disabled={isLoading}
+              size="lg"
+            />
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -103,6 +105,9 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
     paddingHorizontal: spacing.xxl,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   header: {
     paddingTop: spacing.xxxxl,
