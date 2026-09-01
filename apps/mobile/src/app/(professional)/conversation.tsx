@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { StyleSheet, View, FlatList, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -17,6 +17,7 @@ import { formatRelativeDate } from '@/lib/format';
 
 export default function ProfessionalConversationScreen() {
   const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
+  const insets = useSafeAreaInsets();
   const userId = useAuthStore((s) => s.userId);
   const { data: messages, isLoading, error, refetch, hasNextPage, fetchNextPage } = useMessages(conversationId);
   const { data: conversations } = useConversations();
@@ -99,7 +100,7 @@ export default function ProfessionalConversationScreen() {
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 60 : 0}
       >
         <FlatList
           ref={flatListRef}

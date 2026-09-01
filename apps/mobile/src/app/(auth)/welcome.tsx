@@ -1,356 +1,182 @@
-import { useState } from 'react';
-import {
-  Image,
-  ImageBackground,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { Image, ImageBackground, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
 import { Text } from '@/components/ui';
-import { authApi } from '@/api/auth';
-import { extractApiError } from '@/api/errors';
 
 export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
-  const [phone, setPhone] = useState('+225');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleLogin = async () => {
-    const normalized = phone.replace(/[\s\-().]/g, '');
-    if (!normalized || normalized.length < 10 || !normalized.startsWith('+')) {
-      setError('Veuillez renseigner un numéro de téléphone valide.');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await authApi.requestOtp({ phone: normalized });
-      router.push({ pathname: '/(auth)/otp', params: { phone: normalized } });
-    } catch (err) {
-      const apiError = extractApiError(err);
-      setError(apiError.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <View style={styles.container}>
+      <ImageBackground
+        source={require('../../../assets/images/hero-technicians.png')}
+        style={styles.bg}
+        resizeMode="cover"
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Branding zone with subtle skyline */}
-          <ImageBackground
-            source={require('../../../assets/images/header-skyline.png')}
-            style={styles.brandingZone}
-            imageStyle={styles.skylineImage}
-          >
-            <Image
-              source={require('../../../assets/adaptive-icon.png')}
-              style={styles.logo}
-              resizeMode="contain"
-              accessibilityLabel="MONPRO"
-            />
-            <Text variant="body" color={colors.textSecondary} style={styles.slogan}>
-              Trouvez. Connectez. Réalisez.
-            </Text>
-          </ImageBackground>
+        <View style={styles.overlay} />
 
-          {/* Welcome text */}
-          <View style={styles.welcomeSection}>
-            <Text variant="h1" style={styles.welcomeTitle}>
-              Bienvenue !
+        <View
+          style={[
+            styles.content,
+            {
+              paddingTop: insets.top + spacing.xxxl,
+              paddingBottom: insets.bottom + spacing.xxl,
+            },
+          ]}
+        >
+          {/* Logo */}
+          <Image
+            source={require('../../../assets/adaptive-icon.png')}
+            style={styles.logo}
+            resizeMode="contain"
+            accessibilityLabel="MONPRO"
+          />
+
+          <View style={styles.grow} />
+
+          {/* Value proposition */}
+          <View style={styles.hero}>
+            <Text
+              variant="display"
+              color={colors.textInverse}
+              style={styles.heroTitle}
+            >
+              Trouvez le bon{'\n'}professionnel,{'\n'}en un instant.
             </Text>
-            <Text variant="body" color={colors.textSecondary}>
-              Connectez-vous à votre compte
+            <View style={styles.goldBar} />
+            <Text variant="body" color={colors.textInverseSoft}>
+              {"Des milliers de professionnels vérifiés à votre service en Côte d'Ivoire."}
             </Text>
           </View>
 
-          {/* Form */}
-          <View style={styles.form}>
-            {/* Phone field */}
-            <View style={styles.fieldGroup}>
-              <Text variant="bodySmall" style={styles.fieldLabel}>
-                Numéro de téléphone
-              </Text>
-              <View style={styles.inputRow}>
-                <Ionicons name="call-outline" size={20} color={colors.textTertiary} style={styles.inputIcon} />
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="+225 07 00 00 00 00"
-                  placeholderTextColor={colors.textTertiary}
-                  value={phone}
-                  onChangeText={setPhone}
-                  keyboardType="phone-pad"
-                  autoComplete="tel"
-                  accessibilityLabel="Numéro de téléphone"
-                />
-              </View>
-            </View>
-
-            {/* Error */}
-            {error && (
-              <Text variant="bodySmall" color={colors.error} style={styles.errorText}>
-                {error}
-              </Text>
-            )}
-
-            {/* Login button */}
+          {/* CTAs */}
+          <View style={styles.ctas}>
             <Pressable
-              style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
-              onPress={handleLogin}
-              disabled={isLoading}
-              accessibilityLabel="Se connecter"
+              style={({ pressed }) => [
+                styles.primaryCta,
+                pressed && styles.ctaPressed,
+              ]}
+              onPress={() => router.push('/(auth)/phone')}
+              accessibilityLabel="C'est parti"
               accessibilityRole="button"
-              accessibilityState={{ disabled: isLoading }}
             >
-              <Text variant="button" color={colors.textInverse}>
-                {isLoading ? 'Connexion...' : 'Se connecter'}
+              <Text variant="button" color={colors.primary}>
+                {"C'est parti"}
+              </Text>
+              <Ionicons name="arrow-forward" size={20} color={colors.primary} />
+            </Pressable>
+
+            <Pressable
+              onPress={() => router.push('/(auth)/phone')}
+              style={styles.secondaryCta}
+              accessibilityLabel="Se connecter avec un compte existant"
+              accessibilityRole="button"
+              hitSlop={8}
+            >
+              <Text
+                variant="bodySmall"
+                color={colors.textInverseMuted}
+                align="center"
+              >
+                {"J’ai déjà un compte ? "}
+                <Text
+                  variant="bodySmall"
+                  color={colors.textInverse}
+                  style={styles.loginLink}
+                >
+                  Se connecter
+                </Text>
               </Text>
             </Pressable>
           </View>
 
-          {/* Footer */}
-          <View style={styles.footer}>
-            {/* Gold curve separator */}
-            <View style={styles.curveContainer}>
-              <View style={styles.goldCurve} />
+          {/* Trust */}
+          <View style={styles.trust}>
+            <View style={styles.trustItem}>
+              <Ionicons
+                name="shield-checkmark"
+                size={14}
+                color={colors.secondary}
+              />
+              <Text variant="caption" color={colors.textInverseMuted}>
+                Sécurisé
+              </Text>
             </View>
-
-            <View style={[styles.footerContent, { paddingBottom: insets.bottom + spacing.lg }]}>
-              {/* Registration link */}
-              <View style={styles.registerRow}>
-                <Text variant="body" color={colors.textInverse}>
-                  Pas encore de compte ?
-                </Text>
-                <Pressable
-                  onPress={() => router.push('/(auth)/phone')}
-                  accessibilityLabel="Créer un compte"
-                  accessibilityRole="button"
-                >
-                  <Text variant="body" color={colors.secondary} style={styles.registerLink}>
-                    {"S'inscrire"}
-                  </Text>
-                </Pressable>
-              </View>
-
-              {/* Trust indicators */}
-              <View style={styles.trustRow}>
-                <View style={styles.trustItem}>
-                  <View style={styles.trustIconWrap}>
-                    <Ionicons name="shield-checkmark-outline" size={18} color={colors.secondary} />
-                  </View>
-                  <Text variant="caption" color={colors.textInverse} style={styles.trustTitle}>
-                    Sécurisé
-                  </Text>
-                  <Text variant="caption" color={colors.textInverseMuted} style={styles.trustDesc}>
-                    Vos données sont protégées
-                  </Text>
-                </View>
-
-                <View style={styles.trustDivider} />
-
-                <View style={styles.trustItem}>
-                  <View style={styles.trustIconWrap}>
-                    <Ionicons name="ribbon-outline" size={18} color={colors.secondary} />
-                  </View>
-                  <Text variant="caption" color={colors.textInverse} style={styles.trustTitle}>
-                    Professionnels
-                  </Text>
-                  <Text variant="caption" color={colors.textInverseMuted} style={styles.trustDesc}>
-                    Vérifiés et certifiés
-                  </Text>
-                </View>
-
-                <View style={styles.trustDivider} />
-
-                <View style={styles.trustItem}>
-                  <View style={styles.trustIconWrap}>
-                    <Ionicons name="headset-outline" size={18} color={colors.secondary} />
-                  </View>
-                  <Text variant="caption" color={colors.textInverse} style={styles.trustTitle}>
-                    Support
-                  </Text>
-                  <Text variant="caption" color={colors.textInverseMuted} style={styles.trustDesc}>
-                    Assistance rapide et dédiée
-                  </Text>
-                </View>
-              </View>
+            <View style={styles.trustDot} />
+            <View style={styles.trustItem}>
+              <Ionicons name="ribbon" size={14} color={colors.secondary} />
+              <Text variant="caption" color={colors.textInverseMuted}>
+                Certifié
+              </Text>
+            </View>
+            <View style={styles.trustDot} />
+            <View style={styles.trustItem}>
+              <Ionicons name="headset" size={14} color={colors.secondary} />
+              <Text variant="caption" color={colors.textInverseMuted}>
+                Support 24/7
+              </Text>
             </View>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        </View>
+      </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  container: { flex: 1, backgroundColor: colors.primary },
+  bg: { flex: 1 },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(7, 31, 73, 0.78)',
+  },
+  content: {
     flex: 1,
-    backgroundColor: colors.background,
-  },
-  flex: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  brandingZone: {
-    alignItems: 'center',
-    paddingTop: spacing.xxl,
-    paddingBottom: spacing.lg,
-  },
-  skylineImage: {
-    opacity: 0.08,
-    resizeMode: 'cover',
-  },
-  logo: {
-    width: 160,
-    height: 160,
-  },
-  slogan: {
-    marginTop: spacing.xs,
-    fontSize: 14,
-    letterSpacing: 0.5,
-  },
-  welcomeSection: {
     paddingHorizontal: spacing.xxl,
-    gap: spacing.xs,
-    marginTop: spacing.md,
   },
-  welcomeTitle: {
-    fontWeight: '800',
-    fontSize: 26,
-    color: colors.text,
+  logo: { width: 64, height: 64 },
+  grow: { flex: 1 },
+
+  hero: { gap: spacing.lg, marginBottom: spacing.xxxxl },
+  heroTitle: { fontWeight: '800', letterSpacing: -0.5 },
+  goldBar: {
+    width: 40,
+    height: 3,
+    backgroundColor: colors.secondary,
+    borderRadius: 1.5,
   },
-  form: {
-    paddingHorizontal: spacing.xxl,
-    marginTop: spacing.xl,
-    gap: spacing.md,
-  },
-  fieldGroup: {
-    gap: spacing.sm,
-  },
-  fieldLabel: {
-    fontWeight: '600',
-    color: colors.text,
-    fontSize: 14,
-  },
-  inputRow: {
+
+  ctas: { gap: spacing.xl, marginBottom: spacing.xxxl },
+  primaryCta: {
     flexDirection: 'row',
-    alignItems: 'center',
-    height: 52,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.lg,
-  },
-  inputIcon: {
-    marginRight: spacing.sm,
-  },
-  textInput: {
-    flex: 1,
-    fontSize: 15,
-    color: colors.text,
-    height: '100%',
-  },
-  errorText: {
-    marginTop: spacing.xs,
-  },
-  loginButton: {
-    height: 54,
-    backgroundColor: colors.primary,
+    height: 56,
+    backgroundColor: colors.secondary,
     borderRadius: radius.xl,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: spacing.sm,
-    ...shadows.sm,
+    gap: spacing.sm,
+    ...shadows.md,
   },
-  loginButtonDisabled: {
-    opacity: 0.6,
-  },
-  footer: {
-    marginTop: spacing.xxl,
-  },
-  curveContainer: {
-    height: 40,
-    overflow: 'hidden',
-  },
-  goldCurve: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 80,
-    backgroundColor: colors.primary,
-    borderTopLeftRadius: 200,
-    borderTopRightRadius: 200,
-    borderTopWidth: 3,
-    borderTopColor: colors.secondary,
-  },
-  footerContent: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.xxl,
-    paddingTop: spacing.lg,
-    gap: spacing.xxl,
-  },
-  registerRow: {
+  ctaPressed: { opacity: 0.9 },
+  secondaryCta: { alignItems: 'center', paddingVertical: spacing.xs },
+  loginLink: { fontWeight: '700', textDecorationLine: 'underline' },
+
+  trust: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.sm,
+    gap: spacing.md,
   },
-  registerLink: {
-    fontWeight: '700',
-  },
-  trustRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-  },
-  trustItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: spacing.xxs,
-  },
-  trustIconWrap: {
-    marginBottom: spacing.xs,
-  },
-  trustTitle: {
-    fontWeight: '700',
-    fontSize: 11,
-    textAlign: 'center',
-  },
-  trustDesc: {
-    fontSize: 10,
-    textAlign: 'center',
-    lineHeight: 14,
-  },
-  trustDivider: {
-    width: 1,
-    height: 50,
-    backgroundColor: colors.borderInverse,
-    marginHorizontal: spacing.sm,
+  trustItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  trustDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: 'rgba(255,255,255,0.3)',
   },
 });

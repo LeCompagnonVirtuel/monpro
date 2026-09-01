@@ -162,10 +162,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.xxl,
   },
   section: {
-    marginTop: spacing.xxl,
+    marginTop: spacing.xl,
     gap: spacing.md,
   },
   categoryScroll: {
@@ -186,6 +186,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   bottomSpacer: {
-    height: spacing.xxxl,
+    height: spacing.xxl,
   },
 });

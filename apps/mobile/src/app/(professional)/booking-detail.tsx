@@ -1,23 +1,24 @@
-import { StyleSheet, View, ScrollView, Pressable } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
+import { shadows } from '@/theme/shadows';
 import { Text, Skeleton, Button } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useProfessionalBooking } from '@/hooks/use-professional-bookings';
 import { useCreateIntervention } from '@/hooks/use-professional-interventions';
-import { formatDate, formatCurrency } from '@/lib/format';
+import { formatDate, formatCurrency, formatRelativeDate } from '@/lib/format';
 
-const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
-  PENDING: { color: colors.warning, label: 'En attente' },
-  CONFIRMED: { color: colors.info, label: 'Confirmée' },
-  ARRIVING: { color: colors.warning, label: 'En route' },
-  IN_PROGRESS: { color: colors.primary, label: 'En cours' },
-  COMPLETED: { color: colors.success, label: 'Terminée' },
-  CANCELLED: { color: colors.error, label: 'Annulée' },
+const STATUS_CONFIG: Record<string, { color: string; label: string; icon: keyof typeof Ionicons.glyphMap; nextAction?: string }> = {
+  PENDING: { color: colors.warning, label: 'En attente', icon: 'hourglass-outline' },
+  CONFIRMED: { color: colors.info, label: 'Confirmée', icon: 'checkmark-circle-outline', nextAction: 'Démarrer l\'intervention' },
+  ARRIVING: { color: colors.warning, label: 'En route', icon: 'navigate-outline', nextAction: 'Indiquer votre arrivée' },
+  IN_PROGRESS: { color: colors.primary, label: 'En cours', icon: 'construct-outline', nextAction: 'Terminer l\'intervention' },
+  COMPLETED: { color: colors.success, label: 'Terminée', icon: 'checkmark-done-outline' },
+  CANCELLED: { color: colors.error, label: 'Annulée', icon: 'close-circle-outline' },
 };
 
 export default function ProfessionalBookingDetailScreen() {
@@ -49,29 +50,68 @@ export default function ProfessionalBookingDetailScreen() {
   const statusConfig = STATUS_CONFIG[booking.status] || STATUS_CONFIG.PENDING;
 
   const handleStartIntervention = async () => {
-    await createIntervention.mutateAsync(booking.id);
-    router.push({ pathname: '/(professional)/intervention', params: { bookingId: booking.id } } as never);
+    try {
+      await createIntervention.mutateAsync(booking.id);
+      router.push({ pathname: '/(professional)/intervention', params: { bookingId: booking.id } } as never);
+    } catch {
+      Alert.alert('Erreur', 'Impossible de créer l\'intervention. Veuillez réessayer.');
+    }
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Header />
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.statusSection}>
-          <View style={[styles.statusBadge, { backgroundColor: statusConfig.color + '15' }]}>
-            <Text variant="body" color={statusConfig.color}>{statusConfig.label}</Text>
+        {/* Status Banner */}
+        <View style={[styles.statusBanner, { backgroundColor: statusConfig.color + '10' }]}>
+          <Ionicons name={statusConfig.icon} size={24} color={statusConfig.color} />
+          <View style={styles.statusText}>
+            <Text variant="bodyMedium" color={statusConfig.color}>{statusConfig.label}</Text>
+            {statusConfig.nextAction && (
+              <Text variant="caption" color={colors.textSecondary}>Prochaine action : {statusConfig.nextAction}</Text>
+            )}
           </View>
         </View>
 
+        {/* Amount */}
         <View style={styles.amountCard}>
-          <Text variant="h2" color={colors.primary}>{formatCurrency(booking.totalAmount)}</Text>
-          <Text variant="bodySmall" color={colors.textTertiary}>Montant</Text>
+          <Text variant="caption" color={colors.textInverse}>MONTANT</Text>
+          <Text variant="h1" color={colors.textInverse}>{formatCurrency(booking.totalAmount)}</Text>
         </View>
 
-        <View style={styles.infoSection}>
-          <InfoRow label="Date prévue" value={formatDate(booking.scheduledDate)} />
-          {booking.scheduledTime && <InfoRow label="Heure" value={booking.scheduledTime} />}
-          <InfoRow label="Créée le" value={formatDate(booking.createdAt)} />
+        {/* Details */}
+        <View style={styles.detailsCard}>
+          <View style={styles.detailRow}>
+            <View style={styles.detailIcon}>
+              <Ionicons name="calendar-outline" size={18} color={colors.primary} />
+            </View>
+            <View style={styles.detailInfo}>
+              <Text variant="caption" color={colors.textSecondary}>Date prévue</Text>
+              <Text variant="bodyMedium">{formatDate(booking.scheduledDate)}</Text>
+            </View>
+          </View>
+
+          {booking.scheduledTime && (
+            <View style={styles.detailRow}>
+              <View style={styles.detailIcon}>
+                <Ionicons name="time-outline" size={18} color={colors.primary} />
+              </View>
+              <View style={styles.detailInfo}>
+                <Text variant="caption" color={colors.textSecondary}>Heure</Text>
+                <Text variant="bodyMedium">{booking.scheduledTime}</Text>
+              </View>
+            </View>
+          )}
+
+          <View style={styles.detailRow}>
+            <View style={styles.detailIcon}>
+              <Ionicons name="time-outline" size={18} color={colors.primary} />
+            </View>
+            <View style={styles.detailInfo}>
+              <Text variant="caption" color={colors.textSecondary}>Créée</Text>
+              <Text variant="bodyMedium">{formatRelativeDate(booking.createdAt)}</Text>
+            </View>
+          </View>
         </View>
       </ScrollView>
 
@@ -100,15 +140,6 @@ function Header() {
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.infoRow}>
-      <Text variant="bodySmall" color={colors.textSecondary}>{label}</Text>
-      <Text variant="body">{value}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
@@ -116,10 +147,12 @@ const styles = StyleSheet.create({
   headerTitle: { flex: 1, textAlign: 'center' },
   loadingContent: { padding: spacing.lg, gap: spacing.md },
   content: { padding: spacing.lg, gap: spacing.lg },
-  statusSection: { alignItems: 'center' },
-  statusBadge: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderRadius: radius.full },
-  amountCard: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.xl, alignItems: 'center', gap: spacing.xs },
-  infoSection: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, gap: spacing.md },
-  infoRow: { gap: 2 },
+  statusBanner: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.lg, borderRadius: radius.md },
+  statusText: { flex: 1, gap: 2 },
+  amountCard: { backgroundColor: colors.primary, borderRadius: radius.md, padding: spacing.xl, alignItems: 'center', gap: spacing.xs },
+  detailsCard: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, gap: spacing.md, ...shadows.sm },
+  detailRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  detailIcon: { width: 36, height: 36, borderRadius: radius.md, backgroundColor: colors.surfaceSecondary, alignItems: 'center', justifyContent: 'center' },
+  detailInfo: { flex: 1, gap: 2 },
   footer: { padding: spacing.lg, borderTopWidth: 1, borderTopColor: colors.borderLight },
 });

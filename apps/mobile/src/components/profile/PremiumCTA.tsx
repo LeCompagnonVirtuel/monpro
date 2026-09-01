@@ -63,12 +63,8 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing.xxs,
   },
-  title: {
-    fontWeight: '700',
-    fontSize: 14,
-  },
+  title: {},
   desc: {
-    fontSize: 11,
     lineHeight: 15,
   },
   cta: {
@@ -77,8 +73,5 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm + 2,
     borderRadius: radius.lg,
   },
-  ctaText: {
-    fontWeight: '700',
-    fontSize: 12,
-  },
+  ctaText: {},
 });

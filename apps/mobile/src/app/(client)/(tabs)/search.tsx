@@ -352,12 +352,9 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   resultsTitle: {
-    fontWeight: '600',
     flex: 1,
   },
-  resultsHighlight: {
-    fontWeight: '700',
-  },
+  resultsHighlight: {},
   loadingList: {
     padding: spacing.xl,
     gap: spacing.lg,
@@ -431,9 +428,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
     gap: spacing.md,
   },
-  sortSectionTitle: {
-    fontWeight: '600',
-  },
+  sortSectionTitle: {},
   sortOptions: {
     flexDirection: 'row',
     gap: spacing.sm,
@@ -483,8 +478,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  filterBadgeText: {
-    fontWeight: '700',
-    fontSize: 11,
-  },
+  filterBadgeText: {},
 });

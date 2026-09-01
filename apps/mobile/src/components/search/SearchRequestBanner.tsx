@@ -70,23 +70,13 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing.xxs,
   },
-  title: {
-    fontWeight: '700',
-    fontSize: 14,
-    lineHeight: 18,
-  },
-  subtitle: {
-    fontSize: 11,
-    lineHeight: 15,
-  },
+  title: {},
+  subtitle: {},
   cta: {
     backgroundColor: colors.secondary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + 2,
     borderRadius: radius.lg,
   },
-  ctaText: {
-    fontWeight: '700',
-    fontSize: 11,
-  },
+  ctaText: {},
 });

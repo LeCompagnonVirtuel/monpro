@@ -73,10 +73,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  title: {
-    fontWeight: '800',
-    fontSize: 26,
-  },
+  title: {},
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -98,9 +95,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 4,
   },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    lineHeight: 14,
-  },
+  badgeText: {},
 });

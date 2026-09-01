@@ -123,20 +123,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  statValue: {
-    fontWeight: '700',
-    fontSize: 20,
-  },
-  statLabel: {
-    fontSize: 10,
-    lineHeight: 13,
-  },
+  statValue: {},
+  statLabel: {},
   sublabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xxs,
   },
-  sublabelText: {
-    fontSize: 10,
-  },
+  sublabelText: {},
 });

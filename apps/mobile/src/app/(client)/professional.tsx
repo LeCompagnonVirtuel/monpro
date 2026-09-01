@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
-import { Text, Button, Card, Badge, Skeleton, Divider } from '@/components/ui';
+import { Text, Button, Card, Badge, Skeleton, Avatar } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useProfessional } from '@/hooks/use-professionals';
 import { useReviews } from '@/hooks/use-reviews';
@@ -39,8 +39,9 @@ export default function ProfessionalScreen() {
           </Pressable>
         </View>
         <View style={styles.loadingContent}>
-          <Skeleton width="100%" height={120} />
+          <Skeleton width={80} height={80} borderRadius={40} />
           <Skeleton width="60%" height={24} />
+          <Skeleton width="40%" height={16} />
           <Skeleton width="100%" height={80} />
         </View>
       </SafeAreaView>
@@ -60,6 +61,8 @@ export default function ProfessionalScreen() {
     );
   }
 
+  const proName = pro.user?.fullName || 'Professionnel';
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
@@ -67,7 +70,7 @@ export default function ProfessionalScreen() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </Pressable>
         <View style={styles.headerRight}>
-          <Pressable onPress={toggleFavorite} accessibilityLabel={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}>
+          <Pressable onPress={toggleFavorite} accessibilityLabel={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'} style={styles.backBtn}>
             <Ionicons
               name={isFavorite ? 'heart' : 'heart-outline'}
               size={24}
@@ -79,22 +82,16 @@ export default function ProfessionalScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.profileHeader}>
-          <View style={styles.avatarLarge}>
-            <Ionicons name="person" size={40} color={colors.textTertiary} />
-          </View>
-          <Text variant="h2">{pro.user?.fullName || 'Professionnel'}</Text>
-          {pro.businessName && (
+          <Avatar uri={pro.user?.avatarUrl} name={proName} size={80} />
+          <Text variant="h2">{proName}</Text>
+          {pro.businessName ? (
             <Text variant="body" color={colors.textSecondary}>{pro.businessName}</Text>
-          )}
+          ) : null}
           <View style={styles.badgeRow}>
-            {pro.isVerified && (
-              <Badge label="Vérifié" variant="success" />
-            )}
-            {pro.isAvailable && (
-              <Badge label="Disponible" variant="info" />
-            )}
+            {pro.isVerified ? <Badge label="Vérifié" variant="success" /> : null}
+            {pro.isAvailable ? <Badge label="Disponible" variant="info" /> : null}
           </View>
-          {pro.averageRating != null && (
+          {pro.averageRating != null ? (
             <View style={styles.ratingSection}>
               <Ionicons name="star" size={20} color={colors.secondary} />
               <Text variant="h3">{pro.averageRating.toFixed(1)}</Text>
@@ -102,48 +99,52 @@ export default function ProfessionalScreen() {
                 ({pro.totalReviews || 0} avis)
               </Text>
             </View>
-          )}
+          ) : null}
         </View>
 
-        <Divider />
-
-        {pro.description && (
+        {pro.description ? (
           <View style={styles.section}>
             <Text variant="h3">À propos</Text>
             <Text variant="body" color={colors.textSecondary}>{pro.description}</Text>
           </View>
-        )}
+        ) : null}
 
-        {pro.experienceYears != null && (
+        {pro.experienceYears != null ? (
           <View style={styles.infoRow}>
             <Ionicons name="briefcase-outline" size={18} color={colors.textSecondary} />
             <Text variant="body" color={colors.textSecondary}>
               {pro.experienceYears} {pro.experienceYears > 1 ? "ans d'expérience" : "an d'expérience"}
             </Text>
           </View>
-        )}
+        ) : null}
 
-        {pro.services && pro.services.length > 0 && (
+        {pro.services && pro.services.length > 0 ? (
           <View style={styles.section}>
             <Text variant="h3">Services proposés</Text>
             <View style={styles.servicesList}>
               {pro.services.map((s) => (
-                <View key={s.id} style={styles.serviceChip}>
+                <Pressable
+                  key={s.id}
+                  style={styles.serviceChip}
+                  onPress={() => router.push({ pathname: '/(client)/service', params: { id: s.id } })}
+                  accessibilityLabel={s.name}
+                  accessibilityRole="button"
+                >
                   <Text variant="caption">{s.name}</Text>
-                </View>
+                </Pressable>
               ))}
             </View>
           </View>
-        )}
+        ) : null}
 
-        {reviewsData && reviewsData.reviews.length > 0 && (
+        {reviewsData && reviewsData.reviews.length > 0 ? (
           <View style={styles.section}>
             <Text variant="h3">Avis ({reviewsData.total})</Text>
             {reviewsData.reviews.map((review) => (
               <ReviewCard key={review.id} review={review} />
             ))}
           </View>
-        )}
+        ) : null}
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -151,6 +152,7 @@ export default function ProfessionalScreen() {
       <View style={[styles.ctaContainer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
         <Button
           title="Demander un service"
+          variant="secondary"
           onPress={() => {
             const serviceId = pro.services?.[0]?.id;
             router.push({
@@ -175,11 +177,11 @@ function ReviewCard({ review }: { review: Review }) {
           <Text variant="caption">{review.overallRating}</Text>
         </View>
       </View>
-      {review.comment && (
+      {review.comment ? (
         <Text variant="bodySmall" color={colors.textSecondary} numberOfLines={3}>
           {review.comment}
         </Text>
-      )}
+      ) : null}
     </Card>
   );
 }
@@ -212,20 +214,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scrollContent: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.xl,
   },
   profileHeader: {
     alignItems: 'center',
     gap: spacing.sm,
     paddingVertical: spacing.xl,
-  },
-  avatarLarge: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.surfaceSecondary,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   badgeRow: {
     flexDirection: 'row',

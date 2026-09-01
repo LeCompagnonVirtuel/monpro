@@ -85,10 +85,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     ...shadows.sm,
   },
-  chipLabel: {
-    fontWeight: '600',
-    fontSize: 13,
-  },
+  chipLabel: {},
   dotBadge: {
     width: 8,
     height: 8,

@@ -1,39 +1,51 @@
 import { useState } from 'react';
-import { StyleSheet, View, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
 import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
-import { Text, Button, Input } from '@/components/ui';
+import { radius } from '@/theme/radius';
+import { shadows } from '@/theme/shadows';
+import { Text } from '@/components/ui';
 import { authApi } from '@/api/auth';
 import { extractApiError } from '@/api/errors';
-
-function normalizePhoneInput(raw: string): string {
-  return raw.replace(/[\s\-().]/g, '');
-}
 
 const phoneSchema = z.object({
   phone: z
     .string()
-    .transform((val) => normalizePhoneInput(val))
+    .transform((val) => val.replace(/\D/g, ''))
     .refine(
-      (val) => /^\+\d{10,15}$/.test(val),
-      'Numéro de téléphone invalide. Format: +225 07 00 00 00 00',
+      (val) => val.length >= 8 && val.length <= 12,
+      'Numéro de téléphone invalide.',
     ),
 });
 
 type PhoneForm = z.infer<typeof phoneSchema>;
 
 export default function PhoneScreen() {
+  const insets = useSafeAreaInsets();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { control, handleSubmit, formState: { errors } } = useForm<PhoneForm>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<PhoneForm>({
     resolver: zodResolver(phoneSchema),
-    defaultValues: { phone: '+225' },
+    defaultValues: { phone: '' },
   });
 
   const onSubmit = async (data: PhoneForm) => {
@@ -41,9 +53,12 @@ export default function PhoneScreen() {
     setError(null);
 
     try {
-      const normalizedPhone = normalizePhoneInput(data.phone);
+      const normalizedPhone = `+225${data.phone}`;
       await authApi.requestOtp({ phone: normalizedPhone });
-      router.push({ pathname: '/(auth)/otp', params: { phone: normalizedPhone } });
+      router.push({
+        pathname: '/(auth)/otp',
+        params: { phone: normalizedPhone },
+      });
     } catch (err) {
       const apiError = extractApiError(err);
       setError(apiError.message);
@@ -53,81 +68,212 @@ export default function PhoneScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <KeyboardAvoidingView
-        style={styles.keyboardView}
+        style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <Text variant="h1">Connexion</Text>
-            <Text variant="body" color={colors.textSecondary}>
-              Entrez votre numéro de téléphone pour recevoir un code de vérification.
-            </Text>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Back */}
+          <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]}>
+            <Pressable
+              onPress={() => router.back()}
+              style={styles.back}
+              accessibilityLabel="Retour"
+              accessibilityRole="button"
+            >
+              <Ionicons name="chevron-back" size={22} color={colors.text} />
+            </Pressable>
           </View>
 
-          <View style={styles.form}>
+          {/* Main content */}
+          <View style={styles.main}>
+            <View style={styles.titleBlock}>
+              <Text variant="h1" style={styles.title}>
+                Quel est votre{'\n'}numéro ?
+              </Text>
+              <Text variant="body" color={colors.textSecondary}>
+                Nous vous enverrons un code de vérification par SMS.
+              </Text>
+            </View>
+
             <Controller
               control={control}
               name="phone"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Input
-                  label="Numéro de téléphone"
-                  placeholder="+225 07 00 00 00 00"
-                  keyboardType="phone-pad"
-                  autoFocus
-                  value={value}
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  error={errors.phone?.message}
-                />
+              render={({ field: { onChange, value } }) => (
+                <View
+                  style={[
+                    styles.phoneCard,
+                    (errors.phone || error) && styles.phoneCardErr,
+                  ]}
+                >
+                  <View style={styles.phoneRow}>
+                    <View style={styles.country}>
+                      <Text style={styles.flag}>🇨🇮</Text>
+                      <Text variant="bodyMedium" color={colors.text}>
+                        +225
+                      </Text>
+                    </View>
+                    <View style={styles.divider} />
+                    <TextInput
+                      style={styles.phoneInput}
+                      placeholder="07 00 00 00 00"
+                      placeholderTextColor={colors.textTertiary}
+                      value={value}
+                      onChangeText={(t) => {
+                        onChange(t);
+                        setError(null);
+                      }}
+                      keyboardType="phone-pad"
+                      autoFocus
+                      autoComplete="tel"
+                      returnKeyType="done"
+                      onSubmitEditing={handleSubmit(onSubmit)}
+                      accessibilityLabel="Numéro de téléphone"
+                    />
+                  </View>
+                  <View style={styles.goldAccent} />
+                </View>
               )}
             />
 
-            {error && (
+            {(errors.phone?.message || error) && (
               <Text variant="bodySmall" color={colors.error}>
-                {error}
+                {errors.phone?.message || error}
               </Text>
             )}
           </View>
 
-          <View style={styles.actions}>
-            <Button
-              title="Recevoir le code"
+          {/* Footer */}
+          <View
+            style={[
+              styles.footer,
+              { paddingBottom: insets.bottom + spacing.xxl },
+            ]}
+          >
+            <Pressable
+              style={({ pressed }) => [
+                styles.cta,
+                isLoading && styles.ctaOff,
+                pressed && !isLoading && styles.ctaDown,
+              ]}
               onPress={handleSubmit(onSubmit)}
-              loading={isLoading}
               disabled={isLoading}
-              size="lg"
-            />
+              accessibilityLabel="Continuer"
+              accessibilityRole="button"
+              accessibilityState={{ disabled: isLoading }}
+            >
+              <Text variant="button" color={colors.primary}>
+                {isLoading ? 'Envoi...' : 'Continuer'}
+              </Text>
+              {!isLoading && (
+                <Ionicons
+                  name="arrow-forward"
+                  size={20}
+                  color={colors.primary}
+                />
+              )}
+            </Pressable>
+
+            <View style={styles.secureRow}>
+              <Ionicons
+                name="lock-closed"
+                size={14}
+                color={colors.textTertiary}
+              />
+              <Text variant="caption" color={colors.textTertiary}>
+                Connexion sécurisée et chiffrée
+              </Text>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
+  container: { flex: 1, backgroundColor: colors.surface },
+  flex: { flex: 1 },
+  scroll: { flexGrow: 1 },
+
+  topBar: { paddingHorizontal: spacing.lg },
+  back: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.surfaceSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  keyboardView: {
-    flex: 1,
-    paddingHorizontal: spacing.xxl,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  header: {
-    paddingTop: spacing.xl,
-    gap: spacing.sm,
-  },
-  form: {
+
+  main: {
     flex: 1,
     justifyContent: 'center',
-    gap: spacing.md,
+    paddingHorizontal: spacing.xxl,
+    gap: spacing.xl,
   },
-  actions: {
-    paddingBottom: spacing.xxxl,
+  titleBlock: { gap: spacing.sm },
+  title: { fontWeight: '800', color: colors.text },
+
+  phoneCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+    ...shadows.md,
+  },
+  phoneCardErr: { borderColor: colors.error },
+  phoneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 56,
+    paddingHorizontal: spacing.lg,
+  },
+  country: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  flag: { fontSize: 20 },
+  divider: {
+    width: 1,
+    height: 28,
+    backgroundColor: colors.border,
+    marginHorizontal: spacing.md,
+  },
+  phoneInput: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.text,
+    letterSpacing: 1,
+    height: '100%',
+  },
+  goldAccent: { height: 2, backgroundColor: colors.secondary },
+
+  footer: {
+    paddingHorizontal: spacing.xxl,
+    paddingTop: spacing.xxl,
+    gap: spacing.lg,
+  },
+  cta: {
+    flexDirection: 'row',
+    height: 56,
+    backgroundColor: colors.secondary,
+    borderRadius: radius.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    ...shadows.md,
+  },
+  ctaOff: { opacity: 0.6 },
+  ctaDown: { opacity: 0.9 },
+  secureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
   },
 });

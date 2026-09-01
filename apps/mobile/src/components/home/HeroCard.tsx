@@ -11,11 +11,11 @@ export function HeroCard() {
     <View style={styles.container}>
       <View style={styles.card}>
         <View style={styles.content}>
-          <Text variant="h2" color={colors.textInverse} style={styles.title}>
+          <Text variant="h2" color={colors.textInverse}>
             {"Besoin d'un pro"}{'\n'}{"fiable et qualifié ?"}
           </Text>
-          <Text variant="bodySmall" color={colors.textInverseSoft} style={styles.subtitle}>
-            Trouvez le professionnel idéal{'\n'}près de chez vous en quelques clics.
+          <Text variant="bodySmall" color={colors.textInverseSoft}>
+            Trouvez le professionnel idéal près de chez vous en quelques clics.
           </Text>
           <Pressable
             style={styles.cta}
@@ -57,15 +57,6 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     justifyContent: 'center',
     gap: spacing.sm,
-  },
-  title: {
-    fontWeight: '700',
-    fontSize: 20,
-    lineHeight: 26,
-  },
-  subtitle: {
-    lineHeight: 18,
-    fontSize: 12,
   },
   cta: {
     flexDirection: 'row',

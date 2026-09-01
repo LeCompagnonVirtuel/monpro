@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scrollContent: {
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.xxl,
   },
   loadingContent: {
     alignItems: 'center',

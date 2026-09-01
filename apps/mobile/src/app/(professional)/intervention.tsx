@@ -58,21 +58,48 @@ export default function ProfessionalInterventionScreen() {
   const handleMarkArrived = () => {
     Alert.alert('Confirmer', 'Confirmer votre arrivée sur le lieu ?', [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Confirmer', onPress: () => markArrived.mutate(bookingId!) },
+      {
+        text: 'Confirmer',
+        onPress: async () => {
+          try {
+            await markArrived.mutateAsync(bookingId!);
+          } catch {
+            Alert.alert('Erreur', 'Impossible de confirmer votre arrivée. Veuillez réessayer.');
+          }
+        },
+      },
     ]);
   };
 
   const handleStart = () => {
     Alert.alert('Démarrer', "Démarrer l'intervention ?", [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Démarrer', onPress: () => startIntervention.mutate({ bookingId: bookingId!, beforePhotos: [] }) },
+      {
+        text: 'Démarrer',
+        onPress: async () => {
+          try {
+            await startIntervention.mutateAsync({ bookingId: bookingId!, beforePhotos: [] });
+          } catch {
+            Alert.alert('Erreur', 'Impossible de démarrer l\'intervention. Veuillez réessayer.');
+          }
+        },
+      },
     ]);
   };
 
   const handleComplete = () => {
     Alert.alert('Terminer', "Marquer l'intervention comme terminée ?", [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Terminer', onPress: () => completeIntervention.mutate({ bookingId: bookingId!, afterPhotos: [] }) },
+      {
+        text: 'Terminer',
+        onPress: async () => {
+          try {
+            await completeIntervention.mutateAsync({ bookingId: bookingId!, afterPhotos: [] });
+          } catch {
+            Alert.alert('Erreur', 'Impossible de terminer l\'intervention. Veuillez réessayer.');
+          }
+        },
+      },
     ]);
   };
 

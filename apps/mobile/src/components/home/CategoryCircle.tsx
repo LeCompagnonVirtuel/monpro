@@ -66,7 +66,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderLight,
   },
-  label: {
-    fontWeight: '500',
-  },
+  label: {},
 });

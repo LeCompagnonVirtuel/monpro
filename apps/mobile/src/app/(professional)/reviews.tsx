@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View, FlatList, Pressable, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -15,6 +15,7 @@ import { Review } from '@/api/reviews';
 import { formatRelativeDate } from '@/lib/format';
 
 export default function ReviewsScreen() {
+  const insets = useSafeAreaInsets();
   const { data: profile } = useMyProfessionalProfile();
   const { data, isLoading, error, refetch } = useProfessionalReviews(profile?.id);
 
@@ -64,7 +65,7 @@ export default function ReviewsScreen() {
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 60 : 0}
       >
         <FlatList
           data={reviews}

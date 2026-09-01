@@ -201,7 +201,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
   },
   sectionTitle: {
-    fontWeight: '600',
     marginBottom: spacing.sm,
     marginLeft: spacing.xs,
   },

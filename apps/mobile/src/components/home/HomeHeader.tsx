@@ -34,7 +34,7 @@ export function HomeHeader({ firstName, locationLabel }: HomeHeaderProps) {
         />
 
         <View style={styles.rightRow}>
-          {locationLabel && (
+          {locationLabel ? (
             <View style={styles.locationChip}>
               <Ionicons name="location" size={14} color={colors.secondary} />
               <Text variant="caption" color={colors.textInverse}>
@@ -42,7 +42,7 @@ export function HomeHeader({ firstName, locationLabel }: HomeHeaderProps) {
               </Text>
               <Ionicons name="chevron-down" size={12} color={colors.textInverse} />
             </View>
-          )}
+          ) : null}
 
           <Pressable
             style={styles.bellContainer}
@@ -64,10 +64,10 @@ export function HomeHeader({ firstName, locationLabel }: HomeHeaderProps) {
 
       <View style={styles.greeting}>
         <Text variant="h1" color={colors.textInverse}>
-          {firstName ? `Bonjour ${firstName} \u{1F44B}` : 'Bonjour \u{1F44B}'}
+          {firstName ? `Bonjour ${firstName}` : 'Bonjour'}
         </Text>
         <Text variant="body" color={colors.textInverseSoft}>
-          {"Comment pouvons-nous"}{'\n'}{"vous aider aujourd'hui ?"}
+          {"Comment pouvons-nous vous aider aujourd'hui ?"}
         </Text>
       </View>
     </ImageBackground>
@@ -130,11 +130,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 4,
   },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    lineHeight: 14,
-  },
+  badgeText: {},
   greeting: {
     paddingHorizontal: spacing.xl,
     gap: spacing.xs,

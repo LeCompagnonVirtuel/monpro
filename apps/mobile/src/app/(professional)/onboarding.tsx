@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { StyleSheet, View, ScrollView, Pressable, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -30,6 +30,10 @@ export default function OnboardingScreen() {
   const createProfile = useCreateProfessionalProfile();
   const updateProfile = useUpdateProfessionalProfile();
   const insets = useSafeAreaInsets();
+
+  const businessNameRef = useRef<TextInput>(null);
+  const descriptionRef = useRef<TextInput>(null);
+  const experienceRef = useRef<TextInput>(null);
 
   const [step, setStep] = useState(0);
   const [businessName, setBusinessName] = useState('');
@@ -199,7 +203,7 @@ export default function OnboardingScreen() {
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 60 : 0}
       >
         <ScrollView
           contentContainerStyle={styles.content}
@@ -213,6 +217,7 @@ export default function OnboardingScreen() {
                 Le nom qui sera affiché aux clients.
               </Text>
               <TextInput
+                ref={businessNameRef}
                 style={styles.input}
                 value={businessName}
                 onChangeText={setBusinessName}
@@ -220,6 +225,11 @@ export default function OnboardingScreen() {
                 placeholderTextColor={colors.textTertiary}
                 maxLength={100}
                 autoFocus
+                returnKeyType="next"
+                onSubmitEditing={() => {
+                  setStep(1);
+                  setTimeout(() => descriptionRef.current?.focus(), 100);
+                }}
                 accessibilityLabel="Nom commercial"
               />
             </View>
@@ -232,6 +242,7 @@ export default function OnboardingScreen() {
                 Présentez votre activité et votre expertise.
               </Text>
               <TextInput
+                ref={descriptionRef}
                 style={[styles.input, styles.textArea]}
                 value={description}
                 onChangeText={setDescription}
@@ -240,6 +251,11 @@ export default function OnboardingScreen() {
                 multiline
                 maxLength={500}
                 autoFocus
+                returnKeyType="next"
+                onSubmitEditing={() => {
+                  setStep(2);
+                  setTimeout(() => experienceRef.current?.focus(), 100);
+                }}
                 accessibilityLabel="Description de votre activité"
               />
               <Text variant="caption" color={colors.textTertiary} align="right">
@@ -255,6 +271,7 @@ export default function OnboardingScreen() {
                 {"Combien d'années d'expérience avez-vous ?"}
               </Text>
               <TextInput
+                ref={experienceRef}
                 style={styles.input}
                 value={experienceYears}
                 onChangeText={setExperienceYears}
@@ -263,6 +280,7 @@ export default function OnboardingScreen() {
                 keyboardType="numeric"
                 maxLength={2}
                 autoFocus
+                returnKeyType="done"
                 accessibilityLabel="Nombre d'années d'expérience"
               />
             </View>

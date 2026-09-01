@@ -81,8 +81,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
-  filterText: {
-    fontWeight: '600',
-    fontSize: 12,
-  },
+  filterText: {},
 });

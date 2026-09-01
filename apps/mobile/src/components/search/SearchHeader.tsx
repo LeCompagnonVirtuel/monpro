@@ -45,9 +45,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
     backgroundColor: colors.background,
   },
-  title: {
-    fontWeight: '700',
-  },
+  title: {},
   bellContainer: {
     position: 'relative',
     padding: spacing.xs,
@@ -64,9 +62,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 4,
   },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    lineHeight: 14,
-  },
+  badgeText: {},
 });

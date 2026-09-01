@@ -9,7 +9,7 @@ export default function ClientLayout() {
   }
 
   if (role === 'PROFESSIONAL') {
-    return <Redirect href="/(professional)/dashboard" />;
+    return <Redirect href="/(professional)/(tabs)/dashboard" />;
   }
 
   return (

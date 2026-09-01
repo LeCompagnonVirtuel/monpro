@@ -4,7 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
-import { shadows } from '@/theme/shadows';
 import { Text } from '@/components/ui';
 import { Service } from '@/api/services';
 
@@ -36,13 +35,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     backgroundColor: colors.surface,
     overflow: 'hidden',
-    ...shadows.sm,
     borderWidth: 1,
     borderColor: colors.borderLight,
-  },
-  image: {
-    width: '100%',
-    height: 100,
   },
   imagePlaceholder: {
     width: '100%',
@@ -53,6 +47,5 @@ const styles = StyleSheet.create({
   },
   label: {
     padding: spacing.sm,
-    fontWeight: '500',
   },
 });

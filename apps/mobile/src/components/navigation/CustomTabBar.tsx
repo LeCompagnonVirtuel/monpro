@@ -155,13 +155,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 4,
   },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    lineHeight: 14,
-  },
-  label: {
-    fontSize: 10,
-    lineHeight: 14,
-  },
+  badgeText: {},
+  label: {},
 });

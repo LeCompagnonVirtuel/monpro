@@ -4,7 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
-import { shadows } from '@/theme/shadows';
 import { Text, Avatar } from '@/components/ui';
 import { Professional } from '@/api/professionals';
 
@@ -69,9 +68,9 @@ export function ProfessionalHomeCard({ professional }: ProfessionalHomeCardProps
         ) : null}
 
         <View style={styles.availableRow}>
-          <View style={styles.greenDot} />
-          <Text variant="caption" color={colors.success}>
-            Disponible
+          <View style={[styles.greenDot, !professional.isAvailable && styles.dotOffline]} />
+          <Text variant="caption" color={professional.isAvailable ? colors.success : colors.textTertiary}>
+            {professional.isAvailable ? 'Disponible' : 'Hors ligne'}
           </Text>
         </View>
       </View>
@@ -87,7 +86,6 @@ const styles = StyleSheet.create({
     width: 160,
     alignItems: 'center',
     gap: spacing.sm,
-    ...shadows.sm,
     borderWidth: 1,
     borderColor: colors.borderLight,
   },
@@ -101,19 +99,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xxs,
   },
-  name: {
-    fontWeight: '600',
-    fontSize: 14,
-  },
+  name: {},
   ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xxs,
   },
-  ratingText: {
-    fontWeight: '600',
-    fontSize: 12,
-  },
+  ratingText: {},
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -130,5 +122,8 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: colors.success,
+  },
+  dotOffline: {
+    backgroundColor: colors.textTertiary,
   },
 });

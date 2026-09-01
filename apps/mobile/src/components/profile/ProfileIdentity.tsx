@@ -86,11 +86,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
   },
-  name: {
-    fontWeight: '700',
-    fontSize: 22,
-    color: colors.text,
-  },
+  name: {},
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -100,10 +96,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs + 2,
     borderRadius: radius.full,
   },
-  badgeText: {
-    fontWeight: '600',
-    fontSize: 12,
-  },
+  badgeText: {},
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',

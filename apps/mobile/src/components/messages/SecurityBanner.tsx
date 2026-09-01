@@ -77,10 +77,7 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing.xxs,
   },
-  title: {
-    fontWeight: '600',
-    fontSize: 14,
-  },
+  title: {},
   closeButton: {
     padding: spacing.xs,
   },

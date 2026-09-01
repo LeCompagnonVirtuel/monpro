@@ -1082,9 +1082,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     gap: spacing.xs,
   },
-  proChipText: {
-    fontWeight: '500',
-  },
+  proChipText: {},
   stepper: {
     flexDirection: 'row',
     paddingHorizontal: spacing.xl,
@@ -1115,10 +1113,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
-  stepNumber: {
-    fontWeight: '600',
-    fontSize: 12,
-  },
+  stepNumber: {},
   stepLine: {
     position: 'absolute',
     left: '64%',
@@ -1132,7 +1127,6 @@ const styles = StyleSheet.create({
   },
   stepLabel: {
     marginTop: spacing.xs,
-    fontSize: 11,
   },
   scrollContent: {
     flexGrow: 1,
@@ -1215,7 +1209,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   photoUploadTitle: {
-    fontWeight: '500',
     marginTop: spacing.xs,
   },
   photoGrid: {
@@ -1369,9 +1362,7 @@ const styles = StyleSheet.create({
   inlineErrorText: {
     flex: 1,
   },
-  retryLink: {
-    fontWeight: '600',
-  },
+  retryLink: {},
   inlineEmpty: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1402,7 +1393,6 @@ const styles = StyleSheet.create({
   },
   categoryCardText: {
     flex: 1,
-    fontWeight: '500',
   },
   servicesList: {
     gap: spacing.sm,
@@ -1469,7 +1459,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   geoLabel: {
-    fontWeight: '600',
     marginBottom: spacing.sm,
   },
   geoChipScroll: {
@@ -1497,7 +1486,6 @@ const styles = StyleSheet.create({
   },
   timeLabel: {
     marginBottom: spacing.sm,
-    fontWeight: '500',
   },
   // Step 4 styles
   summaryHeader: {

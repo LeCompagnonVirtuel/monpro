@@ -1,4 +1,4 @@
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useState, useCallback } from 'react';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -134,23 +134,17 @@ export default function EditProfileScreen() {
       >
         <View style={styles.avatarSection}>
           <View style={styles.avatarWrap}>
-            {user?.avatarUrl ? (
-              <View style={styles.avatarCircle}>
-                <View style={styles.avatarPlaceholder}>
-                  <Text variant="button" color={colors.textInverse}>
-                    {user.fullName?.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?'}
-                  </Text>
-                </View>
-              </View>
-            ) : (
-              <View style={styles.avatarCircle}>
+            <View style={styles.avatarCircle}>
+              {user?.avatarUrl ? (
+                <Image source={{ uri: user.avatarUrl }} style={styles.avatarImage} />
+              ) : (
                 <View style={styles.avatarPlaceholder}>
                   <Text variant="button" color={colors.textInverse}>
                     {user?.fullName?.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?'}
                   </Text>
                 </View>
-              </View>
-            )}
+              )}
+            </View>
             <View style={styles.cameraOverlay}>
               <Ionicons name="camera" size={20} color={colors.textInverse} />
             </View>
@@ -220,9 +214,7 @@ const styles = StyleSheet.create({
     minWidth: 60,
     alignItems: 'flex-end',
   },
-  saveButton: {
-    fontWeight: '600',
-  },
+  saveButton: {},
   scrollContent: {
     paddingBottom: spacing.xxxl,
   },
@@ -263,6 +255,10 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     overflow: 'hidden',
   },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+  },
   avatarPlaceholder: {
     width: '100%',
     height: '100%',
@@ -285,7 +281,6 @@ const styles = StyleSheet.create({
   },
   changePhotoLink: {
     marginTop: spacing.sm,
-    fontWeight: '600',
   },
   formSection: {
     paddingHorizontal: spacing.xl,

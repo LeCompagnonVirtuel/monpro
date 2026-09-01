@@ -53,7 +53,5 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
     gap: spacing.md,
   },
-  label: {
-    fontWeight: '500',
-  },
+  label: {},
 });

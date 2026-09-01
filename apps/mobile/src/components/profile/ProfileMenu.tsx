@@ -110,10 +110,7 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing.xxs,
   },
-  title: {
-    fontWeight: '600',
-    fontSize: 14,
-  },
+  title: {},
   separator: {
     height: 1,
     backgroundColor: colors.borderLight,

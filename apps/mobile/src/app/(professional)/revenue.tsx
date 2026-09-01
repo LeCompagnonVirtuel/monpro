@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
+import { shadows } from '@/theme/shadows';
 import { Text, Skeleton } from '@/components/ui';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
@@ -48,23 +49,32 @@ export default function RevenueScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <Header />
       <ScrollView contentContainerStyle={styles.content}>
+        {/* Balance Card */}
         <View style={styles.balanceCard}>
-          <Text variant="bodySmall" color={colors.textSecondary}>Solde disponible</Text>
-          <Text variant="h1" color={colors.primary}>{formatCurrency(wallet.balance)}</Text>
+          <Text variant="caption" color={colors.textInverse}>SOLDE DISPONIBLE</Text>
+          <Text variant="h1" color={colors.textInverse}>{formatCurrency(wallet.balance)}</Text>
         </View>
 
+        {/* Stats */}
         <View style={styles.statsCard}>
           <View style={styles.statRow}>
-            <Text variant="body" color={colors.textSecondary}>Total gagné</Text>
-            <Text variant="body">{formatCurrency(wallet.totalEarned)}</Text>
+            <View style={styles.statInfo}>
+              <Ionicons name="trending-up-outline" size={18} color={colors.success} />
+              <Text variant="body" color={colors.textSecondary}>Total gagné</Text>
+            </View>
+            <Text variant="bodyMedium">{formatCurrency(wallet.totalEarned)}</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.statRow}>
-            <Text variant="body" color={colors.textSecondary}>Commissions</Text>
-            <Text variant="body" color={colors.error}>-{formatCurrency(wallet.totalCommission)}</Text>
+            <View style={styles.statInfo}>
+              <Ionicons name="cash-outline" size={18} color={colors.error} />
+              <Text variant="body" color={colors.textSecondary}>Commissions</Text>
+            </View>
+            <Text variant="bodyMedium" color={colors.error}>-{formatCurrency(wallet.totalCommission)}</Text>
           </View>
         </View>
 
+        {/* Info */}
         <View style={styles.infoCard}>
           <Ionicons name="information-circle-outline" size={20} color={colors.info} />
           <Text variant="bodySmall" color={colors.textSecondary}>
@@ -95,9 +105,10 @@ const styles = StyleSheet.create({
   headerTitle: { flex: 1, textAlign: 'center' },
   loadingContent: { padding: spacing.lg, gap: spacing.md },
   content: { padding: spacing.lg, gap: spacing.lg },
-  balanceCard: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.xl, alignItems: 'center', gap: spacing.sm },
-  statsCard: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, gap: spacing.md },
+  balanceCard: { backgroundColor: colors.primary, borderRadius: radius.lg, padding: spacing.xxl, alignItems: 'center', gap: spacing.sm },
+  statsCard: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, gap: spacing.md, ...shadows.sm },
   statRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  statInfo: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   divider: { height: 1, backgroundColor: colors.borderLight },
-  infoCard: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, backgroundColor: colors.info + '10', borderRadius: radius.md, padding: spacing.md },
+  infoCard: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, backgroundColor: colors.infoLight, borderRadius: radius.md, padding: spacing.lg },
 });

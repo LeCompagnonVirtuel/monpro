@@ -84,7 +84,6 @@ export default function KycScreen() {
     ]);
   };
 
-  const needsSkip = !needsBack && step === 4;
   const canProceed = (() => {
     switch (step) {
       case 0: return documentType !== null;
@@ -210,9 +209,19 @@ export default function KycScreen() {
       >
         {step === 0 && (
           <View style={styles.stepContent}>
-            <Text variant="h2">Vérification d'identité</Text>
+            <View style={styles.trustBanner}>
+              <Ionicons name="shield-checkmark-outline" size={24} color={colors.primary} />
+              <View style={styles.trustText}>
+                <Text variant="bodyMedium">Vérification d{"'"}identité</Text>
+                <Text variant="caption" color={colors.textSecondary}>
+                  Vos documents sont sécurisés et utilisés uniquement pour la vérification.
+                </Text>
+              </View>
+            </View>
+
+            <Text variant="h2">Choisir un document</Text>
             <Text variant="bodySmall" color={colors.textSecondary}>
-              Choisissez le type de document à vérifier
+              Sélectionnez le type de pièce d{"'"}identité à vérifier
             </Text>
 
             <View style={styles.optionsGrid}>
@@ -336,9 +345,12 @@ export default function KycScreen() {
               <View style={styles.successIcon}>
                 <Ionicons name="checkmark-circle" size={80} color={colors.success} />
               </View>
-              <Text variant="h2" align="center">Documents soumis avec succès</Text>
+              <Text variant="h2" align="center">Documents soumis</Text>
               <Text variant="body" color={colors.textSecondary} align="center">
                 Votre demande de vérification est en cours de traitement.
+              </Text>
+              <Text variant="caption" color={colors.textTertiary} align="center">
+                Vous recevrez une notification une fois la vérification terminée.
               </Text>
             </View>
           </View>
@@ -347,30 +359,12 @@ export default function KycScreen() {
 
       {step < TOTAL_STEPS - 1 && (
         <View style={styles.footer}>
-          {needsSkip ? (
-            <View style={styles.footerButtons}>
-              <Button
-                title={step === 4 ? 'Soumettre' : 'Continuer'}
-                onPress={handleNext}
-                disabled={!canProceed || submitting}
-                loading={submitting}
-                style={styles.footerPrimaryBtn}
-              />
-              <Button
-                title="Passer"
-                variant="ghost"
-                onPress={() => setStep(step + 1)}
-                disabled={submitting}
-              />
-            </View>
-          ) : (
-            <Button
-              title={step === 4 ? 'Soumettre' : 'Continuer'}
-              onPress={handleNext}
-              disabled={!canProceed || submitting}
-              loading={submitting}
-            />
-          )}
+          <Button
+            title={step === 4 ? 'Soumettre' : 'Continuer'}
+            onPress={handleNext}
+            disabled={!canProceed || submitting}
+            loading={submitting}
+          />
         </View>
       )}
 
@@ -405,6 +399,8 @@ const styles = StyleSheet.create({
   progressFill: { height: '100%', backgroundColor: colors.primary, borderRadius: 2 },
   content: { padding: spacing.lg, paddingBottom: spacing.xxxxl },
   stepContent: { gap: spacing.md },
+  trustBanner: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.lg, backgroundColor: colors.primary + '10', borderRadius: radius.md },
+  trustText: { flex: 1, gap: 2 },
   optionsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   optionCard: { width: '47%', backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.borderLight, alignItems: 'center', gap: spacing.md, ...shadows.sm },
   optionCardActive: { borderColor: colors.primary, backgroundColor: colors.surfaceSecondary },
@@ -417,8 +413,6 @@ const styles = StyleSheet.create({
   uploadHint: { marginTop: spacing.xs },
   uploadPreview: { width: '100%', height: '100%', borderRadius: radius.lg },
   footer: { padding: spacing.lg, borderTopWidth: 1, borderTopColor: colors.borderLight },
-  footerButtons: { gap: spacing.sm },
-  footerPrimaryBtn: { marginBottom: spacing.xs },
   successContainer: { alignItems: 'center', paddingVertical: spacing.xxxl, gap: spacing.lg },
   successIcon: { marginBottom: spacing.sm },
   loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.overlay, alignItems: 'center', justifyContent: 'center' },

@@ -90,9 +90,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs,
   },
-  dateText: {
-    fontWeight: '600',
-  },
+  dateText: {},
   rightCol: {
     flex: 1,
     gap: spacing.xxs,
@@ -101,16 +99,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'baseline',
   },
-  monpro: {
-    fontWeight: '700',
-    fontSize: 15,
-  },
-  premium: {
-    fontWeight: '700',
-    fontSize: 15,
-  },
+  monpro: {},
+  premium: {},
   desc: {
-    fontSize: 11,
     lineHeight: 15,
   },
   cta: {
@@ -122,10 +113,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: radius.lg,
   },
-  ctaText: {
-    fontWeight: '600',
-    fontSize: 12,
-  },
+  ctaText: {},
   decoration: {
     position: 'absolute',
     right: 10,

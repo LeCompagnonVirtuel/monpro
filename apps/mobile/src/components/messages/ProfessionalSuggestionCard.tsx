@@ -82,8 +82,6 @@ const styles = StyleSheet.create({
     borderColor: colors.borderLight,
   },
   name: {
-    fontWeight: '600',
-    fontSize: 13,
     textAlign: 'center',
     marginTop: spacing.xs,
   },
@@ -92,10 +90,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xxs,
   },
-  ratingValue: {
-    fontWeight: '600',
-    fontSize: 12,
-  },
+  ratingValue: {},
   contactButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -107,8 +102,5 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs + 2,
     marginTop: spacing.sm,
   },
-  contactText: {
-    fontWeight: '600',
-    fontSize: 12,
-  },
+  contactText: {},
 });

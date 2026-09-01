@@ -180,18 +180,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs,
   },
-  name: {
-    fontWeight: '700',
-    fontSize: 16,
-  },
+  name: {},
   ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
   },
-  ratingValue: {
-    fontWeight: '600',
-  },
+  ratingValue: {},
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -217,10 +212,7 @@ const styles = StyleSheet.create({
   dotOfflineSmall: {
     backgroundColor: colors.textTertiary,
   },
-  availText: {
-    fontWeight: '500',
-    fontSize: 11,
-  },
+  availText: {},
   priceBlock: {
     alignItems: 'flex-end',
     gap: spacing.xxs,
@@ -230,11 +222,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xxs,
   },
-  priceValue: {
-    fontWeight: '700',
-    fontSize: 14,
-    color: colors.text,
-  },
+  priceValue: {},
   tagsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -248,10 +236,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  tagText: {
-    fontWeight: '500',
-    fontSize: 12,
-  },
+  tagText: {},
   ctaRow: {
     alignItems: 'flex-end',
   },
@@ -261,8 +246,5 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm + 2,
     borderRadius: radius.lg,
   },
-  profileButtonText: {
-    fontWeight: '600',
-    fontSize: 13,
-  },
+  profileButtonText: {},
 });

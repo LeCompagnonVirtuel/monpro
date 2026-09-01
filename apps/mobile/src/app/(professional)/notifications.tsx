@@ -28,6 +28,7 @@ function getDeepLink(notification: Notification): string | null {
 
   if (data.conversationId) return `/(professional)/conversation?conversationId=${data.conversationId}`;
   if (data.bookingId) return `/(professional)/intervention?bookingId=${data.bookingId}`;
+  if (data.quoteId && data.requestId) return `/(professional)/quote-detail?quoteId=${data.quoteId}&requestId=${data.requestId}`;
   if (data.requestId) return `/(professional)/request-detail?id=${data.requestId}`;
   return null;
 }

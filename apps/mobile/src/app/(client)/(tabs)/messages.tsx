@@ -9,26 +9,21 @@ import { Text, Skeleton } from '@/components/ui';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { MessagesHeader } from '@/components/messages/MessagesHeader';
-import { MessageFilterChips } from '@/components/messages/MessageFilterChips';
 import { SecurityBanner } from '@/components/messages/SecurityBanner';
 import { ConversationRow } from '@/components/messages/ConversationRow';
 import { ProfessionalSuggestionCard } from '@/components/messages/ProfessionalSuggestionCard';
 import { useConversations } from '@/hooks/use-conversations';
 import { useAuthStore } from '@/stores/auth.store';
 import { useProfessionals } from '@/hooks/use-professionals';
-import { useUnreadNotificationCount } from '@/hooks/use-notifications';
 import { Conversation } from '@/api/messaging';
 
-type FilterType = 'all' | 'requests' | 'projects' | 'notifications';
 type SortMode = 'recent' | 'unread';
 
 export default function MessagesScreen() {
   const { data: conversations, isLoading, error, refetch } = useConversations();
   const userId = useAuthStore((s) => s.userId);
-  const { data: notifCount } = useUnreadNotificationCount();
   const { data: prosData } = useProfessionals({ limit: 6, verified: true });
 
-  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [showBanner, setShowBanner] = useState(true);
   const [sortMode, setSortMode] = useState<SortMode>('recent');
 
@@ -58,13 +53,7 @@ export default function MessagesScreen() {
 
   const renderHeader = () => (
     <View>
-      <MessageFilterChips
-        activeFilter={activeFilter}
-        onFilterChange={setActiveFilter}
-        notificationCount={notifCount}
-      />
-
-      {showBanner && <SecurityBanner onDismiss={handleDismissBanner} />}
+      {showBanner ? <SecurityBanner onDismiss={handleDismissBanner} /> : null}
 
       <View style={styles.sectionRow}>
         <Text variant="h3" style={styles.sectionTitle}>Conversations</Text>
@@ -216,19 +205,13 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     paddingBottom: spacing.sm,
   },
-  sectionTitle: {
-    fontWeight: '700',
-    fontSize: 16,
-  },
+  sectionTitle: {},
   sortButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
   },
-  sortText: {
-    fontWeight: '500',
-    fontSize: 13,
-  },
+  sortText: {},
   suggestionsSection: {
     marginTop: spacing.xxl,
   },

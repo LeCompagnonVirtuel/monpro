@@ -24,10 +24,7 @@ export function ConversationRow({ conversation, currentUserId }: ConversationRow
       accessibilityLabel={`Ouvrir la conversation avec ${name}${hasUnread ? `, ${conversation.unreadCount} messages non lus` : ''}`}
       accessibilityRole="button"
     >
-      <View style={styles.avatarContainer}>
-        <Avatar uri={other?.avatarUrl} name={name} size={56} />
-        <View style={styles.onlineDot} />
-      </View>
+      <Avatar uri={other?.avatarUrl} name={name} size={56} />
 
       <View style={styles.content}>
         <View style={styles.topRow}>
@@ -90,20 +87,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.borderLight,
   },
-  avatarContainer: {
-    position: 'relative',
-  },
-  onlineDot: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: colors.success,
-    borderWidth: 2,
-    borderColor: colors.background,
-  },
+
   content: {
     flex: 1,
     gap: spacing.xs,
@@ -115,13 +99,9 @@ const styles = StyleSheet.create({
   },
   name: {
     flex: 1,
-    fontSize: 15,
   },
-  nameBold: {
-    fontWeight: '700',
-  },
+  nameBold: {},
   time: {
-    fontSize: 12,
     marginLeft: spacing.sm,
   },
   bottomRow: {
@@ -131,8 +111,6 @@ const styles = StyleSheet.create({
   },
   preview: {
     flex: 1,
-    fontSize: 13,
-    lineHeight: 18,
   },
   rightIndicators: {
     flexDirection: 'row',
@@ -148,8 +126,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 6,
   },
-  badgeText: {
-    fontWeight: '700',
-    fontSize: 11,
-  },
+  badgeText: {},
 });

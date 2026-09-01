@@ -5,16 +5,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
+import { shadows } from '@/theme/shadows';
 import { Text, Skeleton } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useQuotesForRequest } from '@/hooks/use-quotes';
-import { formatCurrency, formatDate } from '@/lib/format';
+import { formatCurrency, formatDate, formatRelativeDate } from '@/lib/format';
 
-const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
-  PENDING: { color: colors.warning, label: 'En attente' },
-  ACCEPTED: { color: colors.success, label: 'Accepté' },
-  REJECTED: { color: colors.error, label: 'Refusé' },
-  EXPIRED: { color: colors.textTertiary, label: 'Expiré' },
+const STATUS_CONFIG: Record<string, { color: string; label: string; icon: keyof typeof Ionicons.glyphMap; description: string }> = {
+  PENDING: { color: colors.warning, label: 'En attente', icon: 'hourglass-outline', description: 'Le client examine votre devis.' },
+  ACCEPTED: { color: colors.success, label: 'Accepté', icon: 'checkmark-circle-outline', description: 'Le client a accepté votre devis.' },
+  REJECTED: { color: colors.error, label: 'Refusé', icon: 'close-circle-outline', description: 'Le client a refusé votre devis.' },
+  EXPIRED: { color: colors.textTertiary, label: 'Expiré', icon: 'time-outline', description: 'Ce devis a expiré.' },
 };
 
 export default function QuoteDetailScreen() {
@@ -49,47 +50,70 @@ export default function QuoteDetailScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <Header />
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.statusSection}>
-          <View style={[styles.statusBadge, { backgroundColor: statusConfig.color + '15' }]}>
-            <Text variant="body" color={statusConfig.color}>{statusConfig.label}</Text>
+        {/* Status Banner */}
+        <View style={[styles.statusBanner, { backgroundColor: statusConfig.color + '10' }]}>
+          <Ionicons name={statusConfig.icon} size={24} color={statusConfig.color} />
+          <View style={styles.statusText}>
+            <Text variant="bodyMedium" color={statusConfig.color}>{statusConfig.label}</Text>
+            <Text variant="caption" color={colors.textSecondary}>{statusConfig.description}</Text>
           </View>
         </View>
 
+        {/* Amount */}
         <View style={styles.amountCard}>
-          <Text variant="h2" color={colors.primary}>{formatCurrency(quote.totalAmount)}</Text>
-          <Text variant="bodySmall" color={colors.textTertiary}>Montant total</Text>
+          <Text variant="caption" color={colors.textSecondary}>MONTANT TOTAL</Text>
+          <Text variant="h1" color={colors.primary}>{formatCurrency(quote.totalAmount)}</Text>
         </View>
 
-        <View style={styles.breakdown}>
-          <BreakdownRow label="Main-d'œuvre" amount={quote.laborCost} />
-          {quote.materialCost ? <BreakdownRow label="Matériel" amount={quote.materialCost} /> : null}
-          {quote.transportCost ? <BreakdownRow label="Déplacement" amount={quote.transportCost} /> : null}
+        {/* Breakdown */}
+        <View style={styles.breakdownCard}>
+          <Text variant="caption" color={colors.textSecondary}>DÉCOMPOSITION</Text>
+          <View style={styles.breakdown}>
+            <BreakdownRow label="Main-d'œuvre" amount={quote.laborCost} />
+            {quote.materialCost ? <BreakdownRow label="Matériel" amount={quote.materialCost} /> : null}
+            {quote.transportCost ? <BreakdownRow label="Déplacement" amount={quote.transportCost} /> : null}
+          </View>
         </View>
 
-        {quote.description && (
-          <View style={styles.section}>
-            <Text variant="bodySmall" color={colors.textSecondary}>Description</Text>
-            <Text variant="body">{quote.description}</Text>
-          </View>
-        )}
+        {/* Details */}
+        <View style={styles.detailsCard}>
+          {quote.description && (
+            <View style={styles.detailRow}>
+              <Ionicons name="document-text-outline" size={18} color={colors.primary} />
+              <View style={styles.detailInfo}>
+                <Text variant="caption" color={colors.textSecondary}>Description</Text>
+                <Text variant="body">{quote.description}</Text>
+              </View>
+            </View>
+          )}
 
-        {quote.estimatedDuration && (
-          <View style={styles.section}>
-            <Text variant="bodySmall" color={colors.textSecondary}>Délai estimé</Text>
-            <Text variant="body">{quote.estimatedDuration}</Text>
-          </View>
-        )}
+          {quote.estimatedDuration && (
+            <View style={styles.detailRow}>
+              <Ionicons name="time-outline" size={18} color={colors.primary} />
+              <View style={styles.detailInfo}>
+                <Text variant="caption" color={colors.textSecondary}>Délai estimé</Text>
+                <Text variant="body">{quote.estimatedDuration}</Text>
+              </View>
+            </View>
+          )}
 
-        {quote.validUntil && (
-          <View style={styles.section}>
-            <Text variant="bodySmall" color={colors.textSecondary}>Valide jusqu{"'"}au</Text>
-            <Text variant="body">{formatDate(quote.validUntil)}</Text>
-          </View>
-        )}
+          {quote.validUntil && (
+            <View style={styles.detailRow}>
+              <Ionicons name="calendar-outline" size={18} color={colors.primary} />
+              <View style={styles.detailInfo}>
+                <Text variant="caption" color={colors.textSecondary}>Valide jusqu{"'"}au</Text>
+                <Text variant="body">{formatDate(quote.validUntil)}</Text>
+              </View>
+            </View>
+          )}
 
-        <View style={styles.section}>
-          <Text variant="bodySmall" color={colors.textSecondary}>Créé le</Text>
-          <Text variant="body">{formatDate(quote.createdAt)}</Text>
+          <View style={styles.detailRow}>
+            <Ionicons name="time-outline" size={18} color={colors.primary} />
+            <View style={styles.detailInfo}>
+              <Text variant="caption" color={colors.textSecondary}>Créé</Text>
+              <Text variant="body">{formatRelativeDate(quote.createdAt)}</Text>
+            </View>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -102,7 +126,7 @@ function Header() {
       <Pressable onPress={() => router.back()} accessibilityLabel="Retour" style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
-      <Text variant="h3" style={styles.headerTitle}>Détail devis</Text>
+      <Text variant="h3" style={styles.headerTitle}>Devis</Text>
       <View style={styles.backBtn} />
     </View>
   );
@@ -112,7 +136,7 @@ function BreakdownRow({ label, amount }: { label: string; amount: number }) {
   return (
     <View style={styles.breakdownRow}>
       <Text variant="body" color={colors.textSecondary}>{label}</Text>
-      <Text variant="body">{formatCurrency(amount)}</Text>
+      <Text variant="bodyMedium">{formatCurrency(amount)}</Text>
     </View>
   );
 }
@@ -124,10 +148,13 @@ const styles = StyleSheet.create({
   headerTitle: { flex: 1, textAlign: 'center' },
   loadingContent: { padding: spacing.lg, gap: spacing.md },
   content: { padding: spacing.lg, gap: spacing.lg },
-  statusSection: { alignItems: 'center' },
-  statusBadge: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderRadius: radius.full },
-  amountCard: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.xl, alignItems: 'center', gap: spacing.xs },
-  breakdown: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, gap: spacing.md },
+  statusBanner: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.lg, borderRadius: radius.md },
+  statusText: { flex: 1, gap: 2 },
+  amountCard: { backgroundColor: colors.primary, borderRadius: radius.md, padding: spacing.xl, alignItems: 'center', gap: spacing.xs },
+  breakdownCard: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, gap: spacing.md, ...shadows.sm },
+  breakdown: { gap: spacing.sm },
   breakdownRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  section: { gap: spacing.xs },
+  detailsCard: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, gap: spacing.md, ...shadows.sm },
+  detailRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
+  detailInfo: { flex: 1, gap: 2 },
 });

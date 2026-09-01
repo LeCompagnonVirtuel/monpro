@@ -12,11 +12,11 @@ import { usePaymentForBooking, useInitiatePayment } from '@/hooks/use-payments';
 import { PaymentProvider, PaymentStatus } from '@/api/payments';
 import { formatCurrency } from '@/lib/format';
 
-const PROVIDERS: { value: PaymentProvider; label: string; icon: string }[] = [
-  { value: 'ORANGE_MONEY', label: 'Orange Money', icon: '🟠' },
-  { value: 'MTN_MOMO', label: 'MTN Mobile Money', icon: '🟡' },
-  { value: 'MOOV_MONEY', label: 'Moov Money', icon: '🔵' },
-  { value: 'WAVE', label: 'Wave', icon: '🌊' },
+const PROVIDERS: { value: PaymentProvider; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { value: 'ORANGE_MONEY', label: 'Orange Money', icon: 'phone-portrait-outline' },
+  { value: 'MTN_MOMO', label: 'MTN Mobile Money', icon: 'phone-portrait-outline' },
+  { value: 'MOOV_MONEY', label: 'Moov Money', icon: 'phone-portrait-outline' },
+  { value: 'WAVE', label: 'Wave', icon: 'water-outline' },
 ];
 
 const PAYMENT_STATUS_LABELS: Record<PaymentStatus, { label: string; variant: 'success' | 'warning' | 'info' | 'error' }> = {
@@ -194,7 +194,7 @@ export default function PaymentScreen() {
                 accessibilityRole="radio"
                 accessibilityState={{ selected: selectedProvider === provider.value }}
               >
-                <Text variant="h3">{provider.icon}</Text>
+                <Ionicons name={provider.icon} size={24} color={selectedProvider === provider.value ? colors.primary : colors.textSecondary} />
                 <Text variant="bodySmall" color={selectedProvider === provider.value ? colors.primary : colors.text}>
                   {provider.label}
                 </Text>

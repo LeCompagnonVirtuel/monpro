@@ -47,7 +47,6 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     flex: 1,
-    fontSize: 14,
   },
   filterButton: {
     width: 40,
