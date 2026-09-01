@@ -1,11 +1,14 @@
 import { Injectable, UnauthorizedException, BadRequestException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { OtpService } from './otp.service';
 import { RequestOtpDto } from './dto/request-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { RegisterDto } from './dto/register.dto';
+import { RegisterEmailDto } from './dto/register-email.dto';
+import { LoginEmailDto } from './dto/login-email.dto';
 import { normalizePhone } from '../common/utils/phone';
 import { UserRole } from '@prisma/client';
 import { v4 as uuid } from 'uuid';
@@ -151,6 +154,67 @@ export class AuthService {
 
     const tokens = await this.generateTokens(user.id, user.role);
     return { user: { id: user.id, phone: user.phone, fullName: user.fullName, role: user.role }, ...tokens };
+  }
+
+  async registerEmail(dto: RegisterEmailDto) {
+    const existingEmail = await this.prisma.user.findUnique({
+      where: { email: dto.email.toLowerCase() },
+    });
+
+    if (existingEmail) {
+      throw new BadRequestException('Cette adresse email est déjà utilisée.');
+    }
+
+    const allowedRoles: UserRole[] = [UserRole.CLIENT, UserRole.PROFESSIONAL];
+    const role = dto.role && allowedRoles.includes(dto.role) ? dto.role : UserRole.CLIENT;
+
+    const passwordHash = await bcrypt.hash(dto.password, 10);
+
+    const user = await this.prisma.user.create({
+      data: {
+        email: dto.email.toLowerCase(),
+        passwordHash,
+        fullName: dto.fullName,
+        role,
+        cityId: dto.cityId,
+        countryId: dto.countryId,
+      },
+    });
+
+    const tokens = await this.generateTokens(user.id, user.role);
+    return { user: { id: user.id, email: user.email, fullName: user.fullName, role: user.role }, ...tokens };
+  }
+
+  async loginEmail(dto: LoginEmailDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email.toLowerCase() },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Email ou mot de passe incorrect.');
+    }
+
+    if (!user.isActive) {
+      throw new UnauthorizedException('Votre compte est suspendu.');
+    }
+
+    if (!user.passwordHash) {
+      throw new BadRequestException('Ce compte utilise la connexion par téléphone. Veuillez vous connecter avec votre numéro.');
+    }
+
+    const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Email ou mot de passe incorrect.');
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+
+    const tokens = await this.generateTokens(user.id, user.role);
+    return { user: { id: user.id, email: user.email, fullName: user.fullName, role: user.role }, ...tokens };
   }
 
   async refreshToken(token: string) {

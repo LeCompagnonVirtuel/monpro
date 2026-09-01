@@ -17,6 +17,20 @@ export interface RegisterPayload {
   countryId?: string;
 }
 
+export interface RegisterEmailPayload {
+  email: string;
+  password: string;
+  fullName: string;
+  role?: 'CLIENT' | 'PROFESSIONAL';
+  cityId?: string;
+  countryId?: string;
+}
+
+export interface LoginEmailPayload {
+  email: string;
+  password: string;
+}
+
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
@@ -37,7 +51,13 @@ export interface VerifyOtpNewUser {
 export type VerifyOtpResponse = VerifyOtpExistingUser | VerifyOtpNewUser;
 
 export interface RegisterResponse {
-  user: { id: string; phone: string; fullName: string; role: string };
+  user: { id: string; phone?: string; email?: string; fullName: string; role: string };
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface LoginEmailResponse {
+  user: { id: string; email: string; fullName: string; role: string };
   accessToken: string;
   refreshToken: string;
 }
@@ -65,6 +85,20 @@ export const authApi = {
   register(payload: RegisterPayload) {
     return apiClient.post<{ success: boolean; data: RegisterResponse }>(
       '/auth/register',
+      payload,
+    );
+  },
+
+  registerEmail(payload: RegisterEmailPayload) {
+    return apiClient.post<{ success: boolean; data: RegisterResponse }>(
+      '/auth/register-email',
+      payload,
+    );
+  },
+
+  loginEmail(payload: LoginEmailPayload) {
+    return apiClient.post<{ success: boolean; data: LoginEmailResponse }>(
+      '/auth/login-email',
       payload,
     );
   },

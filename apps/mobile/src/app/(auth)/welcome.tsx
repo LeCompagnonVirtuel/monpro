@@ -62,18 +62,33 @@ export default function WelcomeScreen() {
                 pressed && styles.ctaPressed,
               ]}
               onPress={() => router.push('/(auth)/phone')}
-              accessibilityLabel="C'est parti"
+              accessibilityLabel="Continuer avec un téléphone"
               accessibilityRole="button"
             >
+              <Ionicons name="call" size={20} color={colors.primary} />
               <Text variant="button" color={colors.primary}>
-                {"C'est parti"}
+                Avec téléphone
               </Text>
-              <Ionicons name="arrow-forward" size={20} color={colors.primary} />
             </Pressable>
 
             <Pressable
-              onPress={() => router.push('/(auth)/phone')}
-              style={styles.secondaryCta}
+              style={({ pressed }) => [
+                styles.secondaryCtaBtn,
+                pressed && styles.ctaPressed,
+              ]}
+              onPress={() => router.push('/(auth)/email-register')}
+              accessibilityLabel="Continuer avec un email"
+              accessibilityRole="button"
+            >
+              <Ionicons name="mail" size={20} color={colors.primary} />
+              <Text variant="button" color={colors.primary}>
+                Avec email
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => router.push('/(auth)/email-login')}
+              style={styles.loginCta}
               accessibilityLabel="Se connecter avec un compte existant"
               accessibilityRole="button"
               hitSlop={8}
@@ -83,7 +98,7 @@ export default function WelcomeScreen() {
                 color={colors.textInverseMuted}
                 align="center"
               >
-                {"J’ai déjà un compte ? "}
+                {"J'ai déjà un compte ? "}
                 <Text
                   variant="bodySmall"
                   color={colors.textInverse}
@@ -162,8 +177,19 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     ...shadows.md,
   },
+  secondaryCtaBtn: {
+    flexDirection: 'row',
+    height: 56,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: radius.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
   ctaPressed: { opacity: 0.9 },
-  secondaryCta: { alignItems: 'center', paddingVertical: spacing.xs },
+  loginCta: { alignItems: 'center', paddingVertical: spacing.xs },
   loginLink: { fontWeight: '700', textDecorationLine: 'underline' },
 
   trust: {

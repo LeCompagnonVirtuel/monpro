@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { AuthService } from '../auth.service';
 import { OtpService } from '../otp.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -257,6 +258,177 @@ describe('AuthService', () => {
       await expect(authService.register({
         phone: '+2250700000001',
         fullName: 'Duplicate',
+      })).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('registerEmail', () => {
+    it('should create a new user with email and hashed password', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+      mockPrisma.user.create.mockImplementation(({ data }) => {
+        return Promise.resolve({ id: 'new-user', ...data });
+      });
+      mockPrisma.refreshToken.create.mockResolvedValue({});
+
+      const result = await authService.registerEmail({
+        email: 'test@example.com',
+        password: 'Password123!',
+        fullName: 'Test User',
+      });
+
+      expect(result.user.email).toBe('test@example.com');
+      expect(result.user.fullName).toBe('Test User');
+      expect(result.accessToken).toBeDefined();
+      expect(result.refreshToken).toBeDefined();
+    });
+
+    it('should reject duplicate email', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'existing', email: 'test@example.com' });
+
+      await expect(authService.registerEmail({
+        email: 'test@example.com',
+        password: 'Password123!',
+        fullName: 'Test User',
+      })).rejects.toThrow(BadRequestException);
+    });
+
+    it('should hash the password with bcrypt', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+      mockPrisma.user.create.mockImplementation(({ data }) => {
+        return Promise.resolve({ id: 'new-user', ...data });
+      });
+      mockPrisma.refreshToken.create.mockResolvedValue({});
+
+      await authService.registerEmail({
+        email: 'test@example.com',
+        password: 'Password123!',
+        fullName: 'Test User',
+      });
+
+      const createCall = mockPrisma.user.create.mock.calls[0][0];
+      const passwordHash = createCall.data.passwordHash;
+      expect(passwordHash).not.toBe('Password123!');
+      expect(passwordHash.startsWith('$2b$')).toBe(true);
+    });
+
+    it('should default to CLIENT role', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+      mockPrisma.user.create.mockImplementation(({ data }) => {
+        return Promise.resolve({ id: 'new-user', ...data });
+      });
+      mockPrisma.refreshToken.create.mockResolvedValue({});
+
+      await authService.registerEmail({
+        email: 'test@example.com',
+        password: 'Password123!',
+        fullName: 'Test User',
+      });
+
+      expect(mockPrisma.user.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({ role: UserRole.CLIENT }),
+      });
+    });
+
+    it('should allow PROFESSIONAL role', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+      mockPrisma.user.create.mockImplementation(({ data }) => {
+        return Promise.resolve({ id: 'new-user', ...data });
+      });
+      mockPrisma.refreshToken.create.mockResolvedValue({});
+
+      await authService.registerEmail({
+        email: 'test@example.com',
+        password: 'Password123!',
+        fullName: 'Pro User',
+        role: UserRole.PROFESSIONAL,
+      });
+
+      expect(mockPrisma.user.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({ role: UserRole.PROFESSIONAL }),
+      });
+    });
+  });
+
+  describe('loginEmail', () => {
+    it('should login with valid email and password', async () => {
+      const passwordHash = await bcrypt.hash('Password123!', 10);
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 'user-1',
+        email: 'test@example.com',
+        passwordHash,
+        fullName: 'Test User',
+        role: UserRole.CLIENT,
+        isActive: true,
+      });
+      mockPrisma.user.update.mockResolvedValue({});
+      mockPrisma.refreshToken.create.mockResolvedValue({});
+
+      const result = await authService.loginEmail({
+        email: 'test@example.com',
+        password: 'Password123!',
+      });
+
+      expect(result.user.email).toBe('test@example.com');
+      expect(result.accessToken).toBeDefined();
+      expect(result.refreshToken).toBeDefined();
+    });
+
+    it('should reject non-existent email', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+
+      await expect(authService.loginEmail({
+        email: 'nonexistent@example.com',
+        password: 'Password123!',
+      })).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should reject wrong password', async () => {
+      const passwordHash = await bcrypt.hash('Password123!', 10);
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 'user-1',
+        email: 'test@example.com',
+        passwordHash,
+        fullName: 'Test User',
+        role: UserRole.CLIENT,
+        isActive: true,
+      });
+
+      await expect(authService.loginEmail({
+        email: 'test@example.com',
+        password: 'WrongPassword!',
+      })).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should reject suspended user', async () => {
+      const passwordHash = await bcrypt.hash('Password123!', 10);
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 'user-1',
+        email: 'test@example.com',
+        passwordHash,
+        fullName: 'Test User',
+        role: UserRole.CLIENT,
+        isActive: false,
+      });
+
+      await expect(authService.loginEmail({
+        email: 'test@example.com',
+        password: 'Password123!',
+      })).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should reject user without password (phone-only account)', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 'user-1',
+        email: 'test@example.com',
+        passwordHash: null,
+        fullName: 'Test User',
+        role: UserRole.CLIENT,
+        isActive: true,
+      });
+
+      await expect(authService.loginEmail({
+        email: 'test@example.com',
+        password: 'Password123!',
       })).rejects.toThrow(BadRequestException);
     });
   });

@@ -1,4 +1,5 @@
 import { PrismaClient, UserRole, VerificationStatus } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -244,6 +245,35 @@ async function main() {
       data: { rate: 0.10, isDefault: true },
     });
   }
+
+  // ─── EMAIL TEST ACCOUNTS ────────────────────────────────────────────────
+  const testPassword = await bcrypt.hash('TestPass123!', 10);
+
+  const emailClient = await prisma.user.upsert({
+    where: { email: 'client@test.monpro.com' },
+    update: {},
+    create: {
+      email: 'client@test.monpro.com',
+      passwordHash: testPassword,
+      fullName: '[TEST] Client Email',
+      role: UserRole.CLIENT,
+      countryId: ci.id,
+      cityId: abidjan.id,
+    },
+  });
+
+  const emailPro = await prisma.user.upsert({
+    where: { email: 'pro@test.monpro.com' },
+    update: {},
+    create: {
+      email: 'pro@test.monpro.com',
+      passwordHash: testPassword,
+      fullName: '[TEST] Pro Email',
+      role: UserRole.PROFESSIONAL,
+      countryId: ci.id,
+      cityId: abidjan.id,
+    },
+  });
 
   console.log('Seed completed successfully (idempotent)');
 }

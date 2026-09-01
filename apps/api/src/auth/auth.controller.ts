@@ -5,6 +5,8 @@ import { AuthService } from './auth.service';
 import { RequestOtpDto } from './dto/request-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { RegisterDto } from './dto/register.dto';
+import { RegisterEmailDto } from './dto/register-email.dto';
+import { LoginEmailDto } from './dto/login-email.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { Public } from '../common/decorators/public.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -35,6 +37,22 @@ export class AuthController {
   @ApiOperation({ summary: 'Créer un compte' })
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
+  }
+
+  @Post('register-email')
+  @Public()
+  @Throttle({ default: { ttl: 60000, limit: 3 } })
+  @ApiOperation({ summary: 'Créer un compte avec email et mot de passe' })
+  registerEmail(@Body() dto: RegisterEmailDto) {
+    return this.authService.registerEmail(dto);
+  }
+
+  @Post('login-email')
+  @Public()
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
+  @ApiOperation({ summary: 'Se connecter avec email et mot de passe' })
+  loginEmail(@Body() dto: LoginEmailDto) {
+    return this.authService.loginEmail(dto);
   }
 
   @Post('refresh')
