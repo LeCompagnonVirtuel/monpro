@@ -28,3 +28,19 @@ export function useCreateBooking() {
     },
   });
 }
+
+export function useCancelBooking() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ bookingId, reason }: { bookingId: string; reason?: string }) => {
+      const { data } = await bookingsApi.updateStatus(bookingId, 'CANCELLED', reason);
+      return data.data;
+    },
+    onSuccess: (_data, { bookingId }) => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['bookings', bookingId] });
+      queryClient.invalidateQueries({ queryKey: ['pro-bookings'] });
+    },
+  });
+}

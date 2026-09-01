@@ -7,7 +7,7 @@ import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { Text, Badge, Button, Skeleton, Divider } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
-import { useBooking, useCreateBooking } from '@/hooks/use-bookings';
+import { useBooking, useCreateBooking, useCancelBooking } from '@/hooks/use-bookings';
 import { useQuotesForRequest } from '@/hooks/use-quotes';
 import { BookingStatus, CreateBookingPayload } from '@/api/bookings';
 import { formatCurrency, formatDate } from '@/lib/format';
@@ -27,7 +27,31 @@ export default function BookingDetailScreen() {
   const { data: booking, isLoading: bookingLoading, error: bookingError, refetch } = useBooking(bookingId);
   const { data: quotes } = useQuotesForRequest(requestId);
   const createBooking = useCreateBooking();
+  const cancelBooking = useCancelBooking();
   const [creating, setCreating] = useState(false);
+
+  const handleCancelBooking = () => {
+    if (!booking) return;
+    Alert.alert(
+      'Annuler la réservation',
+      'Êtes-vous sûr de vouloir annuler cette réservation ? Un remboursement sera automatiquement initié si le paiement a été effectué.',
+      [
+        { text: 'Non', style: 'cancel' },
+        {
+          text: 'Oui, annuler',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await cancelBooking.mutateAsync({ bookingId: booking.id });
+              refetch();
+            } catch {
+              Alert.alert('Erreur', "Impossible d'annuler la réservation.");
+            }
+          },
+        },
+      ],
+    );
+  };
 
   const acceptedQuote = quotes?.find((q) => q.id === quoteId && q.status === 'ACCEPTED');
 
@@ -79,11 +103,20 @@ export default function BookingDetailScreen() {
 
           <View style={styles.actions}>
             {booking.status === 'CONFIRMED' && (
-              <Button
-                title="Voir l'intervention"
-                onPress={() => router.push({ pathname: '/(client)/intervention', params: { bookingId: booking.id } })}
-                size="lg"
-              />
+              <>
+                <Button
+                  title="Voir l'intervention"
+                  onPress={() => router.push({ pathname: '/(client)/intervention', params: { bookingId: booking.id } })}
+                  size="lg"
+                />
+                <Button
+                  title="Annuler"
+                  onPress={handleCancelBooking}
+                  variant="outline"
+                  size="lg"
+                  disabled={cancelBooking.isPending}
+                />
+              </>
             )}
             {(booking.status === 'IN_PROGRESS' || booking.status === 'ARRIVING') && (
               <Button

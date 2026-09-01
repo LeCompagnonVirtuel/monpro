@@ -1,13 +1,16 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { PaymentStatus, PaymentProvider, BookingStatus, NotificationType } from '@prisma/client';
 import { PaymentProviderFactory } from './providers/payment-provider.factory';
 import { LedgerService } from '../ledger/ledger.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { RealtimeService } from '../realtime/realtime.service';
+import { validatePaymentTransition } from '../common/state-machines';
 
 @Injectable()
 export class PaymentsService {
+  private readonly logger = new Logger(PaymentsService.name);
+
   constructor(
     private prisma: PrismaService,
     private providerFactory: PaymentProviderFactory,
@@ -202,5 +205,103 @@ export class PaymentsService {
       where: { bookingId },
       include: { transactions: true },
     });
+  }
+
+  async pollStatus(paymentId: string, userId: string) {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: paymentId },
+      include: { booking: { include: { serviceRequest: true, professional: true } } },
+    });
+    if (!payment) throw new NotFoundException('Paiement non trouvé');
+
+    const isClient = payment.booking.serviceRequest.clientId === userId;
+    if (!isClient) throw new ForbiddenException('Accès interdit');
+
+    if (['COMPLETED', 'FAILED', 'REFUNDED'].includes(payment.status)) {
+      return { status: payment.status, alreadyProcessed: true };
+    }
+
+    if (!payment.providerRef || !payment.provider) {
+      return { status: payment.status };
+    }
+
+    const provider = this.providerFactory.getProvider(payment.provider);
+    const result = await provider.checkStatus(payment.providerRef);
+
+    const statusMap: Record<string, PaymentStatus> = {
+      SUCCESSFUL: PaymentStatus.COMPLETED,
+      SUCCESS: PaymentStatus.COMPLETED,
+      COMPLETED: PaymentStatus.COMPLETED,
+      FAILED: PaymentStatus.FAILED,
+      CANCELLED: PaymentStatus.FAILED,
+      EXPIRED: PaymentStatus.FAILED,
+      REJECTED: PaymentStatus.FAILED,
+      TIMEOUT: PaymentStatus.FAILED,
+      PENDING: PaymentStatus.PROCESSING,
+      PROCESSING: PaymentStatus.PROCESSING,
+    };
+
+    const newStatus = statusMap[result.status] || payment.status;
+    if (newStatus !== payment.status) {
+      await this.handleWebhook(payment.provider, {
+        reference: payment.providerRef,
+        status: result.status === 'SUCCESSFUL' || result.status === 'SUCCESS' || result.status === 'COMPLETED' ? 'success' : 'failed',
+        amount: payment.amount,
+      });
+    }
+
+    return { status: newStatus };
+  }
+
+  async refund(paymentId: string, reason: string, userId: string) {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: paymentId },
+      include: { booking: { include: { serviceRequest: true, professional: true } } },
+    });
+    if (!payment) throw new NotFoundException('Paiement non trouvé');
+    if (payment.status !== PaymentStatus.COMPLETED) {
+      throw new BadRequestException('Seuls les paiements complétés peuvent être remboursés');
+    }
+
+    const isClient = payment.booking.serviceRequest.clientId === userId;
+    if (!isClient) throw new ForbiddenException('Seul le client peut demander un remboursement');
+
+    const existingEntries = await this.prisma.ledgerEntry.count({ where: { paymentId: payment.id } });
+    if (existingEntries === 0) {
+      throw new BadRequestException('Aucune écriture comptable à rembourser');
+    }
+
+    await this.ledger.recordRefund(
+      payment.id,
+      payment.booking.serviceRequest.clientId,
+      payment.booking.professional.userId,
+      payment.amount,
+      payment.commission,
+    );
+
+    await this.prisma.payment.update({
+      where: { id: paymentId },
+      data: { status: PaymentStatus.REFUNDED },
+    });
+
+    this.logger.log(`Payment ${paymentId} refunded: ${reason}`);
+
+    const eventPayload = {
+      type: 'payment.updated' as const,
+      entityId: paymentId,
+      metadata: { bookingId: payment.bookingId, status: PaymentStatus.REFUNDED },
+    };
+    this.realtimeService.emitToUser(payment.booking.serviceRequest.clientId, eventPayload);
+    this.realtimeService.emitToUser(payment.booking.professional.userId, eventPayload);
+
+    await this.notifications.create(
+      payment.booking.serviceRequest.clientId,
+      NotificationType.NEW_PAYMENT,
+      'Remboursement effectué',
+      `Votre paiement de ${payment.amount} XOF a été remboursé`,
+      { bookingId: payment.bookingId },
+    );
+
+    return { refunded: true };
   }
 }

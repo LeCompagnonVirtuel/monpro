@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Param, Body, Headers, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Param, Body, Headers, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { PaymentsService } from './payments.service';
@@ -8,6 +8,7 @@ import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { PaymentProviderFactory } from './providers/payment-provider.factory';
 import { InitiatePaymentDto } from './dto/initiate-payment.dto';
+import { RefundPaymentDto } from './dto/refund-payment.dto';
 
 @ApiTags('Payments')
 @Controller('payments')
@@ -49,5 +50,25 @@ export class PaymentsController {
   @ApiOperation({ summary: 'Paiement d\'une réservation' })
   findByBooking(@Param('bookingId') bookingId: string, @CurrentUser('id') userId: string) {
     return this.paymentsService.findByBooking(bookingId, userId);
+  }
+
+  @Get(':id/poll')
+  @Throttle({ default: { ttl: 30000, limit: 10 } })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Vérifier le statut du paiement' })
+  pollStatus(@Param('id') id: string, @CurrentUser('id') userId: string) {
+    return this.paymentsService.pollStatus(id, userId);
+  }
+
+  @Patch(':id/refund')
+  @Throttle({ default: { ttl: 300000, limit: 3 } })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Rembourser un paiement' })
+  refund(
+    @Param('id') id: string,
+    @CurrentUser('id') userId: string,
+    @Body() body: RefundPaymentDto,
+  ) {
+    return this.paymentsService.refund(id, body.reason, userId);
   }
 }

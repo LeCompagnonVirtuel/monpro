@@ -32,4 +32,12 @@ export const paymentsApi = {
   getByBooking(bookingId: string) {
     return apiClient.get<{ success: boolean; data: Payment }>(`/payments/booking/${bookingId}`);
   },
+
+  pollStatus(paymentId: string) {
+    return apiClient.get<{ success: boolean; data: { status: PaymentStatus; alreadyProcessed?: boolean } }>(`/payments/${paymentId}/poll`);
+  },
+
+  refund(paymentId: string, reason: string) {
+    return apiClient.patch<{ success: boolean; data: { refunded: boolean } }>(`/payments/${paymentId}/refund`, { reason });
+  },
 };

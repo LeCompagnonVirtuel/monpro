@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, Alert } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, Alert, TextInput } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,7 +8,7 @@ import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { Text, Button, Skeleton, Divider, Badge } from '@/components/ui';
 import { useBooking } from '@/hooks/use-bookings';
-import { usePaymentForBooking, useInitiatePayment } from '@/hooks/use-payments';
+import { usePaymentForBooking, useInitiatePayment, usePollPaymentStatus } from '@/hooks/use-payments';
 import { PaymentProvider, PaymentStatus } from '@/api/payments';
 import { formatCurrency } from '@/lib/format';
 
@@ -38,7 +38,7 @@ export default function PaymentScreen() {
   const initiateMutation = useInitiatePayment();
 
   const [selectedProvider, setSelectedProvider] = useState<PaymentProvider | null>(null);
-  const [phoneNumber] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [polling, setPolling] = useState(false);
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollStart = useRef<number>(0);
@@ -81,11 +81,16 @@ export default function PaymentScreen() {
   const handleInitiate = async () => {
     if (!selectedProvider || !bookingId) return;
 
+    if (!phoneNumber || !/^\+\d{10,15}$/.test(phoneNumber)) {
+      Alert.alert('Erreur', 'Veuillez entrer un numéro de téléphone valide au format +225XXXXXXXX');
+      return;
+    }
+
     try {
       await initiateMutation.mutateAsync({
         bookingId,
         provider: selectedProvider,
-        phoneNumber: phoneNumber || '',
+        phoneNumber,
       });
       refetchPayment();
     } catch {
@@ -160,6 +165,11 @@ export default function PaymentScreen() {
               <Text variant="bodySmall" color={colors.error} align="center">
                 Le paiement a échoué. Vous pouvez réessayer.
               </Text>
+              <Button
+                title="Réessayer"
+                onPress={() => router.replace({ pathname: '/(client)/payment', params: { bookingId } })}
+                size="lg"
+              />
             </View>
           )}
 
@@ -205,12 +215,25 @@ export default function PaymentScreen() {
 
         <DevNotice />
 
+        <View style={styles.phoneSection}>
+          <Text variant="h3">Numéro de téléphone</Text>
+          <TextInput
+            style={styles.phoneInput}
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            placeholder="+225XXXXXXXX"
+            placeholderTextColor={colors.textTertiary}
+            keyboardType="phone-pad"
+            autoComplete="tel"
+          />
+        </View>
+
         <View style={styles.actions}>
           <Button
             title="Payer"
             onPress={handleInitiate}
             loading={initiateMutation.isPending}
-            disabled={!selectedProvider || initiateMutation.isPending}
+            disabled={!selectedProvider || !phoneNumber || initiateMutation.isPending}
             size="lg"
           />
         </View>
@@ -268,5 +291,7 @@ const styles = StyleSheet.create({
   providerCardSelected: { borderColor: colors.primary, backgroundColor: colors.successLightest },
   pollingBanner: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, justifyContent: 'center', paddingVertical: spacing.md },
   devNotice: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, backgroundColor: colors.warningLight, borderRadius: radius.md, marginTop: spacing.lg },
+  phoneSection: { paddingVertical: spacing.lg, gap: spacing.md },
+  phoneInput: { backgroundColor: colors.surface, borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.md, fontSize: 16, color: colors.text },
   actions: { paddingTop: spacing.xl, gap: spacing.md },
 });

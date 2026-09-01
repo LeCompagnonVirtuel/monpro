@@ -42,7 +42,7 @@ export const bookingsApi = {
     );
   },
 
-  updateStatus(id: string, status: BookingStatus) {
-    return apiClient.patch(`/bookings/${id}/status`, { status });
+  updateStatus(id: string, status: BookingStatus, cancellationReason?: string) {
+    return apiClient.patch(`/bookings/${id}/status`, { status, cancellationReason });
   },
 };

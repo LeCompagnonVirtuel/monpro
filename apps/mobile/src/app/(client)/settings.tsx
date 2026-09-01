@@ -1,5 +1,4 @@
 import { ScrollView, StyleSheet, Switch, View } from 'react-native';
-import { useState } from 'react';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,6 +7,7 @@ import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
 import { Text } from '@/components/ui';
+import { useSettings, useUpdateSettings } from '@/hooks/use-settings';
 
 interface SettingRowProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -61,10 +61,12 @@ const settingStyles = StyleSheet.create({
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
-  const [pushEnabled, setPushEnabled] = useState(true);
-  const [emailEnabled, setEmailEnabled] = useState(false);
-  const [profileVisible, setProfileVisible] = useState(true);
-  const [locationEnabled, setLocationEnabled] = useState(true);
+  const { data: settings } = useSettings();
+  const updateSettings = useUpdateSettings();
+
+  const handleToggle = async (key: 'pushEnabled' | 'emailEnabled' | 'profileVisible' | 'locationEnabled', value: boolean) => {
+    await updateSettings.mutateAsync({ [key]: value });
+  };
 
   return (
     <View style={styles.container}>
@@ -93,16 +95,16 @@ export default function SettingsScreen() {
               icon="notifications-outline"
               label="Notifications push"
               type="toggle"
-              value={pushEnabled}
-              onValueChange={setPushEnabled}
+              value={settings?.pushEnabled ?? true}
+              onValueChange={(v) => handleToggle('pushEnabled', v)}
             />
             <View style={styles.separator} />
             <SettingRow
               icon="mail-outline"
               label="Notifications par e-mail"
               type="toggle"
-              value={emailEnabled}
-              onValueChange={setEmailEnabled}
+              value={settings?.emailEnabled ?? false}
+              onValueChange={(v) => handleToggle('emailEnabled', v)}
             />
           </View>
         </View>
@@ -116,16 +118,16 @@ export default function SettingsScreen() {
               icon="eye-outline"
               label="Profil visible"
               type="toggle"
-              value={profileVisible}
-              onValueChange={setProfileVisible}
+              value={settings?.profileVisible ?? true}
+              onValueChange={(v) => handleToggle('profileVisible', v)}
             />
             <View style={styles.separator} />
             <SettingRow
               icon="map-outline"
               label="Données de localisation"
               type="toggle"
-              value={locationEnabled}
-              onValueChange={setLocationEnabled}
+              value={settings?.locationEnabled ?? true}
+              onValueChange={(v) => handleToggle('locationEnabled', v)}
             />
           </View>
         </View>

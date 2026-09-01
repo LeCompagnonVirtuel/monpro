@@ -1,17 +1,21 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { BookingStatus, ServiceRequestStatus, QuoteStatus, NotificationType } from '@prisma/client';
+import { BookingStatus, ServiceRequestStatus, QuoteStatus, NotificationType, PaymentStatus } from '@prisma/client';
 import { validateBookingTransition } from '../common/state-machines';
 import { NotificationsService } from '../notifications/notifications.service';
 import { RealtimeService } from '../realtime/realtime.service';
 import { paginate } from '../common/utils/pagination';
+import { LedgerService } from '../ledger/ledger.service';
 
 @Injectable()
 export class BookingsService {
+  private readonly logger = new Logger(BookingsService.name);
+
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationsService,
     private realtimeService: RealtimeService,
+    private ledger: LedgerService,
   ) {}
 
   async createFromQuote(quoteId: string, data: { scheduledDate: Date; scheduledTime?: string; addressId?: string }, userId: string) {
@@ -120,7 +124,7 @@ export class BookingsService {
     return { data, total, page: p, limit: l, totalPages: Math.ceil(total / l) };
   }
 
-  async updateStatus(id: string, status: BookingStatus, userId: string) {
+  async updateStatus(id: string, status: BookingStatus, userId: string, cancellationReason?: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id },
       include: { serviceRequest: true, professional: true },
@@ -145,16 +149,43 @@ export class BookingsService {
       throw new ForbiddenException('Seul le professionnel peut terminer l\'intervention');
     }
 
+    if (status === BookingStatus.CANCELLED) {
+      if (booking.status === BookingStatus.IN_PROGRESS || booking.status === BookingStatus.ARRIVING) {
+        throw new BadRequestException('Impossible d\'annuler une intervention en cours. Contactez le support.');
+      }
+    }
+
     const update: any = { status };
     if (status === BookingStatus.IN_PROGRESS) update.startedAt = new Date();
     if (status === BookingStatus.COMPLETED) update.completedAt = new Date();
-    if (status === BookingStatus.CANCELLED) update.cancelledAt = new Date();
+    if (status === BookingStatus.CANCELLED) {
+      update.cancelledAt = new Date();
+      update.cancellationReason = cancellationReason || 'Annulé par le client';
+    }
 
     const eventPayload = {
       type: 'booking.status_changed' as const,
       entityId: id,
-      metadata: { status },
+      metadata: { status, cancellationReason: update.cancellationReason },
     };
+
+    if (status === BookingStatus.CANCELLED) {
+      const payment = await this.prisma.payment.findUnique({ where: { bookingId: id } });
+      if (payment && payment.status === PaymentStatus.COMPLETED) {
+        this.logger.log(`Booking ${id} cancelled — initiating refund for payment ${payment.id}`);
+        await this.ledger.recordRefund(
+          payment.id,
+          booking.serviceRequest.clientId,
+          booking.professional.userId,
+          payment.amount,
+          payment.commission,
+        );
+        await this.prisma.payment.update({
+          where: { id: payment.id },
+          data: { status: PaymentStatus.REFUNDED },
+        });
+      }
+    }
 
     if (status === BookingStatus.COMPLETED) {
       const [result] = await this.prisma.$transaction([

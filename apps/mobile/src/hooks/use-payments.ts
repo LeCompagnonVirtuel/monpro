@@ -26,3 +26,33 @@ export function useInitiatePayment() {
     },
   });
 }
+
+export function usePollPaymentStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (paymentId: string) => {
+      const { data } = await paymentsApi.pollStatus(paymentId);
+      return data.data;
+    },
+    onSuccess: (result, paymentId) => {
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+    },
+  });
+}
+
+export function useRefundPayment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ paymentId, reason }: { paymentId: string; reason: string }) => {
+      const { data } = await paymentsApi.refund(paymentId, reason);
+      return data.data;
+    },
+    onSuccess: (_result, { paymentId }) => {
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+    },
+  });
+}

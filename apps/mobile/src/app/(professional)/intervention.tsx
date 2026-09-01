@@ -1,13 +1,16 @@
-import { StyleSheet, View, ScrollView, Pressable, Alert } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, View, ScrollView, Pressable, Alert, Image } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { Text, Skeleton, Button } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useProfessionalIntervention, useMarkArrived, useStartIntervention, useCompleteIntervention } from '@/hooks/use-professional-interventions';
+import { uploadsApi } from '@/api/uploads';
 import { formatDate } from '@/lib/format';
 
 const STEPS = [
@@ -32,6 +35,48 @@ export default function ProfessionalInterventionScreen() {
   const markArrived = useMarkArrived();
   const startIntervention = useStartIntervention();
   const completeIntervention = useCompleteIntervention();
+  const [beforePhotos, setBeforePhotos] = useState<string[]>([]);
+  const [afterPhotos, setAfterPhotos] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+
+  const pickImages = async (type: 'before' | 'after') => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permission requise', 'Autorisez l\'accès à vos photos pour continuer.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      selectionLimit: 5,
+      quality: 0.8,
+    });
+
+    if (result.canceled) return;
+
+    setUploading(true);
+    try {
+      const files = result.assets.map((asset) => ({
+        uri: asset.uri,
+        name: asset.fileName || `photo_${Date.now()}.jpg`,
+        type: asset.mimeType || 'image/jpeg',
+      }));
+
+      const { data } = await uploadsApi.uploadImages(files, 'interventions');
+      const urls = data.data.urls;
+
+      if (type === 'before') {
+        setBeforePhotos((prev) => [...prev, ...urls]);
+      } else {
+        setAfterPhotos((prev) => [...prev, ...urls]);
+      }
+    } catch {
+      Alert.alert('Erreur', 'Impossible d\'uploader les photos.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -72,13 +117,17 @@ export default function ProfessionalInterventionScreen() {
   };
 
   const handleStart = () => {
+    if (beforePhotos.length === 0) {
+      Alert.alert('Photos requises', 'Veuillez ajouter au moins une photo avant de démarrer l\'intervention.');
+      return;
+    }
     Alert.alert('Démarrer', "Démarrer l'intervention ?", [
       { text: 'Annuler', style: 'cancel' },
       {
         text: 'Démarrer',
         onPress: async () => {
           try {
-            await startIntervention.mutateAsync({ bookingId: bookingId!, beforePhotos: [] });
+            await startIntervention.mutateAsync({ bookingId: bookingId!, beforePhotos });
           } catch {
             Alert.alert('Erreur', 'Impossible de démarrer l\'intervention. Veuillez réessayer.');
           }
@@ -88,13 +137,17 @@ export default function ProfessionalInterventionScreen() {
   };
 
   const handleComplete = () => {
+    if (afterPhotos.length === 0) {
+      Alert.alert('Photos requises', 'Veuillez ajouter au moins une photo après pour terminer l\'intervention.');
+      return;
+    }
     Alert.alert('Terminer', "Marquer l'intervention comme terminée ?", [
       { text: 'Annuler', style: 'cancel' },
       {
         text: 'Terminer',
         onPress: async () => {
           try {
-            await completeIntervention.mutateAsync({ bookingId: bookingId!, afterPhotos: [] });
+            await completeIntervention.mutateAsync({ bookingId: bookingId!, afterPhotos });
           } catch {
             Alert.alert('Erreur', 'Impossible de terminer l\'intervention. Veuillez réessayer.');
           }
@@ -145,6 +198,62 @@ export default function ProfessionalInterventionScreen() {
           <View style={styles.notesSection}>
             <Text variant="bodySmall" color={colors.textSecondary}>Notes</Text>
             <Text variant="body">{intervention.completionNotes}</Text>
+          </View>
+        )}
+
+        {currentStep === 1 && (
+          <View style={styles.photosSection}>
+            <View style={styles.photosHeader}>
+              <Text variant="h3">Photos avant intervention</Text>
+              <Button
+                title={uploading ? 'Upload...' : 'Ajouter'}
+                onPress={() => pickImages('before')}
+                variant="outline"
+                size="sm"
+                disabled={uploading}
+              />
+            </View>
+            {beforePhotos.length > 0 ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.photosRow}>
+                  {beforePhotos.map((url, i) => (
+                    <Image key={i} source={{ uri: url }} style={styles.photo} />
+                  ))}
+                </View>
+              </ScrollView>
+            ) : (
+              <Text variant="bodySmall" color={colors.textSecondary}>
+                Ajoutez des photos de l'état avant l'intervention
+              </Text>
+            )}
+          </View>
+        )}
+
+        {currentStep === 2 && (
+          <View style={styles.photosSection}>
+            <View style={styles.photosHeader}>
+              <Text variant="h3">Photos après intervention</Text>
+              <Button
+                title={uploading ? 'Upload...' : 'Ajouter'}
+                onPress={() => pickImages('after')}
+                variant="outline"
+                size="sm"
+                disabled={uploading}
+              />
+            </View>
+            {afterPhotos.length > 0 ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.photosRow}>
+                  {afterPhotos.map((url, i) => (
+                    <Image key={i} source={{ uri: url }} style={styles.photo} />
+                  ))}
+                </View>
+              </ScrollView>
+            ) : (
+              <Text variant="bodySmall" color={colors.textSecondary}>
+                Ajoutez des photos de l'état après l'intervention
+              </Text>
+            )}
           </View>
         )}
       </ScrollView>
@@ -210,6 +319,10 @@ const styles = StyleSheet.create({
   timelineLineDone: { backgroundColor: colors.primary },
   timelineContent: { flex: 1, paddingLeft: spacing.md, paddingBottom: spacing.lg, gap: 2 },
   notesSection: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, gap: spacing.xs },
+  photosSection: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, gap: spacing.md },
+  photosHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  photosRow: { flexDirection: 'row', gap: spacing.sm },
+  photo: { width: 100, height: 100, borderRadius: radius.md },
   footer: { padding: spacing.lg, borderTopWidth: 1, borderTopColor: colors.borderLight },
   completedBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
 });
