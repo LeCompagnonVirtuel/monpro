@@ -45,15 +45,7 @@
       "expo-location",
       "expo-image-picker",
       "expo-notifications",
-      "expo-font",
-      [
-        "@sentry/react-native/expo",
-        {
-          "organization": "lecompagnonlabss-organization",
-          "project": "monpro-mobile",
-          "dsn": null
-        }
-      ]
+      "expo-font"
     ],
     "extra": {
       "eas": {
