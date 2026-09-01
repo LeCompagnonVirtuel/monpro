@@ -42,7 +42,8 @@ export class AuthService {
     try {
       ({ hash } = await this.otpService.generate(phone));
     } catch (error) {
-      this.logger.error(`SMS provider error: category=provider_failure`);
+      const errMsg = error instanceof Error ? error.message : 'unknown';
+      this.logger.error(`SMS provider error: ${errMsg}`);
       throw new BadRequestException("Impossible d'envoyer le code de vérification. Veuillez réessayer.");
     }
 

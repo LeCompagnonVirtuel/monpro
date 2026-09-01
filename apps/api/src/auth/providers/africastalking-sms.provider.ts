@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ISmsProvider } from './sms.interface';
 
-const SMS_TIMEOUT_MS = 10_000;
+const SMS_TIMEOUT_MS = 30_000;
 
 @Injectable()
 export class AfricaSmsProvider implements ISmsProvider {
