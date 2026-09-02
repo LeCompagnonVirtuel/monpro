@@ -131,7 +131,7 @@ export default function ProfessionalProfileScreen() {
           <View style={styles.statsCard}>
             <Pressable
               style={styles.stat}
-              onPress={() => router.push('/(professional)/reviews' as never)}
+              onPress={() => router.push('/(professional)/reviews')}
               accessibilityLabel={`Note : ${profile.averageRating?.toFixed(1) || 'aucune'}`}
               accessibilityRole="button"
             >
@@ -142,7 +142,7 @@ export default function ProfessionalProfileScreen() {
             <View style={styles.statDivider} />
             <Pressable
               style={styles.stat}
-              onPress={() => router.push('/(professional)/reviews' as never)}
+              onPress={() => router.push('/(professional)/reviews')}
               accessibilityLabel={`${profile.totalReviews || 0} avis`}
               accessibilityRole="button"
             >
@@ -153,7 +153,7 @@ export default function ProfessionalProfileScreen() {
             <View style={styles.statDivider} />
             <Pressable
               style={styles.stat}
-              onPress={() => router.push('/(professional)/onboarding' as never)}
+              onPress={() => router.push('/(professional)/onboarding')}
               accessibilityLabel={`${profile.experienceYears || 0} années d'expérience`}
               accessibilityRole="button"
             >
@@ -168,7 +168,7 @@ export default function ProfessionalProfileScreen() {
         {!profile && (
           <Pressable
             style={styles.setupCard}
-            onPress={() => router.push('/(professional)/onboarding' as never)}
+            onPress={() => router.push('/(professional)/onboarding')}
             accessibilityLabel="Compléter mon profil professionnel"
             accessibilityRole="button"
           >
@@ -194,7 +194,7 @@ export default function ProfessionalProfileScreen() {
                 <Pressable
                   key={item.route}
                   style={[styles.menuItem, index < section.items.length - 1 && styles.menuItemBorder]}
-                  onPress={() => router.push(item.route as never)}
+                  onPress={() => router.push(item.route)}
                   accessibilityLabel={item.label}
                   accessibilityRole="button"
                 >

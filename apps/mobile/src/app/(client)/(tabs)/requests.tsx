@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { StyleSheet, View, FlatList, Pressable, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,9 +15,13 @@ import { formatDate } from '@/lib/format';
 
 type FilterTab = 'all' | 'active' | 'completed' | 'cancelled';
 
+const ACTIVE_STATUSES: ServiceRequestStatus[] = [
+  'SUBMITTED', 'MATCHING', 'QUOTED', 'ACCEPTED', 'SCHEDULED', 'IN_PROGRESS',
+];
+
 const FILTER_MAP: Record<FilterTab, ServiceRequestStatus | undefined> = {
   all: undefined,
-  active: 'SUBMITTED',
+  active: undefined,
   completed: 'COMPLETED',
   cancelled: 'CANCELLED',
 };
@@ -40,6 +44,14 @@ export default function RequestsScreen() {
   const { data, isLoading, error, refetch, isRefetching } = useServiceRequests(
     FILTER_MAP[filter] ? { status: FILTER_MAP[filter] } : undefined,
   );
+
+  const filteredRequests = useMemo(() => {
+    const all = data?.requests || [];
+    if (filter === 'active') {
+      return all.filter((r) => ACTIVE_STATUSES.includes(r.status));
+    }
+    return all;
+  }, [data, filter]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -79,14 +91,14 @@ export default function RequestsScreen() {
         </View>
       ) : error ? (
         <ErrorState message="Impossible de charger vos demandes" onRetry={refetch} />
-      ) : !data?.requests.length ? (
+      ) : filteredRequests.length === 0 ? (
         <EmptyState
           title="Aucune demande"
           description={"Vous n'avez pas encore créé de demande de service."}
         />
       ) : (
         <FlatList
-          data={data.requests}
+          data={filteredRequests}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => <RequestCard request={item} />}

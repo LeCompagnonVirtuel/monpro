@@ -52,7 +52,7 @@ export default function ProfessionalBookingDetailScreen() {
   const handleStartIntervention = async () => {
     try {
       await createIntervention.mutateAsync(booking.id);
-      router.push({ pathname: '/(professional)/intervention', params: { bookingId: booking.id } } as never);
+      router.push({ pathname: '/(professional)/intervention', params: { bookingId: booking.id } });
     } catch {
       Alert.alert('Erreur', 'Impossible de créer l\'intervention. Veuillez réessayer.');
     }

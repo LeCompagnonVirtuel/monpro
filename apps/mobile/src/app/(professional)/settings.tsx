@@ -112,19 +112,19 @@ export default function SettingsScreen() {
             <MenuItem
               icon="person-outline"
               label="Modifier mon profil"
-              onPress={() => router.push('/(professional)/onboarding' as never)}
+              onPress={() => router.push('/(professional)/onboarding')}
             />
             <View style={styles.divider} />
             <MenuItem
               icon="list-outline"
               label="Mes services"
-              onPress={() => router.push('/(professional)/services' as never)}
+              onPress={() => router.push('/(professional)/services')}
             />
             <View style={styles.divider} />
             <MenuItem
               icon="time-outline"
               label="Disponibilités"
-              onPress={() => router.push('/(professional)/availability' as never)}
+              onPress={() => router.push('/(professional)/availability')}
             />
           </View>
         </View>
@@ -137,7 +137,7 @@ export default function SettingsScreen() {
             <MenuItem
               icon="notifications-outline"
               label="Mes notifications"
-              onPress={() => router.push('/(professional)/notifications' as never)}
+              onPress={() => router.push('/(professional)/notifications')}
             />
           </View>
         </View>

@@ -135,7 +135,7 @@ export default function ProfessionalRequestDetailScreen() {
       <View style={styles.footer}>
         <Button
           title="Créer un devis"
-          onPress={() => router.push({ pathname: '/(professional)/create-quote', params: { requestId: request.id, serviceName: request.service?.name || '' } } as never)}
+          onPress={() => router.push({ pathname: '/(professional)/create-quote', params: { requestId: request.id, serviceName: request.service?.name || '' } })}
         />
       </View>
     </SafeAreaView>

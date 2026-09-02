@@ -13,6 +13,8 @@ import { useProfessionalRequests } from '@/hooks/use-professional-requests';
 import { ServiceRequest } from '@/api/requests';
 import { formatRelativeDate } from '@/lib/format';
 
+const QUOTABLE_STATUSES: string[] = ['SUBMITTED', 'MATCHING', 'QUOTED'];
+
 const URGENCY_CONFIG: Record<string, { color: string; label: string; icon: keyof typeof Ionicons.glyphMap }> = {
   LOW: { color: colors.textTertiary, label: 'Basse', icon: 'arrow-down-outline' },
   NORMAL: { color: colors.info, label: 'Normale', icon: 'remove-outline' },
@@ -34,7 +36,7 @@ const STATUS_LABELS: Record<string, { color: string; label: string }> = {
 };
 
 export default function ProfessionalRequestsScreen() {
-  const { data, isLoading, error, refetch } = useProfessionalRequests({ limit: 30 });
+  const { data, isLoading, error, refetch, isRefetching } = useProfessionalRequests({ limit: 30 });
 
   if (isLoading) {
     return (
@@ -85,7 +87,7 @@ export default function ProfessionalRequestsScreen() {
         renderItem={({ item }) => <RequestCard request={item} />}
         contentContainerStyle={styles.listContent}
         onRefresh={refetch}
-        refreshing={false}
+        refreshing={isRefetching}
       />
     </SafeAreaView>
   );
@@ -99,13 +101,13 @@ function RequestCard({ request }: { request: ServiceRequest }) {
     router.push({
       pathname: '/(professional)/create-quote',
       params: { requestId: request.id, serviceName: request.service?.name || '' },
-    } as never);
+    });
   };
 
   return (
     <Pressable
       style={styles.card}
-      onPress={() => router.push({ pathname: '/(professional)/request-detail', params: { id: request.id } } as never)}
+      onPress={() => router.push({ pathname: '/(professional)/request-detail', params: { id: request.id } })}
       accessibilityLabel={`Demande : ${request.title}`}
       accessibilityRole="button"
     >
@@ -138,15 +140,17 @@ function RequestCard({ request }: { request: ServiceRequest }) {
         )}
       </View>
 
-      <Pressable
-        style={styles.quoteBtn}
-        onPress={handleQuote}
-        accessibilityLabel="Créer un devis"
-        accessibilityRole="button"
-      >
-        <Ionicons name="create-outline" size={16} color={colors.textInverse} />
-        <Text variant="buttonSmall" color={colors.textInverse}>Créer un devis</Text>
-      </Pressable>
+      {QUOTABLE_STATUSES.includes(request.status) && (
+        <Pressable
+          style={styles.quoteBtn}
+          onPress={handleQuote}
+          accessibilityLabel="Créer un devis"
+          accessibilityRole="button"
+        >
+          <Ionicons name="create-outline" size={16} color={colors.textInverse} />
+          <Text variant="buttonSmall" color={colors.textInverse}>Créer un devis</Text>
+        </Pressable>
+      )}
     </Pressable>
   );
 }

@@ -7,6 +7,9 @@ export interface User {
   role: 'CLIENT' | 'PROFESSIONAL' | 'ADMIN';
   avatarUrl?: string;
   cityId?: string;
+  city?: { id: string; name: string };
+  country?: { id: string; name: string };
+  email?: string;
   isActive: boolean;
   createdAt: string;
 }

@@ -86,7 +86,7 @@ function ConversationRow({ conversation, currentUserId }: { conversation: Conver
   return (
     <Pressable
       style={styles.row}
-      onPress={() => router.push({ pathname: '/(professional)/conversation', params: { conversationId: conversation.id } } as never)}
+      onPress={() => router.push({ pathname: '/(professional)/conversation', params: { conversationId: conversation.id } })}
       accessibilityLabel={`Conversation avec ${name}${hasUnread ? `, ${conversation.unreadCount} messages non lus` : ''}`}
     >
       <Avatar uri={other?.avatarUrl} name={name} size={48} />

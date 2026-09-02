@@ -107,7 +107,7 @@ export default function DashboardScreen() {
             )}
           </View>
           <Pressable
-            onPress={() => router.push('/(professional)/notifications' as never)}
+            onPress={() => router.push('/(professional)/notifications')}
             accessibilityLabel="Notifications"
             accessibilityRole="button"
             style={styles.notifBtn}
@@ -129,7 +129,7 @@ export default function DashboardScreen() {
             <Text variant="body">Complétez votre profil professionnel pour recevoir des demandes.</Text>
             <Pressable
               style={styles.ctaBtn}
-              onPress={() => router.push('/(professional)/onboarding' as never)}
+              onPress={() => router.push('/(professional)/onboarding')}
               accessibilityLabel="Créer mon profil professionnel"
               accessibilityRole="button"
             >
@@ -170,7 +170,7 @@ export default function DashboardScreen() {
                   {(requestsData?.total || 0) > 0 && (
                     <Pressable
                       style={styles.actionCard}
-                      onPress={() => router.push('/(professional)/(tabs)/requests' as never)}
+                      onPress={() => router.push('/(professional)/(tabs)/requests')}
                       accessibilityLabel={`${requestsData?.total} demandes en attente`}
                       accessibilityRole="button"
                     >
@@ -187,7 +187,7 @@ export default function DashboardScreen() {
                   {unreadMessages > 0 && (
                     <Pressable
                       style={styles.actionCard}
-                      onPress={() => router.push('/(professional)/(tabs)/messages' as never)}
+                      onPress={() => router.push('/(professional)/(tabs)/messages')}
                       accessibilityLabel={`${unreadMessages} conversations avec nouveaux messages`}
                       accessibilityRole="button"
                     >
@@ -211,7 +211,7 @@ export default function DashboardScreen() {
                 <View style={styles.sectionHeader}>
                   <Text variant="h3">Opportunités récentes</Text>
                   <Pressable
-                    onPress={() => router.push('/(professional)/(tabs)/requests' as never)}
+                    onPress={() => router.push('/(professional)/(tabs)/requests')}
                     accessibilityLabel="Voir toutes les demandes"
                     accessibilityRole="button"
                   >
@@ -222,7 +222,7 @@ export default function DashboardScreen() {
                   <Pressable
                     key={req.id}
                     style={styles.requestCard}
-                    onPress={() => router.push({ pathname: '/(professional)/request-detail', params: { id: req.id } } as never)}
+                    onPress={() => router.push({ pathname: '/(professional)/request-detail', params: { id: req.id } })}
                     accessibilityLabel={`Demande : ${req.title}`}
                     accessibilityRole="button"
                   >
@@ -242,7 +242,7 @@ export default function DashboardScreen() {
                 <View style={styles.sectionHeader}>
                   <Text variant="h3">Interventions actives</Text>
                   <Pressable
-                    onPress={() => router.push('/(professional)/(tabs)/interventions' as never)}
+                    onPress={() => router.push('/(professional)/(tabs)/interventions')}
                     accessibilityLabel="Voir toutes les interventions"
                     accessibilityRole="button"
                   >
@@ -253,7 +253,7 @@ export default function DashboardScreen() {
                   <Pressable
                     key={booking.id}
                     style={styles.requestCard}
-                    onPress={() => router.push({ pathname: '/(professional)/booking-detail', params: { bookingId: booking.id } } as never)}
+                    onPress={() => router.push({ pathname: '/(professional)/booking-detail', params: { bookingId: booking.id } })}
                     accessibilityLabel={`Intervention du ${booking.scheduledDate}`}
                     accessibilityRole="button"
                   >
@@ -273,7 +273,7 @@ export default function DashboardScreen() {
               <View style={styles.snapshotRow}>
                 <Pressable
                   style={styles.snapshotCard}
-                  onPress={() => router.push('/(professional)/reviews' as never)}
+                  onPress={() => router.push('/(professional)/reviews')}
                   accessibilityLabel={`Note moyenne : ${profile.averageRating ? profile.averageRating.toFixed(1) : 'aucune'}, ${profile.totalReviews} avis`}
                   accessibilityRole="button"
                 >
@@ -284,7 +284,7 @@ export default function DashboardScreen() {
                 {wallet && (
                   <Pressable
                     style={styles.snapshotCard}
-                    onPress={() => router.push('/(professional)/revenue' as never)}
+                    onPress={() => router.push('/(professional)/revenue')}
                     accessibilityLabel={`Solde disponible : ${formatCurrency(wallet.balance)}`}
                     accessibilityRole="button"
                   >
@@ -295,7 +295,7 @@ export default function DashboardScreen() {
                 )}
                 <Pressable
                   style={styles.snapshotCard}
-                  onPress={() => router.push('/(professional)/services' as never)}
+                  onPress={() => router.push('/(professional)/services')}
                   accessibilityLabel={`${profile.services?.length || 0} services actifs`}
                   accessibilityRole="button"
                 >
@@ -312,22 +312,22 @@ export default function DashboardScreen() {
                 <NavAction
                   icon="time-outline"
                   label="Disponibilités"
-                  onPress={() => router.push('/(professional)/availability' as never)}
+                  onPress={() => router.push('/(professional)/availability')}
                 />
                 <NavAction
                   icon="document-text-outline"
                   label="Devis"
-                  onPress={() => router.push('/(professional)/(tabs)/requests' as never)}
+                  onPress={() => router.push('/(professional)/(tabs)/requests')}
                 />
                 <NavAction
                   icon="star-outline"
                   label="Avis"
-                  onPress={() => router.push('/(professional)/reviews' as never)}
+                  onPress={() => router.push('/(professional)/reviews')}
                 />
                 <NavAction
                   icon="settings-outline"
                   label="Paramètres"
-                  onPress={() => router.push('/(professional)/settings' as never)}
+                  onPress={() => router.push('/(professional)/settings')}
                 />
               </View>
             </View>

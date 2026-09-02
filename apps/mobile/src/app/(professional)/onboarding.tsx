@@ -101,7 +101,7 @@ export default function OnboardingScreen() {
       } else {
         await createProfile.mutateAsync(payload);
       }
-      router.replace('/(professional)/(tabs)/dashboard' as never);
+      router.replace('/(professional)/(tabs)/dashboard');
     } catch {
       Alert.alert(
         'Erreur',

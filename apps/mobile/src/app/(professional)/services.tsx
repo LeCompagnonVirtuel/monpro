@@ -69,7 +69,7 @@ export default function ServicesScreen() {
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
           <Pressable
             style={styles.editBtn}
-            onPress={() => router.push('/(professional)/onboarding' as never)}
+            onPress={() => router.push('/(professional)/onboarding')}
             accessibilityLabel="Configurer mes services via l'onboarding"
             accessibilityRole="button"
           >
@@ -112,7 +112,7 @@ export default function ServicesScreen() {
       <View style={styles.footer}>
         <Pressable
           style={styles.editBtn}
-          onPress={() => router.push('/(professional)/onboarding' as never)}
+          onPress={() => router.push('/(professional)/onboarding')}
           accessibilityLabel="Modifier mes services via l'onboarding"
           accessibilityRole="button"
         >

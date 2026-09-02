@@ -76,7 +76,7 @@ export default function ProfessionalNotificationsScreen() {
     }
     const link = getDeepLink(notification);
     if (link) {
-      router.push(link as never);
+      router.push(link);
     }
   };
 

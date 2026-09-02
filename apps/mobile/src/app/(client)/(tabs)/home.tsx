@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { FlatList, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -19,7 +20,7 @@ import { useLocation } from '@/hooks/use-location';
 import { useServices } from '@/hooks/use-services';
 
 export default function HomeScreen() {
-  const { data: user } = useMe();
+  const { data: user, isLoading: isLoadingUser, error: userError, refetch: refetchUser } = useMe();
   const { location } = useLocation();
   const categories = useCategories();
   const nearbyPros = useProfessionals(
@@ -38,10 +39,30 @@ export default function HomeScreen() {
   }, [categories, nearbyPros, services]);
 
   const firstName = user?.fullName?.split(' ')[0] || '';
-  const locationLabel = location ? 'Abidjan, Cocody' : undefined;
+  const locationLabel = user?.city?.name || undefined;
+
+  if (isLoadingUser) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.loadingContainer}>
+          <Skeleton width={130} height={36} />
+          <Skeleton width={200} height={24} />
+          <Skeleton width={160} height={20} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (userError) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <ErrorState message="Impossible de charger votre profil" onRetry={() => refetchUser()} />
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -55,13 +76,10 @@ export default function HomeScreen() {
           />
         }
       >
-        {/* Header with skyline background */}
         <HomeHeader firstName={firstName} locationLabel={locationLabel} />
 
-        {/* Search bar overlapping header */}
         <HomeSearchBar />
 
-        {/* Categories */}
         <View style={styles.section}>
           <SectionHeader
             title="Catégories populaires"
@@ -92,10 +110,8 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* Hero */}
         <HeroCard />
 
-        {/* Nearby professionals */}
         <View style={styles.section}>
           <SectionHeader
             title="Professionnels à proximité"
@@ -121,7 +137,6 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* Trending services */}
         <View style={styles.section}>
           <SectionHeader
             title="Services tendance"
@@ -149,7 +164,7 @@ export default function HomeScreen() {
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -157,6 +172,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.md,
   },
   scroll: {
     flex: 1,

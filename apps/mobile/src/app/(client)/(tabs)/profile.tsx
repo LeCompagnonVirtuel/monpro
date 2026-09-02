@@ -1,5 +1,6 @@
 import { Alert, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useCallback, useState } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -74,28 +75,28 @@ export default function ProfileScreen() {
 
   if (me.isLoading) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         <ProfileHeader />
         <View style={styles.loadingContent}>
           <Skeleton width={100} height={100} borderRadius={50} />
           <Skeleton width={180} height={24} />
           <Skeleton width={120} height={16} />
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (me.error) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         <ProfileHeader />
         <ErrorState message="Impossible de charger votre profil" onRetry={() => me.refetch()} />
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -112,7 +113,7 @@ export default function ProfileScreen() {
         <ProfileIdentity
           fullName={user?.fullName || ''}
           avatarUrl={user?.avatarUrl}
-          location={user?.cityId ? undefined : undefined}
+          location={user?.city?.name}
           onCameraPress={handleAvatarPress}
         />
 
@@ -144,7 +145,7 @@ export default function ProfileScreen() {
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

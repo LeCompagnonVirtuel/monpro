@@ -111,7 +111,7 @@ function BookingCard({ booking }: { booking: Booking }) {
   return (
     <Pressable
       style={styles.card}
-      onPress={() => router.push({ pathname: '/(professional)/booking-detail', params: { bookingId: booking.id } } as never)}
+      onPress={() => router.push({ pathname: '/(professional)/booking-detail', params: { bookingId: booking.id } })}
       accessibilityLabel={`Intervention ${config.label}, ${formatDate(booking.scheduledDate)}`}
       accessibilityRole="button"
     >
