@@ -27,22 +27,21 @@ export default function WelcomeScreen() {
 
   const wordOpacity = useRef(new Animated.Value(0)).current;
   const restOpacity = useRef(new Animated.Value(0)).current;
-  const wordY = useRef(new Animated.Value(20)).current;
-  const restY = useRef(new Animated.Value(16)).current;
+  const wordY = useRef(new Animated.Value(16)).current;
+  const restY = useRef(new Animated.Value(12)).current;
 
   const barWidth = useRef(new Animated.Value(0)).current;
   const subtitleOpacity = useRef(new Animated.Value(0)).current;
-  const subtitleTranslate = useRef(new Animated.Value(16)).current;
+  const subtitleTranslate = useRef(new Animated.Value(12)).current;
 
   const showTagline = useRef(true);
 
   useEffect(() => {
-    // Entry animation
     Animated.sequence([
       animateIn(),
       Animated.parallel([
         Animated.spring(barWidth, { toValue: 1, tension: 60, friction: 10, useNativeDriver: false }),
-        Animated.timing(subtitleOpacity, { toValue: 1, duration: 500, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        Animated.timing(subtitleOpacity, { toValue: 1, duration: 400, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
         Animated.spring(subtitleTranslate, { toValue: 0, tension: 60, friction: 10, useNativeDriver: true }),
       ]),
     ]).start(() => {
@@ -53,23 +52,23 @@ export default function WelcomeScreen() {
   const animateIn = () => {
     wordOpacity.setValue(0);
     restOpacity.setValue(0);
-    wordY.setValue(20);
-    restY.setValue(16);
+    wordY.setValue(16);
+    restY.setValue(12);
 
     return Animated.parallel([
-      Animated.timing(wordOpacity, { toValue: 1, duration: 350, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-      Animated.timing(restOpacity, { toValue: 1, duration: 350, delay: 80, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-      Animated.spring(wordY, { toValue: 0, tension: 70, friction: 11, useNativeDriver: true }),
-      Animated.spring(restY, { toValue: 0, tension: 70, friction: 11, useNativeDriver: true }),
+      Animated.timing(wordOpacity, { toValue: 1, duration: 320, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(restOpacity, { toValue: 1, duration: 320, delay: 60, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.spring(wordY, { toValue: 0, tension: 80, friction: 12, useNativeDriver: true }),
+      Animated.spring(restY, { toValue: 0, tension: 80, friction: 12, useNativeDriver: true }),
     ]);
   };
 
   const animateOut = () => {
     return Animated.parallel([
-      Animated.timing(wordOpacity, { toValue: 0, duration: 280, easing: Easing.in(Easing.cubic), useNativeDriver: true }),
-      Animated.timing(restOpacity, { toValue: 0, duration: 280, easing: Easing.in(Easing.cubic), useNativeDriver: true }),
-      Animated.timing(wordY, { toValue: -16, duration: 280, easing: Easing.in(Easing.cubic), useNativeDriver: true }),
-      Animated.timing(restY, { toValue: -8, duration: 280, easing: Easing.in(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(wordOpacity, { toValue: 0, duration: 240, easing: Easing.in(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(restOpacity, { toValue: 0, duration: 240, easing: Easing.in(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(wordY, { toValue: -12, duration: 240, easing: Easing.in(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(restY, { toValue: -6, duration: 240, easing: Easing.in(Easing.cubic), useNativeDriver: true }),
     ]);
   };
 
@@ -106,8 +105,8 @@ export default function WelcomeScreen() {
           style={[
             styles.content,
             {
-              paddingTop: insets.top + spacing.xxxl,
-              paddingBottom: insets.bottom + spacing.xxl,
+              paddingTop: insets.top + spacing.xxl,
+              paddingBottom: insets.bottom + spacing.lg,
             },
           ]}
         >
@@ -154,7 +153,7 @@ export default function WelcomeScreen() {
                 {
                   width: barWidth.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [0, 48],
+                    outputRange: [0, 40],
                   }),
                 },
               ]}
@@ -191,7 +190,7 @@ export default function WelcomeScreen() {
               accessibilityLabel="Continuer avec un téléphone"
               accessibilityRole="button"
             >
-              <Ionicons name="call" size={20} color={colors.primary} />
+              <Ionicons name="call" size={18} color={colors.primary} />
               <Text variant="button" color={colors.primary}>Avec téléphone</Text>
             </Pressable>
 
@@ -201,7 +200,7 @@ export default function WelcomeScreen() {
               accessibilityLabel="Continuer avec un email"
               accessibilityRole="button"
             >
-              <Ionicons name="mail" size={20} color={colors.primary} />
+              <Ionicons name="mail" size={18} color={colors.primary} />
               <Text variant="button" color={colors.primary}>Avec email</Text>
             </Pressable>
 
@@ -222,17 +221,17 @@ export default function WelcomeScreen() {
           {/* Trust */}
           <View style={styles.trust}>
             <View style={styles.trustItem}>
-              <Ionicons name="shield-checkmark" size={14} color={colors.secondary} />
+              <Ionicons name="shield-checkmark" size={12} color={colors.secondary} />
               <Text variant="caption" color={colors.textInverseMuted}>Sécurisé</Text>
             </View>
             <View style={styles.trustDot} />
             <View style={styles.trustItem}>
-              <Ionicons name="ribbon" size={14} color={colors.secondary} />
+              <Ionicons name="ribbon" size={12} color={colors.secondary} />
               <Text variant="caption" color={colors.textInverseMuted}>Certifié</Text>
             </View>
             <View style={styles.trustDot} />
             <View style={styles.trustItem}>
-              <Ionicons name="headset" size={14} color={colors.secondary} />
+              <Ionicons name="headset" size={12} color={colors.secondary} />
               <Text variant="caption" color={colors.textInverseMuted}>Support 24/7</Text>
             </View>
           </View>
@@ -250,39 +249,39 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(7, 31, 73, 0.78)',
   },
   content: { flex: 1, paddingHorizontal: spacing.xxl },
-  logo: { width: 64, height: 64 },
+  logo: { width: 52, height: 52 },
   grow: { flex: 1 },
 
-  hero: { gap: spacing.lg, marginBottom: spacing.xxxxl },
-  taglineContainer: { minHeight: 100 },
+  hero: { gap: spacing.md, marginBottom: spacing.xl },
+  taglineContainer: {},
   heroWord: {
-    fontSize: 36,
+    fontSize: 34,
     fontWeight: '800',
     color: colors.textInverse,
     letterSpacing: -0.5,
-    lineHeight: 44,
+    lineHeight: 42,
   },
   heroRest: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: '700',
     color: colors.textInverseSoft,
     letterSpacing: -0.3,
-    lineHeight: 42,
+    lineHeight: 38,
   },
   goldBar: { height: 3, backgroundColor: colors.secondary, borderRadius: 1.5 },
-  subtitle: { fontSize: 15, lineHeight: 22, color: colors.textInverseSoft },
-  dots: { flexDirection: 'row', gap: 6, marginTop: spacing.xs },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.3)' },
-  dotActive: { width: 20, backgroundColor: colors.secondary },
+  subtitle: { fontSize: 14, lineHeight: 20, color: colors.textInverseSoft },
+  dots: { flexDirection: 'row', gap: 5, marginTop: spacing.xs },
+  dot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: 'rgba(255,255,255,0.3)' },
+  dotActive: { width: 18, backgroundColor: colors.secondary },
 
-  ctas: { gap: spacing.xl, marginBottom: spacing.xxxl },
+  ctas: { gap: spacing.md, marginBottom: spacing.lg },
   primaryCta: {
-    flexDirection: 'row', height: 56, backgroundColor: colors.secondary,
+    flexDirection: 'row', height: 52, backgroundColor: colors.secondary,
     borderRadius: radius.xl, alignItems: 'center', justifyContent: 'center',
     gap: spacing.sm, ...shadows.md,
   },
   secondaryCtaBtn: {
-    flexDirection: 'row', height: 56, backgroundColor: 'rgba(255,255,255,0.15)',
+    flexDirection: 'row', height: 52, backgroundColor: 'rgba(255,255,255,0.15)',
     borderRadius: radius.xl, alignItems: 'center', justifyContent: 'center',
     gap: spacing.sm, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
   },
