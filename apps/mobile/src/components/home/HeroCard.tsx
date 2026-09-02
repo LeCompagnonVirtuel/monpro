@@ -11,6 +11,16 @@ export function HeroCard() {
   return (
     <View style={styles.container}>
       <View style={styles.card}>
+        <View style={styles.imageWrap}>
+          <Image
+            source={require('../../../assets/images/hero-technicians.png')}
+            style={styles.image}
+            resizeMode="cover"
+            accessibilityLabel="Techniciens MONPRO"
+          />
+          <View style={styles.imageOverlay} />
+        </View>
+
         <View style={styles.content}>
           <View style={styles.tag}>
             <Ionicons name="flash" size={10} color={colors.primary} />
@@ -34,13 +44,6 @@ export function HeroCard() {
             <Ionicons name="arrow-forward" size={14} color={colors.primary} />
           </Pressable>
         </View>
-
-        <Image
-          source={require('../../../assets/images/hero-technicians.png')}
-          style={styles.image}
-          resizeMode="contain"
-          accessibilityLabel="Techniciens MONPRO"
-        />
       </View>
     </View>
   );
@@ -54,22 +57,33 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.primary,
     borderRadius: radius.xxl,
-    flexDirection: 'row',
     overflow: 'hidden',
-    minHeight: 170,
+    height: 200,
     ...shadows.lg,
+  },
+  imageWrap: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  imageOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(7, 31, 73, 0.55)',
   },
   content: {
     flex: 1,
     padding: spacing.xl,
     justifyContent: 'center',
     gap: spacing.xs,
+    zIndex: 1,
   },
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xxs,
-    backgroundColor: 'rgba(255,184,0,0.2)',
+    backgroundColor: 'rgba(255,184,0,0.25)',
     alignSelf: 'flex-start',
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xxs + 1,
@@ -85,7 +99,7 @@ const styles = StyleSheet.create({
     lineHeight: 28,
   },
   subtitle: {
-    opacity: 0.75,
+    opacity: 0.85,
   },
   cta: {
     flexDirection: 'row',
@@ -97,12 +111,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: radius.full,
     marginTop: spacing.xs,
-  },
-  image: {
-    width: 140,
-    height: 180,
-    marginTop: -10,
-    marginRight: -5,
-    marginBottom: -10,
+    ...shadows.sm,
   },
 });
