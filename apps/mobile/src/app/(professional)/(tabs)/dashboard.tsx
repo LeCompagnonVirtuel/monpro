@@ -53,7 +53,9 @@ export default function DashboardScreen() {
     updateProfile.mutate({ id: profile.id, isAvailable: !profile.isAvailable });
   }, [profile, updateProfile]);
 
-  if (profileLoading) {
+  const isProfileNotFound = profileError && (profileError as any)?.response?.status === 404;
+
+  if (profileLoading && !isProfileNotFound) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.content}>
@@ -79,7 +81,7 @@ export default function DashboardScreen() {
     );
   }
 
-  if (profileError || userError) {
+  if ((profileError && !isProfileNotFound) || userError) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <ErrorState

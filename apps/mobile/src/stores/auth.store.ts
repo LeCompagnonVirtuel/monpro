@@ -25,6 +25,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: async (userId, role, accessToken, refreshToken) => {
     await tokenStorage.setTokens(accessToken, refreshToken);
+    queryClient.clear();
     set({ userId, role, isAuthenticated: true, isLoading: false });
   },
 

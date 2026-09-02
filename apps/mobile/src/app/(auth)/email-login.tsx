@@ -64,6 +64,8 @@ export default function EmailLoginScreen() {
         result.refreshToken,
       );
 
+      await new Promise((r) => setTimeout(r, 50));
+
       if (result.user.role === 'PROFESSIONAL') {
         router.replace('/(professional)/(tabs)/dashboard');
       } else {
