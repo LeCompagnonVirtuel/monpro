@@ -1,4 +1,4 @@
-import { Image, ImageBackground, Pressable, StyleSheet, View } from 'react-native';
+import { Image, ImageBackground, Pressable, StyleSheet, View, Animated, Easing } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,9 +7,51 @@ import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
 import { Text } from '@/components/ui';
+import { useEffect, useRef } from 'react';
+
+const WORDS = ['Trouvez', 'le', 'bon', 'professionnel,', 'en', 'un', 'instant.'];
 
 export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
+
+  const wordAnims = useRef(WORDS.map(() => ({
+    opacity: new Animated.Value(0),
+    translateY: new Animated.Value(24),
+  }))).current;
+
+  const barWidth = useRef(new Animated.Value(0)).current;
+  const subtitleOpacity = useRef(new Animated.Value(0)).current;
+  const subtitleTranslate = useRef(new Animated.Value(16)).current;
+
+  useEffect(() => {
+    const wordAnimations = wordAnims.map((anim, i) =>
+      Animated.parallel([
+        Animated.timing(anim.opacity, {
+          toValue: 1,
+          duration: 400,
+          delay: i * 90,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.spring(anim.translateY, {
+          toValue: 0,
+          delay: i * 90,
+          tension: 80,
+          friction: 12,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    Animated.sequence([
+      Animated.stagger(0, wordAnimations),
+      Animated.parallel([
+        Animated.spring(barWidth, { toValue: 1, tension: 60, friction: 10, useNativeDriver: false }),
+        Animated.timing(subtitleOpacity, { toValue: 1, duration: 500, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        Animated.spring(subtitleTranslate, { toValue: 0, tension: 60, friction: 10, useNativeDriver: true }),
+      ]),
+    ]).start();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -39,19 +81,48 @@ export default function WelcomeScreen() {
 
           <View style={styles.grow} />
 
-          {/* Value proposition */}
+          {/* Animated Value Proposition */}
           <View style={styles.hero}>
-            <Text
-              variant="display"
-              color={colors.textInverse}
-              style={styles.heroTitle}
+            <View style={styles.titleContainer}>
+              {WORDS.map((word, i) => (
+                <Animated.Text
+                  key={i}
+                  style={[
+                    styles.heroWord,
+                    {
+                      opacity: wordAnims[i].opacity,
+                      transform: [{ translateY: wordAnims[i].translateY }],
+                    },
+                  ]}
+                >
+                  {word}{' '}
+                </Animated.Text>
+              ))}
+            </View>
+
+            <Animated.View
+              style={[
+                styles.goldBar,
+                {
+                  width: barWidth.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, 48],
+                  }),
+                },
+              ]}
+            />
+
+            <Animated.Text
+              style={[
+                styles.subtitle,
+                {
+                  opacity: subtitleOpacity,
+                  transform: [{ translateY: subtitleTranslate }],
+                },
+              ]}
             >
-              Trouvez le bon{'\n'}professionnel,{'\n'}en un instant.
-            </Text>
-            <View style={styles.goldBar} />
-            <Text variant="body" color={colors.textInverseSoft}>
               {"Des milliers de professionnels vérifiés à votre service en Côte d'Ivoire."}
-            </Text>
+            </Animated.Text>
           </View>
 
           {/* CTAs */}
@@ -93,17 +164,9 @@ export default function WelcomeScreen() {
               accessibilityRole="button"
               hitSlop={8}
             >
-              <Text
-                variant="bodySmall"
-                color={colors.textInverseMuted}
-                align="center"
-              >
+              <Text variant="bodySmall" color={colors.textInverseMuted} align="center">
                 {"J'ai déjà un compte ? "}
-                <Text
-                  variant="bodySmall"
-                  color={colors.textInverse}
-                  style={styles.loginLink}
-                >
+                <Text variant="bodySmall" color={colors.textInverse} style={styles.loginLink}>
                   Se connecter
                 </Text>
               </Text>
@@ -113,28 +176,18 @@ export default function WelcomeScreen() {
           {/* Trust */}
           <View style={styles.trust}>
             <View style={styles.trustItem}>
-              <Ionicons
-                name="shield-checkmark"
-                size={14}
-                color={colors.secondary}
-              />
-              <Text variant="caption" color={colors.textInverseMuted}>
-                Sécurisé
-              </Text>
+              <Ionicons name="shield-checkmark" size={14} color={colors.secondary} />
+              <Text variant="caption" color={colors.textInverseMuted}>Sécurisé</Text>
             </View>
             <View style={styles.trustDot} />
             <View style={styles.trustItem}>
               <Ionicons name="ribbon" size={14} color={colors.secondary} />
-              <Text variant="caption" color={colors.textInverseMuted}>
-                Certifié
-              </Text>
+              <Text variant="caption" color={colors.textInverseMuted}>Certifié</Text>
             </View>
             <View style={styles.trustDot} />
             <View style={styles.trustItem}>
               <Ionicons name="headset" size={14} color={colors.secondary} />
-              <Text variant="caption" color={colors.textInverseMuted}>
-                Support 24/7
-              </Text>
+              <Text variant="caption" color={colors.textInverseMuted}>Support 24/7</Text>
             </View>
           </View>
         </View>
@@ -158,12 +211,26 @@ const styles = StyleSheet.create({
   grow: { flex: 1 },
 
   hero: { gap: spacing.lg, marginBottom: spacing.xxxxl },
-  heroTitle: { fontWeight: '800', letterSpacing: -0.5 },
+  titleContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  heroWord: {
+    fontSize: 36,
+    fontWeight: '800',
+    color: colors.textInverse,
+    letterSpacing: -0.5,
+    lineHeight: 44,
+  },
   goldBar: {
-    width: 40,
     height: 3,
     backgroundColor: colors.secondary,
     borderRadius: 1.5,
+  },
+  subtitle: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: colors.textInverseSoft,
   },
 
   ctas: { gap: spacing.xl, marginBottom: spacing.xxxl },
