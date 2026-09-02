@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
+import { shadows } from '@/theme/shadows';
 import { Text, Avatar } from '@/components/ui';
 import { Professional } from '@/api/professionals';
 
@@ -15,7 +16,6 @@ export function ProfessionalHomeCard({ professional }: ProfessionalHomeCardProps
   const name = professional.user?.fullName || professional.businessName || 'Professionnel';
   const shortName = name.split(' ').map((w, i) => i === 0 ? w : `${w[0]}.`).join(' ');
   const profession = professional.services?.[0]?.name || 'Professionnel';
-  const city = professional.businessName || '';
 
   return (
     <Pressable
@@ -24,11 +24,14 @@ export function ProfessionalHomeCard({ professional }: ProfessionalHomeCardProps
       accessibilityLabel={`${name}, ${profession}`}
       accessibilityRole="button"
     >
-      <Avatar
-        uri={professional.user?.avatarUrl}
-        name={name}
-        size={64}
-      />
+      <View style={styles.avatarWrap}>
+        <Avatar
+          uri={professional.user?.avatarUrl}
+          name={name}
+          size={56}
+        />
+        {professional.isAvailable && <View style={styles.onlineDot} />}
+      </View>
 
       <View style={styles.info}>
         <View style={styles.nameRow}>
@@ -36,7 +39,7 @@ export function ProfessionalHomeCard({ professional }: ProfessionalHomeCardProps
             {shortName}
           </Text>
           {professional.isVerified && (
-            <Ionicons name="checkmark-circle" size={14} color={colors.info} />
+            <Ionicons name="checkmark-circle" size={13} color={colors.info} />
           )}
         </View>
 
@@ -46,7 +49,7 @@ export function ProfessionalHomeCard({ professional }: ProfessionalHomeCardProps
 
         {professional.averageRating != null && (
           <View style={styles.ratingRow}>
-            <Ionicons name="star" size={12} color={colors.secondary} />
+            <Ionicons name="star" size={11} color={colors.secondary} />
             <Text variant="caption" style={styles.ratingText}>
               {professional.averageRating.toFixed(1)}
             </Text>
@@ -57,22 +60,6 @@ export function ProfessionalHomeCard({ professional }: ProfessionalHomeCardProps
             )}
           </View>
         )}
-
-        {city ? (
-          <View style={styles.locationRow}>
-            <Ionicons name="location-outline" size={12} color={colors.textTertiary} />
-            <Text variant="caption" color={colors.textSecondary} numberOfLines={1}>
-              {city}
-            </Text>
-          </View>
-        ) : null}
-
-        <View style={styles.availableRow}>
-          <View style={[styles.greenDot, !professional.isAvailable && styles.dotOffline]} />
-          <Text variant="caption" color={professional.isAvailable ? colors.success : colors.textTertiary}>
-            {professional.isAvailable ? 'Disponible' : 'Hors ligne'}
-          </Text>
-        </View>
       </View>
     </Pressable>
   );
@@ -83,11 +70,26 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
     padding: spacing.md,
-    width: 160,
+    width: 150,
     alignItems: 'center',
     gap: spacing.sm,
     borderWidth: 1,
     borderColor: colors.borderLight,
+    ...shadows.sm,
+  },
+  avatarWrap: {
+    position: 'relative',
+  },
+  onlineDot: {
+    position: 'absolute',
+    bottom: 1,
+    right: 1,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: colors.success,
+    borderWidth: 2,
+    borderColor: colors.surface,
   },
   info: {
     alignItems: 'center',
@@ -99,31 +101,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xxs,
   },
-  name: {},
+  name: {
+    fontWeight: '600',
+  },
   ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xxs,
-  },
-  ratingText: {},
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xxs,
-  },
-  availableRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
     marginTop: spacing.xxs,
   },
-  greenDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.success,
-  },
-  dotOffline: {
-    backgroundColor: colors.textTertiary,
+  ratingText: {
+    fontWeight: '600',
+    fontSize: 12,
   },
 });

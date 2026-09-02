@@ -61,20 +61,21 @@ export default function DashboardScreen() {
         <View style={styles.content}>
           <View style={styles.skeletonHeader}>
             <View style={styles.skeletonHeaderLeft}>
-              <Skeleton width="60%" height={28} />
-              <Skeleton width="30%" height={20} />
+              <Skeleton width="55%" height={26} />
+              <Skeleton width="25%" height={16} />
             </View>
             <Skeleton width={40} height={40} style={styles.skeletonNotif} />
           </View>
-          <Skeleton width="100%" height={56} style={styles.skeletonCard} />
-          <View style={styles.skeletonSection}>
-            <Skeleton width="50%" height={22} />
-            <Skeleton width="100%" height={80} style={styles.skeletonCard} />
-            <Skeleton width="100%" height={80} style={styles.skeletonCard} />
+          <View style={styles.skeletonStats}>
+            <Skeleton width="31%" height={80} borderRadius={12} />
+            <Skeleton width="31%" height={80} borderRadius={12} />
+            <Skeleton width="31%" height={80} borderRadius={12} />
           </View>
+          <Skeleton width="100%" height={52} borderRadius={12} />
           <View style={styles.skeletonSection}>
-            <Skeleton width="50%" height={22} />
-            <Skeleton width="100%" height={56} style={styles.skeletonCard} />
+            <Skeleton width="40%" height={18} />
+            <Skeleton width="100%" height={72} borderRadius={12} />
+            <Skeleton width="100%" height={72} borderRadius={12} />
           </View>
         </View>
       </SafeAreaView>
@@ -99,14 +100,14 @@ export default function DashboardScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
       >
+        {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text variant="h2">Bonjour, {firstName}</Text>
-            {profile && (
-              <VerificationBadge status={profile.verificationStatus} />
-            )}
+            <Text variant="bodySmall" color={colors.textSecondary}>Tableau de bord</Text>
+            <Text variant="h1" style={styles.greeting}>Bonjour, {firstName}</Text>
           </View>
           <Pressable
             onPress={() => router.push('/(professional)/notifications')}
@@ -114,35 +115,98 @@ export default function DashboardScreen() {
             accessibilityRole="button"
             style={styles.notifBtn}
           >
-            <Ionicons name="notifications-outline" size={24} color={colors.text} />
-            {unreadCount ? (
-              <View style={styles.notifBadge}>
-                <Text variant="bodySmall" color={colors.textInverse} style={styles.notifBadgeText}>
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </Text>
-              </View>
-            ) : null}
+            <View style={styles.notifCircle}>
+              <Ionicons name="notifications-outline" size={20} color={colors.text} />
+              {unreadCount ? (
+                <View style={styles.notifBadge}>
+                  <Text variant="caption" color={colors.textInverse} style={styles.notifBadgeText}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
           </Pressable>
         </View>
 
+        {/* Verification badge */}
+        {profile && (
+          <VerificationBadge status={profile.verificationStatus} />
+        )}
+
+        {/* Onboarding card */}
         {!profile && (
           <Card style={styles.onboardingCard}>
-            <Ionicons name="person-add-outline" size={32} color={colors.primary} />
-            <Text variant="body">Complétez votre profil professionnel pour recevoir des demandes.</Text>
+            <View style={styles.onboardingIcon}>
+              <Ionicons name="person-add-outline" size={28} color={colors.primary} />
+            </View>
+            <View style={styles.onboardingText}>
+              <Text variant="bodyMedium">Complétez votre profil</Text>
+              <Text variant="caption" color={colors.textSecondary}>
+                Recevez des demandes et développez votre activité.
+              </Text>
+            </View>
             <Pressable
               style={styles.ctaBtn}
               onPress={() => router.push('/(professional)/onboarding')}
               accessibilityLabel="Créer mon profil professionnel"
               accessibilityRole="button"
             >
-              <Text variant="button" color={colors.textInverse}>Créer mon profil</Text>
+              <Text variant="buttonSmall" color={colors.textInverse}>Créer</Text>
             </Pressable>
           </Card>
         )}
 
         {profile && (
           <>
-            {/* Availability Status */}
+            {/* Stats row */}
+            <View style={styles.statsRow}>
+              <Pressable
+                style={styles.statCard}
+                onPress={() => router.push('/(professional)/reviews')}
+                accessibilityLabel={`Note : ${profile.averageRating ? profile.averageRating.toFixed(1) : 'aucune'}`}
+                accessibilityRole="button"
+              >
+                <View style={[styles.statIcon, { backgroundColor: colors.warningLight }]}>
+                  <Ionicons name="star" size={16} color={colors.warning} />
+                </View>
+                <Text variant="h3" style={styles.statValue}>
+                  {profile.averageRating ? profile.averageRating.toFixed(1) : '-'}
+                </Text>
+                <Text variant="caption" color={colors.textSecondary}>{profile.totalReviews || 0} avis</Text>
+              </Pressable>
+
+              {wallet && (
+                <Pressable
+                  style={styles.statCard}
+                  onPress={() => router.push('/(professional)/revenue')}
+                  accessibilityLabel={`Solde : ${formatCurrency(wallet.balance)}`}
+                  accessibilityRole="button"
+                >
+                  <View style={[styles.statIcon, { backgroundColor: colors.infoLight }]}>
+                    <Ionicons name="wallet-outline" size={16} color={colors.info} />
+                  </View>
+                  <Text variant="h3" color={colors.primary} style={styles.statValue}>
+                    {formatCurrency(wallet.balance)}
+                  </Text>
+                  <Text variant="caption" color={colors.textSecondary}>Solde</Text>
+                </Pressable>
+              )}
+
+              <Pressable
+                style={styles.statCard}
+                onPress={() => router.push('/(professional)/services')}
+                accessibilityLabel={`${profile.services?.length || 0} services`}
+                accessibilityRole="button"
+              >
+                <View style={[styles.statIcon, { backgroundColor: colors.successLight }]}>
+                  <Ionicons name="briefcase-outline" size={16} color={colors.success} />
+                </View>
+                <Text variant="h3" style={styles.statValue}>{profile.services?.length || 0}</Text>
+                <Text variant="caption" color={colors.textSecondary}>Services</Text>
+              </Pressable>
+            </View>
+
+            {/* Availability */}
             <View style={styles.availabilityCard}>
               <View style={styles.availabilityInfo}>
                 <View style={[styles.availabilityDot, { backgroundColor: profile.isAvailable ? colors.success : colors.textTertiary }]} />
@@ -156,68 +220,60 @@ export default function DashboardScreen() {
               <Switch
                 value={profile.isAvailable}
                 onValueChange={handleToggleAvailability}
-                trackColor={{ false: colors.borderLight, true: colors.primary + '60' }}
-                thumbColor={profile.isAvailable ? colors.primary : colors.textTertiary}
+                trackColor={{ false: colors.borderLight, true: colors.success + '40' }}
+                thumbColor={profile.isAvailable ? colors.success : colors.textTertiary}
                 disabled={updateProfile.isPending}
                 accessibilityLabel={`Disponibilité : ${profile.isAvailable ? 'activée' : 'désactivée'}`}
                 accessibilityRole="switch"
               />
             </View>
 
-            {/* À faire maintenant */}
-            {(requestsData?.total || 0) + unreadMessages > 0 && (
-              <View style={styles.section}>
-                <Text variant="h3">À faire maintenant</Text>
-                <View style={styles.actionCards}>
-                  {(requestsData?.total || 0) > 0 && (
-                    <Pressable
-                      style={styles.actionCard}
-                      onPress={() => router.push('/(professional)/(tabs)/requests')}
-                      accessibilityLabel={`${requestsData?.total} demandes en attente`}
-                      accessibilityRole="button"
-                    >
-                      <View style={[styles.actionIcon, { backgroundColor: colors.warningLight }]}>
-                        <Ionicons name="document-text-outline" size={20} color={colors.warning} />
-                      </View>
-                      <View style={styles.actionInfo}>
-                        <Text variant="bodyMedium">Demandes en attente</Text>
-                        <Text variant="caption" color={colors.textSecondary}>{requestsData?.total} demande{(requestsData?.total || 0) > 1 ? 's' : ''}</Text>
-                      </View>
-                      <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
-                    </Pressable>
-                  )}
-                  {unreadMessages > 0 && (
-                    <Pressable
-                      style={styles.actionCard}
-                      onPress={() => router.push('/(professional)/(tabs)/messages')}
-                      accessibilityLabel={`${unreadMessages} conversations avec nouveaux messages`}
-                      accessibilityRole="button"
-                    >
-                      <View style={[styles.actionIcon, { backgroundColor: colors.infoLight }]}>
-                        <Ionicons name="chatbubble-outline" size={20} color={colors.info} />
-                      </View>
-                      <View style={styles.actionInfo}>
-                        <Text variant="bodyMedium">Messages non lus</Text>
-                        <Text variant="caption" color={colors.textSecondary}>{unreadMessages} conversation{unreadMessages > 1 ? 's' : ''}</Text>
-                      </View>
-                      <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
-                    </Pressable>
-                  )}
-                </View>
+            {/* Quick actions */}
+            <View style={styles.section}>
+              <Text variant="h3" style={styles.sectionTitle}>Accès rapides</Text>
+              <View style={styles.quickGrid}>
+                <QuickAction
+                  icon="time-outline"
+                  label="Horaires"
+                  color={colors.info}
+                  onPress={() => router.push('/(professional)/availability')}
+                />
+                <QuickAction
+                  icon="document-text-outline"
+                  label="Devis"
+                  color={colors.warning}
+                  badge={(requestsData?.total || 0) > 0 ? requestsData?.total : undefined}
+                  onPress={() => router.push('/(professional)/(tabs)/requests')}
+                />
+                <QuickAction
+                  icon="chatbubble-outline"
+                  label="Messages"
+                  color={colors.primary}
+                  badge={unreadMessages > 0 ? unreadMessages : undefined}
+                  onPress={() => router.push('/(professional)/(tabs)/messages')}
+                />
+                <QuickAction
+                  icon="star-outline"
+                  label="Avis"
+                  color={colors.secondary}
+                  onPress={() => router.push('/(professional)/reviews')}
+                />
               </View>
-            )}
+            </View>
 
-            {/* Recent Requests */}
+            {/* Recent requests */}
             {requestsData && requestsData.requests.length > 0 && (
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <Text variant="h3">Opportunités récentes</Text>
+                  <Text variant="h3" style={styles.sectionTitle}>Demandes récentes</Text>
                   <Pressable
                     onPress={() => router.push('/(professional)/(tabs)/requests')}
                     accessibilityLabel="Voir toutes les demandes"
                     accessibilityRole="button"
+                    style={styles.seeAllBtn}
                   >
-                    <Text variant="bodySmall" color={colors.primary}>Voir tout</Text>
+                    <Text variant="bodySmall" color={colors.primary} style={styles.seeAllText}>Tout voir</Text>
+                    <Ionicons name="arrow-forward" size={14} color={colors.primary} />
                   </Pressable>
                 </View>
                 {requestsData.requests.slice(0, 3).map((req) => (
@@ -229,7 +285,7 @@ export default function DashboardScreen() {
                     accessibilityRole="button"
                   >
                     <View style={styles.requestInfo}>
-                      <Text variant="body" numberOfLines={1}>{req.title}</Text>
+                      <Text variant="bodyMedium" numberOfLines={1}>{req.title}</Text>
                       <Text variant="caption" color={colors.textSecondary}>{req.service?.name}</Text>
                     </View>
                     <UrgencyBadge urgency={req.urgency} />
@@ -238,17 +294,19 @@ export default function DashboardScreen() {
               </View>
             )}
 
-            {/* Active Work */}
+            {/* Active interventions */}
             {bookingsData && bookingsData.bookings.length > 0 && (
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <Text variant="h3">Interventions actives</Text>
+                  <Text variant="h3" style={styles.sectionTitle}>Interventions</Text>
                   <Pressable
                     onPress={() => router.push('/(professional)/(tabs)/interventions')}
                     accessibilityLabel="Voir toutes les interventions"
                     accessibilityRole="button"
+                    style={styles.seeAllBtn}
                   >
-                    <Text variant="bodySmall" color={colors.primary}>Voir tout</Text>
+                    <Text variant="bodySmall" color={colors.primary} style={styles.seeAllText}>Tout voir</Text>
+                    <Ionicons name="arrow-forward" size={14} color={colors.primary} />
                   </Pressable>
                 </View>
                 {bookingsData.bookings.slice(0, 2).map((booking) => (
@@ -260,7 +318,9 @@ export default function DashboardScreen() {
                     accessibilityRole="button"
                   >
                     <View style={styles.requestInfo}>
-                      <Text variant="body">{booking.quote?.totalAmount ? formatCurrency(booking.quote.totalAmount) : 'Intervention'}</Text>
+                      <Text variant="bodyMedium">
+                        {booking.quote?.totalAmount ? formatCurrency(booking.quote.totalAmount) : 'Intervention'}
+                      </Text>
                       <Text variant="caption" color={colors.textSecondary}>{booking.scheduledDate}</Text>
                     </View>
                     <BookingStatusBadge status={booking.status} />
@@ -269,70 +329,17 @@ export default function DashboardScreen() {
               </View>
             )}
 
-            {/* Business Snapshot */}
-            <View style={styles.section}>
-              <Text variant="h3">Activité</Text>
-              <View style={styles.snapshotRow}>
-                <Pressable
-                  style={styles.snapshotCard}
-                  onPress={() => router.push('/(professional)/reviews')}
-                  accessibilityLabel={`Note moyenne : ${profile.averageRating ? profile.averageRating.toFixed(1) : 'aucune'}, ${profile.totalReviews} avis`}
-                  accessibilityRole="button"
-                >
-                  <Ionicons name="star" size={18} color={colors.warning} />
-                  <Text variant="h3">{profile.averageRating ? profile.averageRating.toFixed(1) : '-'}</Text>
-                  <Text variant="caption" color={colors.textSecondary}>{profile.totalReviews || 0} avis</Text>
-                </Pressable>
-                {wallet && (
-                  <Pressable
-                    style={styles.snapshotCard}
-                    onPress={() => router.push('/(professional)/revenue')}
-                    accessibilityLabel={`Solde disponible : ${formatCurrency(wallet.balance)}`}
-                    accessibilityRole="button"
-                  >
-                    <Ionicons name="wallet-outline" size={18} color={colors.primary} />
-                    <Text variant="h3" color={colors.primary}>{formatCurrency(wallet.balance)}</Text>
-                    <Text variant="caption" color={colors.textSecondary}>Solde</Text>
-                  </Pressable>
-                )}
-                <Pressable
-                  style={styles.snapshotCard}
-                  onPress={() => router.push('/(professional)/services')}
-                  accessibilityLabel={`${profile.services?.length || 0} services actifs`}
-                  accessibilityRole="button"
-                >
-                  <Ionicons name="briefcase-outline" size={18} color={colors.primary} />
-                  <Text variant="h3">{profile.services?.length || 0}</Text>
-                  <Text variant="caption" color={colors.textSecondary}>Services</Text>
-                </Pressable>
-              </View>
-            </View>
-
-            {/* Quick Navigation */}
-            <View style={styles.section}>
-              <View style={styles.navGrid}>
-                <NavAction
-                  icon="time-outline"
-                  label="Disponibilités"
-                  onPress={() => router.push('/(professional)/availability')}
-                />
-                <NavAction
-                  icon="document-text-outline"
-                  label="Devis"
-                  onPress={() => router.push('/(professional)/(tabs)/requests')}
-                />
-                <NavAction
-                  icon="star-outline"
-                  label="Avis"
-                  onPress={() => router.push('/(professional)/reviews')}
-                />
-                <NavAction
-                  icon="settings-outline"
-                  label="Paramètres"
-                  onPress={() => router.push('/(professional)/settings')}
-                />
-              </View>
-            </View>
+            {/* Settings link */}
+            <Pressable
+              style={styles.settingsLink}
+              onPress={() => router.push('/(professional)/settings')}
+              accessibilityLabel="Paramètres"
+              accessibilityRole="button"
+            >
+              <Ionicons name="settings-outline" size={18} color={colors.textSecondary} />
+              <Text variant="bodySmall" color={colors.textSecondary}>Paramètres</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+            </Pressable>
           </>
         )}
       </ScrollView>
@@ -340,16 +347,29 @@ export default function DashboardScreen() {
   );
 }
 
-function NavAction({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }) {
+function QuickAction({ icon, label, color, badge, onPress }: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  color: string;
+  badge?: number;
+  onPress: () => void;
+}) {
   return (
     <Pressable
-      style={styles.navAction}
+      style={styles.quickAction}
       onPress={onPress}
       accessibilityLabel={label}
       accessibilityRole="button"
     >
-      <View style={styles.navActionIcon}>
-        <Ionicons name={icon} size={20} color={colors.primary} />
+      <View style={[styles.quickActionIcon, { backgroundColor: color + '15' }]}>
+        <Ionicons name={icon} size={20} color={color} />
+        {badge ? (
+          <View style={styles.quickBadge}>
+            <Text variant="caption" color={colors.textInverse} style={styles.quickBadgeText}>
+              {badge > 9 ? '9+' : badge}
+            </Text>
+          </View>
+        ) : null}
       </View>
       <Text variant="caption" color={colors.textSecondary} numberOfLines={1}>{label}</Text>
     </Pressable>
@@ -357,18 +377,18 @@ function NavAction({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyph
 }
 
 function VerificationBadge({ status }: { status: string }) {
-  const config: Record<string, { color: string; label: string }> = {
-    VERIFIED: { color: colors.success, label: 'Vérifié' },
-    PENDING: { color: colors.warning, label: 'En vérification' },
-    REJECTED: { color: colors.error, label: 'Refusé' },
-    SUSPENDED: { color: colors.error, label: 'Suspendu' },
+  const config: Record<string, { color: string; label: string; icon: keyof typeof Ionicons.glyphMap }> = {
+    VERIFIED: { color: colors.success, label: 'Profil vérifié', icon: 'checkmark-circle' },
+    PENDING: { color: colors.warning, label: 'En vérification', icon: 'time-outline' },
+    REJECTED: { color: colors.error, label: 'Profil refusé', icon: 'close-circle' },
+    SUSPENDED: { color: colors.error, label: 'Profil suspendu', icon: 'pause-circle' },
   };
   const c = config[status] || config.PENDING;
 
   return (
-    <View style={[styles.badge, { backgroundColor: c.color + '20' }]} accessibilityLabel={`Statut : ${c.label}`}>
-      {status === 'VERIFIED' && <Ionicons name="checkmark-circle" size={12} color={c.color} />}
-      <Text variant="caption" color={c.color}>{c.label}</Text>
+    <View style={[styles.verificationBadge, { backgroundColor: c.color + '12' }]}>
+      <Ionicons name={c.icon} size={14} color={c.color} />
+      <Text variant="caption" color={c.color} style={styles.verificationText}>{c.label}</Text>
     </View>
   );
 }
@@ -383,7 +403,7 @@ function UrgencyBadge({ urgency }: { urgency: string }) {
   const c = config[urgency] || config.NORMAL;
 
   return (
-    <View style={[styles.urgencyBadge, { backgroundColor: c.color + '15' }]}>
+    <View style={[styles.urgencyBadge, { backgroundColor: c.color + '12' }]}>
       <Text variant="caption" color={c.color}>{c.label}</Text>
     </View>
   );
@@ -400,7 +420,7 @@ function BookingStatusBadge({ status }: { status: string }) {
   const c = config[status] || config.CONFIRMED;
 
   return (
-    <View style={[styles.urgencyBadge, { backgroundColor: c.color + '15' }]}>
+    <View style={[styles.urgencyBadge, { backgroundColor: c.color + '12' }]}>
       <Text variant="caption" color={c.color}>{c.label}</Text>
     </View>
   );
@@ -409,36 +429,168 @@ function BookingStatusBadge({ status }: { status: string }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, gap: spacing.lg },
+
+  // Header
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  headerLeft: { flex: 1, gap: spacing.xs },
-  notifBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  notifBadge: { position: 'absolute', top: 4, right: 4, backgroundColor: colors.error, borderRadius: 8, minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center' },
-  notifBadgeText: { fontSize: 9 },
-  onboardingCard: { alignItems: 'center', gap: spacing.md, padding: spacing.xl },
-  ctaBtn: { backgroundColor: colors.primary, paddingHorizontal: spacing.xl, paddingVertical: spacing.md, borderRadius: radius.md },
-  availabilityCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, ...shadows.sm },
+  headerLeft: { gap: spacing.xxs },
+  greeting: { letterSpacing: -0.3 },
+  notifBtn: {},
+  notifCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.sm,
+  },
+  notifBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    backgroundColor: colors.error,
+    borderRadius: radius.full,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  notifBadgeText: { fontSize: 9, fontWeight: '700' },
+
+  // Verification
+  verificationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+  },
+  verificationText: { fontWeight: '600' },
+
+  // Onboarding
+  onboardingCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.lg,
+  },
+  onboardingIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.md,
+    backgroundColor: colors.secondaryMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  onboardingText: { flex: 1, gap: spacing.xxs },
+  ctaBtn: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+  },
+
+  // Stats
+  statsRow: { flexDirection: 'row', gap: spacing.sm },
+  statCard: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    alignItems: 'center',
+    gap: spacing.xs,
+    ...shadows.sm,
+  },
+  statIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: radius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statValue: { letterSpacing: -0.3 },
+
+  // Availability
+  availabilityCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    ...shadows.sm,
+  },
   availabilityInfo: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, flex: 1 },
   availabilityDot: { width: 10, height: 10, borderRadius: 5 },
   availabilityText: { flex: 1, gap: 2 },
+
+  // Sections
   section: { gap: spacing.sm },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  actionCards: { gap: spacing.sm },
-  actionCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, gap: spacing.md, ...shadows.sm },
-  actionIcon: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
-  actionInfo: { flex: 1, gap: 2 },
-  requestCard: { flexDirection: 'row', alignItems: 'center', padding: spacing.md, backgroundColor: colors.surface, borderRadius: radius.md, gap: spacing.md, ...shadows.sm },
+  sectionTitle: { letterSpacing: -0.2 },
+  seeAllBtn: { flexDirection: 'row', alignItems: 'center', gap: spacing.xxs },
+  seeAllText: { fontWeight: '600' },
+
+  // Quick actions
+  quickGrid: { flexDirection: 'row', gap: spacing.sm },
+  quickAction: {
+    flex: 1,
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  quickActionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: colors.error,
+    borderRadius: radius.full,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  quickBadgeText: { fontSize: 9, fontWeight: '700' },
+
+  // Request cards
+  requestCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    gap: spacing.md,
+    ...shadows.sm,
+  },
   requestInfo: { flex: 1, gap: 2 },
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.sm },
-  urgencyBadge: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.sm },
-  snapshotRow: { flexDirection: 'row', gap: spacing.sm },
-  snapshotCard: { flex: 1, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, alignItems: 'center', gap: spacing.xs, ...shadows.sm },
-  navGrid: { flexDirection: 'row', gap: spacing.md },
-  navAction: { flex: 1, alignItems: 'center', gap: spacing.xs },
-  navActionIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.surfaceSecondary, alignItems: 'center', justifyContent: 'center' },
-  // Skeleton styles
+  urgencyBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.sm,
+  },
+
+  // Settings
+  settingsLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    marginTop: spacing.xs,
+  },
+
+  // Skeleton
   skeletonHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   skeletonHeaderLeft: { flex: 1, gap: spacing.sm },
   skeletonNotif: { borderRadius: radius.md },
-  skeletonCard: { borderRadius: radius.md },
+  skeletonStats: { flexDirection: 'row', gap: spacing.sm },
   skeletonSection: { gap: spacing.md },
 });

@@ -12,7 +12,7 @@ interface SectionHeaderProps {
 export function SectionHeader({ title, onSeeAll }: SectionHeaderProps) {
   return (
     <View style={styles.container}>
-      <Text variant="h3">{title}</Text>
+      <Text variant="h3" style={styles.title}>{title}</Text>
       {onSeeAll && (
         <Pressable
           onPress={onSeeAll}
@@ -20,10 +20,10 @@ export function SectionHeader({ title, onSeeAll }: SectionHeaderProps) {
           accessibilityLabel={`Voir tout ${title}`}
           accessibilityRole="button"
         >
-          <Text variant="bodySmall" color={colors.secondary}>
-            Voir tout
+          <Text variant="bodySmall" color={colors.primary} style={styles.seeAllText}>
+            Tout voir
           </Text>
-          <Ionicons name="chevron-forward" size={16} color={colors.secondary} />
+          <Ionicons name="arrow-forward" size={14} color={colors.primary} />
         </Pressable>
       )}
     </View>
@@ -37,9 +37,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
   },
+  title: {
+    letterSpacing: -0.2,
+  },
   seeAll: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xxs,
+  },
+  seeAllText: {
+    fontWeight: '600',
   },
 });

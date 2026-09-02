@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
+import { shadows } from '@/theme/shadows';
 import { Text } from '@/components/ui';
 
 export function HeroCard() {
@@ -11,11 +12,15 @@ export function HeroCard() {
     <View style={styles.container}>
       <View style={styles.card}>
         <View style={styles.content}>
-          <Text variant="h2" color={colors.textInverse}>
-            {"Besoin d'un pro"}{'\n'}{"fiable et qualifié ?"}
+          <View style={styles.tag}>
+            <Ionicons name="flash" size={10} color={colors.primary} />
+            <Text variant="caption" color={colors.primary} style={styles.tagText}>RAPIDE & Fiable</Text>
+          </View>
+          <Text variant="h2" color={colors.textInverse} style={styles.title}>
+            {"Besoin d'un pro\nfiable ?"}
           </Text>
-          <Text variant="bodySmall" color={colors.textInverseSoft}>
-            Trouvez le professionnel idéal près de chez vous en quelques clics.
+          <Text variant="bodySmall" color={colors.textInverseSoft} style={styles.subtitle}>
+            Trouvez le professionnel idéal près de chez vous.
           </Text>
           <Pressable
             style={styles.cta}
@@ -26,7 +31,7 @@ export function HeroCard() {
             <Text variant="buttonSmall" color={colors.primary}>
               Trouver un pro
             </Text>
-            <Ionicons name="arrow-forward" size={16} color={colors.primary} />
+            <Ionicons name="arrow-forward" size={14} color={colors.primary} />
           </Pressable>
         </View>
 
@@ -44,19 +49,43 @@ export function HeroCard() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: spacing.xl,
+    marginTop: spacing.md,
   },
   card: {
     backgroundColor: colors.primary,
     borderRadius: radius.xxl,
     flexDirection: 'row',
     overflow: 'hidden',
-    minHeight: 180,
+    minHeight: 170,
+    ...shadows.lg,
   },
   content: {
     flex: 1,
     padding: spacing.xl,
     justifyContent: 'center',
-    gap: spacing.sm,
+    gap: spacing.xs,
+  },
+  tag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xxs,
+    backgroundColor: 'rgba(255,184,0,0.2)',
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xxs + 1,
+    borderRadius: radius.full,
+  },
+  tagText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  title: {
+    letterSpacing: -0.3,
+    lineHeight: 28,
+  },
+  subtitle: {
+    opacity: 0.75,
   },
   cta: {
     flexDirection: 'row',
@@ -65,15 +94,15 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     backgroundColor: colors.secondary,
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm + 2,
+    paddingVertical: spacing.sm,
     borderRadius: radius.full,
-    marginTop: spacing.sm,
+    marginTop: spacing.xs,
   },
   image: {
-    width: 160,
-    height: 200,
-    marginTop: -20,
-    marginRight: -10,
+    width: 140,
+    height: 180,
+    marginTop: -10,
+    marginRight: -5,
     marginBottom: -10,
   },
 });

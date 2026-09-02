@@ -45,9 +45,9 @@ export default function HomeScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
-          <Skeleton width={130} height={36} />
-          <Skeleton width={200} height={24} />
-          <Skeleton width={160} height={20} />
+          <Skeleton width={120} height={32} />
+          <Skeleton width={180} height={20} />
+          <Skeleton width={140} height={16} />
         </View>
       </SafeAreaView>
     );
@@ -82,15 +82,15 @@ export default function HomeScreen() {
 
         <View style={styles.section}>
           <SectionHeader
-            title="Catégories populaires"
+            title="Catégories"
             onSeeAll={() => router.push('/(client)/(tabs)/search')}
           />
           {categories.isLoading ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScroll}>
               {Array.from({ length: 5 }).map((_, i) => (
                 <View key={i} style={styles.categorySkeleton}>
-                  <Skeleton width={60} height={60} borderRadius={30} />
-                  <Skeleton width={50} height={12} />
+                  <Skeleton width={56} height={56} borderRadius={28} />
+                  <Skeleton width={48} height={10} />
                 </View>
               ))}
             </ScrollView>
@@ -120,7 +120,7 @@ export default function HomeScreen() {
           {nearbyPros.isLoading ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.proScroll}>
               {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} width={160} height={200} borderRadius={16} />
+                <Skeleton key={i} width={150} height={180} borderRadius={16} />
               ))}
             </ScrollView>
           ) : nearbyPros.error ? (
@@ -145,7 +145,7 @@ export default function HomeScreen() {
           {services.isLoading ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.serviceScroll}>
               {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} width={140} height={140} borderRadius={16} />
+                <Skeleton key={i} width={130} height={130} borderRadius={16} />
               ))}
             </ScrollView>
           ) : services.error ? (
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
   categorySkeleton: {
     alignItems: 'center',
     gap: spacing.xs,
-    width: 72,
+    width: 68,
   },
   proScroll: {
     paddingHorizontal: spacing.xl,

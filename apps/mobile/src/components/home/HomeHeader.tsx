@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
+import { shadows } from '@/theme/shadows';
 import { Text } from '@/components/ui';
 import { useUnreadNotificationCount } from '@/hooks/use-notifications';
 
@@ -20,7 +21,7 @@ export function HomeHeader({ firstName, locationLabel }: HomeHeaderProps) {
   return (
     <ImageBackground
       source={require('../../../assets/images/header-skyline.png')}
-      style={[styles.container, { paddingTop: insets.top + spacing.sm }]}
+      style={[styles.container, { paddingTop: insets.top + spacing.md }]}
       imageStyle={styles.backgroundImage}
     >
       <View style={styles.overlay} />
@@ -36,11 +37,10 @@ export function HomeHeader({ firstName, locationLabel }: HomeHeaderProps) {
         <View style={styles.rightRow}>
           {locationLabel ? (
             <View style={styles.locationChip}>
-              <Ionicons name="location" size={14} color={colors.secondary} />
-              <Text variant="caption" color={colors.textInverse}>
+              <Ionicons name="location" size={12} color={colors.secondary} />
+              <Text variant="caption" color={colors.textInverse} style={styles.locationText}>
                 {locationLabel}
               </Text>
-              <Ionicons name="chevron-down" size={12} color={colors.textInverse} />
             </View>
           ) : null}
 
@@ -50,24 +50,26 @@ export function HomeHeader({ firstName, locationLabel }: HomeHeaderProps) {
             accessibilityLabel={`Notifications${unreadCount ? `, ${unreadCount} non lues` : ''}`}
             accessibilityRole="button"
           >
-            <Ionicons name="notifications-outline" size={24} color={colors.textInverse} />
-            {unreadCount ? (
-              <View style={styles.badge}>
-                <Text variant="caption" color={colors.textInverse} style={styles.badgeText}>
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </Text>
-              </View>
-            ) : null}
+            <View style={styles.bellCircle}>
+              <Ionicons name="notifications-outline" size={20} color={colors.textInverse} />
+              {unreadCount ? (
+                <View style={styles.badge}>
+                  <Text variant="caption" color={colors.textInverse} style={styles.badgeText}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
           </Pressable>
         </View>
       </View>
 
       <View style={styles.greeting}>
-        <Text variant="h1" color={colors.textInverse}>
+        <Text variant="h1" color={colors.textInverse} style={styles.greetingTitle}>
           {firstName ? `Bonjour ${firstName}` : 'Bonjour'}
         </Text>
-        <Text variant="body" color={colors.textInverseSoft}>
-          {"Comment pouvons-nous vous aider aujourd'hui ?"}
+        <Text variant="bodySmall" color={colors.textInverseSoft} style={styles.greetingSub}>
+          {"Que recherchez-vous aujourd'hui ?"}
         </Text>
       </View>
     </ImageBackground>
@@ -80,41 +82,47 @@ const styles = StyleSheet.create({
   },
   backgroundImage: {
     resizeMode: 'cover',
-    opacity: 0.3,
+    opacity: 0.25,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: colors.primary,
-    opacity: 0.85,
+    opacity: 0.88,
   },
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   logoImage: {
-    width: 130,
-    height: 36,
+    width: 120,
+    height: 32,
   },
   rightRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: spacing.sm,
   },
   locationChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: colors.borderInverse,
+    backgroundColor: 'rgba(255,255,255,0.12)',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
+    paddingVertical: spacing.xs + 1,
     borderRadius: radius.full,
   },
-  bellContainer: {
+  locationText: {
+    fontSize: 12,
+  },
+  bellContainer: {},
+  bellCircle: {
     width: 40,
     height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -124,15 +132,24 @@ const styles = StyleSheet.create({
     right: 2,
     backgroundColor: colors.secondary,
     borderRadius: radius.full,
-    minWidth: 18,
-    height: 18,
+    minWidth: 16,
+    height: 16,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
   },
-  badgeText: {},
+  badgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+  },
   greeting: {
     paddingHorizontal: spacing.xl,
     gap: spacing.xs,
+  },
+  greetingTitle: {
+    letterSpacing: -0.3,
+  },
+  greetingSub: {
+    opacity: 0.8,
   },
 });

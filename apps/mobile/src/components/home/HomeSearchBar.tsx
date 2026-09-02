@@ -16,12 +16,14 @@ export function HomeSearchBar() {
       accessibilityRole="search"
     >
       <View style={styles.bar}>
-        <Ionicons name="search-outline" size={20} color={colors.textTertiary} />
+        <View style={styles.searchIcon}>
+          <Ionicons name="search" size={18} color={colors.textTertiary} />
+        </View>
         <Text variant="body" color={colors.textTertiary} style={styles.placeholder}>
-          Rechercher un service ou un professionnel...
+          Rechercher un service ou un pro...
         </Text>
         <View style={styles.filterButton}>
-          <Ionicons name="options-outline" size={18} color={colors.textInverse} />
+          <Ionicons name="options-outline" size={16} color={colors.primary} />
         </View>
       </View>
     </Pressable>
@@ -39,20 +41,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: radius.xl,
-    paddingLeft: spacing.lg,
+    paddingLeft: spacing.sm,
     paddingRight: spacing.xs,
-    height: 52,
+    height: 50,
     gap: spacing.sm,
-    ...shadows.md,
+    ...shadows.lg,
+  },
+  searchIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   placeholder: {
     flex: 1,
   },
   filterButton: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     borderRadius: radius.md,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.secondaryMuted,
     alignItems: 'center',
     justifyContent: 'center',
   },
