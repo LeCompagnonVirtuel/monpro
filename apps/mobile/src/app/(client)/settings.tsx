@@ -88,6 +88,27 @@ export default function SettingsScreen() {
       >
         <View style={styles.section}>
           <Text variant="bodySmall" color={colors.textSecondary} style={styles.sectionTitle}>
+            Compte
+          </Text>
+          <View style={styles.card}>
+            <SettingRow
+              icon="wallet-outline"
+              label="Moyens de paiement"
+              type="link"
+              onPress={() => router.push('/(client)/payment-methods')}
+            />
+            <View style={styles.separator} />
+            <SettingRow
+              icon="time-outline"
+              label="Historique"
+              type="link"
+              onPress={() => router.push('/(client)/history')}
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text variant="bodySmall" color={colors.textSecondary} style={styles.sectionTitle}>
             Notifications
           </Text>
           <View style={styles.card}>
@@ -147,14 +168,14 @@ export default function SettingsScreen() {
               icon="document-text-outline"
               label="Conditions d'utilisation"
               type="link"
-              onPress={() => {}}
+              onPress={() => router.push('/(client)/terms')}
             />
             <View style={styles.separator} />
             <SettingRow
               icon="shield-checkmark-outline"
               label="Politique de confidentialité"
               type="link"
-              onPress={() => {}}
+              onPress={() => router.push('/(client)/privacy-policy')}
             />
           </View>
         </View>

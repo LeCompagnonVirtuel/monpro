@@ -325,6 +325,7 @@ export default function RegisterScreen() {
                   variant="caption"
                   color={colors.secondary}
                   style={styles.termsLink}
+                  onPress={() => router.push('/(client)/terms')}
                 >
                   {"Conditions d'utilisation"}
                 </Text>
@@ -333,6 +334,7 @@ export default function RegisterScreen() {
                   variant="caption"
                   color={colors.secondary}
                   style={styles.termsLink}
+                  onPress={() => router.push('/(client)/privacy-policy')}
                 >
                   Politique de confidentialité
                 </Text>

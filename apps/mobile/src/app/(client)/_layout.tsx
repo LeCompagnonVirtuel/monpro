@@ -32,6 +32,10 @@ export default function ClientLayout() {
       <Stack.Screen name="edit-profile" options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="addresses" options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="settings" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="privacy-policy" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="terms" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="payment-methods" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="history" options={{ animation: 'slide_from_right' }} />
     </Stack>
   );
 }

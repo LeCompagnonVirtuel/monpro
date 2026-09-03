@@ -144,6 +144,25 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text variant="caption" color={colors.textSecondary} style={styles.sectionTitle}>
+            LÉGAL
+          </Text>
+          <View style={styles.card}>
+            <MenuItem
+              icon="document-text-outline"
+              label="Conditions d'utilisation"
+              onPress={() => router.push('/(client)/terms')}
+            />
+            <View style={styles.divider} />
+            <MenuItem
+              icon="shield-checkmark-outline"
+              label="Politique de confidentialité"
+              onPress={() => router.push('/(client)/privacy-policy')}
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text variant="caption" color={colors.textSecondary} style={styles.sectionTitle}>
             SESSION
           </Text>
           <View style={styles.card}>
