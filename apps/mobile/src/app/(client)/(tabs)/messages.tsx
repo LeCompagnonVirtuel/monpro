@@ -12,6 +12,7 @@ import { MessagesHeader } from '@/components/messages/MessagesHeader';
 import { SecurityBanner } from '@/components/messages/SecurityBanner';
 import { ConversationRow } from '@/components/messages/ConversationRow';
 import { ProfessionalSuggestionCard } from '@/components/messages/ProfessionalSuggestionCard';
+import { AiContactCard } from '@/components/messages/AiContactCard';
 import { useConversations } from '@/hooks/use-conversations';
 import { useAuthStore } from '@/stores/auth.store';
 import { useProfessionals } from '@/hooks/use-professionals';
@@ -68,6 +69,10 @@ export default function MessagesScreen() {
           </Text>
           <Ionicons name={sortMode === 'unread' ? 'mail-unread-outline' : 'time-outline'} size={16} color={sortMode === 'unread' ? colors.primary : colors.textSecondary} />
         </Pressable>
+      </View>
+
+      <View style={styles.aiCardContainer}>
+        <AiContactCard onPress={() => router.push('/(client)/ai-chat')} />
       </View>
     </View>
   );
@@ -212,6 +217,10 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   sortText: {},
+  aiCardContainer: {
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+  },
   suggestionsSection: {
     marginTop: spacing.xxl,
   },

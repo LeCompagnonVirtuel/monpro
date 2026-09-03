@@ -1,11 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger, Optional } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, VerificationStatus } from '@prisma/client';
 import { paginate } from '../common/utils/pagination';
+import { AiService } from '../ai/ai.service';
 
 @Injectable()
 export class ProfessionalsService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(ProfessionalsService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    @Optional() private aiService?: AiService,
+  ) {}
 
   async findAll(filters?: {
     serviceId?: string;
@@ -184,7 +190,12 @@ export class ProfessionalsService {
     });
   }
 
-  async matchForRequest(serviceId: string, latitude?: number, longitude?: number) {
+  async matchForRequest(
+    serviceId: string,
+    latitude?: number,
+    longitude?: number,
+    requestContext?: { description?: string; urgency?: string; city?: string },
+  ) {
     let geoFilteredIds: string[] | null = null;
     const distances = new Map<string, number>();
 
@@ -242,7 +253,7 @@ export class ProfessionalsService {
       take: 20,
     });
 
-    return professionals.map((pro) => {
+    const scored = professionals.map((pro) => {
       let score = 50;
       score += pro.averageRating * 10;
       score += Math.min(pro.totalInterventions, 50);
@@ -255,5 +266,41 @@ export class ProfessionalsService {
       }
       return { ...pro, matchScore: Math.round(score), distanceKm: distanceKm ?? null };
     }).sort((a, b) => b.matchScore - a.matchScore);
+
+    if (!requestContext || !this.aiService) {
+      return scored;
+    }
+
+    try {
+      const service = await this.prisma.service.findUnique({ where: { id: serviceId } });
+      const aiScores = await this.aiService.scoreProfessionals(
+        scored.map((p) => ({
+          id: p.id,
+          name: p.user.fullName,
+          rating: p.averageRating,
+          completedJobs: p.totalInterventions,
+          responseTime: `${Math.round((1 - p.responseRate) * 24)}h`,
+          distanceKm: p.distanceKm,
+          specializations: p.services.map((s) => s.service.name),
+        })),
+        {
+          serviceName: service?.name ?? 'Inconnu',
+          description: requestContext.description ?? '',
+          urgency: requestContext.urgency ?? 'NORMAL',
+          city: requestContext.city ?? 'Abidjan',
+        },
+      );
+
+      if (aiScores.size > 0) {
+        return scored.map((p) => ({
+          ...p,
+          matchScore: aiScores.get(p.id) ?? p.matchScore,
+        })).sort((a, b) => b.matchScore - a.matchScore);
+      }
+    } catch (err) {
+      this.logger.warn('AI scoring failed, falling back to static scores', err);
+    }
+
+    return scored;
   }
 }

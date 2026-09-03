@@ -20,6 +20,7 @@ import { useCountries, useRegions, useCities, useDistricts } from '@/hooks/use-g
 import { useLocation } from '@/hooks/use-location';
 import { extractApiError } from '@/api/errors';
 import { useAuthStore } from '@/stores/auth.store';
+import { usePriceEstimate } from '@/hooks/use-price-estimate';
 
 type WizardStep = 'details' | 'category' | 'informations' | 'confirmation';
 
@@ -77,6 +78,14 @@ export default function CreateRequestScreen() {
   const [selectedDistrictId, setSelectedDistrictId] = useState<string | undefined>(undefined);
   const [preferredTimeStart, setPreferredTimeStart] = useState('');
   const [preferredTimeEnd, setPreferredTimeEnd] = useState('');
+
+  // AI price estimate
+  const { data: priceEstimate } = usePriceEstimate(
+    selectedServiceId || serviceId || null,
+    description,
+    _location?.latitude,
+    _location?.longitude,
+  );
 
   // Step 2 hooks
   const { data: categories, isLoading: categoriesLoading, isError: categoriesError, refetch: refetchCategories } = useCategories();
@@ -315,6 +324,24 @@ export default function CreateRequestScreen() {
                 {description.length}/500
               </Text>
             </View>
+
+            {/* AI Price Estimate */}
+            {priceEstimate && priceEstimate.median > 0 && (
+              <View style={styles.section}>
+                <View style={styles.estimateBanner}>
+                  <View style={styles.estimateHeader}>
+                    <Ionicons name="sparkles" size={18} color={colors.primary} />
+                    <Text variant="bodyMedium" color={colors.primary}>Estimation IA du prix</Text>
+                  </View>
+                  <Text variant="h3" color={colors.text} style={styles.estimateMedian}>
+                    {priceEstimate.min.toLocaleString('fr-FR')} - {priceEstimate.max.toLocaleString('fr-FR')} FCFA
+                  </Text>
+                  <Text variant="caption" color={colors.textTertiary}>
+                    Fourchette estimée • Confiance {Math.round(priceEstimate.confidence * 100)}%
+                  </Text>
+                </View>
+              </View>
+            )}
 
             {/* Photos Section */}
             <View style={styles.section}>
@@ -1154,6 +1181,22 @@ const styles = StyleSheet.create({
   infoBannerText: {
     flex: 1,
     gap: spacing.xxs,
+  },
+  estimateBanner: {
+    backgroundColor: colors.secondaryMuted,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    gap: spacing.xs,
+    borderWidth: 1,
+    borderColor: colors.secondary + '30',
+  },
+  estimateHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  estimateMedian: {
+    marginTop: spacing.xs,
   },
   section: {
     backgroundColor: colors.surface,

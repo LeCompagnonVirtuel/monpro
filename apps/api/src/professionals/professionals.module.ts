@@ -2,8 +2,10 @@ import { Module } from '@nestjs/common';
 import { ProfessionalsController } from './professionals.controller';
 import { AvailabilityController } from './availability.controller';
 import { ProfessionalsService } from './professionals.service';
+import { AiModule } from '../ai/ai.module';
 
 @Module({
+  imports: [AiModule],
   controllers: [ProfessionalsController, AvailabilityController],
   providers: [ProfessionalsService],
   exports: [ProfessionalsService],

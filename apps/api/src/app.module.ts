@@ -25,6 +25,7 @@ import { DeviceTokensModule } from './device-tokens/device-tokens.module';
 import { BusinessesModule } from './businesses/businesses.module';
 import { KycModule } from './kyc/kyc.module';
 import { RealtimeModule } from './realtime/realtime.module';
+import { AiModule } from './ai/ai.module';
 import { HealthController } from './health.controller';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
@@ -38,6 +39,7 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
       { name: 'default', ttl: 60000, limit: 200 },
       { name: 'sensitive', ttl: 60000, limit: 10 },
       { name: 'health', ttl: 60000, limit: 600 },
+      { name: 'ai', ttl: 60000, limit: 5 },
     ]),
     PrismaModule,
     RealtimeModule,
@@ -62,6 +64,7 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
     DeviceTokensModule,
     BusinessesModule,
     KycModule,
+    AiModule,
   ],
   controllers: [HealthController],
   providers: [

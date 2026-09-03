@@ -36,6 +36,7 @@ export default function ClientLayout() {
       <Stack.Screen name="terms" options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="payment-methods" options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="history" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="ai-chat" options={{ animation: 'slide_from_right' }} />
     </Stack>
   );
 }

@@ -14,6 +14,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import { socketService } from '@/lib/socket';
 import { Message } from '@/api/messaging';
 import { formatRelativeDate } from '@/lib/format';
+import { aiApi } from '@/api/ai';
 
 export default function ProfessionalConversationScreen() {
   const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
@@ -27,6 +28,8 @@ export default function ProfessionalConversationScreen() {
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [typingUserId, setTypingUserId] = useState<string | null>(null);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -67,6 +70,19 @@ export default function ProfessionalConversationScreen() {
     }
   }, [text, sending, conversationId, sendMessageMutation]);
 
+  const handleSummarize = useCallback(async () => {
+    if (!conversationId || loadingSummary) return;
+    setLoadingSummary(true);
+    try {
+      const { data: res } = await aiApi.getSummary(conversationId);
+      setSummary(res.data.summary);
+    } catch {
+      setSummary('Impossible de générer le résumé.');
+    } finally {
+      setLoadingSummary(false);
+    }
+  }, [conversationId, loadingSummary]);
+
   const handleTextChange = (value: string) => {
     setText(value);
     if (conversationId) {
@@ -94,10 +110,10 @@ export default function ProfessionalConversationScreen() {
     );
   }
 
-  return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <Header name={other?.fullName} />
-      <KeyboardAvoidingView
+    return (
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <Header name={other?.fullName} onSummarize={handleSummarize} loadingSummary={loadingSummary} />
+        <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 60 : 0}
@@ -109,6 +125,12 @@ export default function ProfessionalConversationScreen() {
           renderItem={({ item }) => (
             <MessageBubble message={item} isOwn={item.senderId === userId} />
           )}
+          ListHeaderComponent={summary ? (
+            <View style={styles.summaryCard}>
+              <Ionicons name="sparkles" size={16} color={colors.primary} />
+              <Text variant="bodySmall" color={colors.text}>{summary}</Text>
+            </View>
+          ) : undefined}
           contentContainerStyle={styles.messagesContent}
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
           onEndReached={() => { if (hasNextPage) fetchNextPage(); }}
@@ -149,7 +171,7 @@ export default function ProfessionalConversationScreen() {
   );
 }
 
-function Header({ name }: { name?: string }) {
+function Header({ name, onSummarize, loadingSummary }: { name?: string; onSummarize?: () => void; loadingSummary?: boolean }) {
   return (
     <View style={styles.header}>
       <Pressable onPress={() => router.back()} accessibilityLabel="Retour" style={styles.backBtn}>
@@ -158,7 +180,17 @@ function Header({ name }: { name?: string }) {
       <Text variant="h3" numberOfLines={1} style={styles.headerTitle}>
         {name || 'Conversation'}
       </Text>
-      <View style={styles.backBtn} />
+      {onSummarize && (
+        <Pressable
+          onPress={onSummarize}
+          disabled={loadingSummary}
+          accessibilityLabel="Résumé IA"
+          accessibilityRole="button"
+          style={styles.summaryBtn}
+        >
+          <Ionicons name={loadingSummary ? 'hourglass-outline' : 'sparkles'} size={18} color={colors.primary} />
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -192,4 +224,6 @@ const styles = StyleSheet.create({
   input: { flex: 1, minHeight: 40, maxHeight: 100, backgroundColor: colors.surfaceSecondary, borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, fontSize: 14, color: colors.text },
   sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   sendBtnDisabled: { backgroundColor: colors.border },
+  summaryBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  summaryCard: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, backgroundColor: colors.secondaryMuted, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm },
 });
