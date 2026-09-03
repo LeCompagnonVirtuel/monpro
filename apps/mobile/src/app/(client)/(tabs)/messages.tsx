@@ -27,6 +27,13 @@ export default function MessagesScreen() {
 
   const [showBanner, setShowBanner] = useState(true);
   const [sortMode, setSortMode] = useState<SortMode>('recent');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
 
   const handleDismissBanner = useCallback(() => setShowBanner(false), []);
 
@@ -168,7 +175,7 @@ export default function MessagesScreen() {
         ListFooterComponent={renderFooter}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={false} onRefresh={refetch} tintColor={colors.primary} />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />
         }
       />
 

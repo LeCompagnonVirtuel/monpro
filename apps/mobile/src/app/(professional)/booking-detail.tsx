@@ -124,6 +124,24 @@ export default function ProfessionalBookingDetailScreen() {
           />
         </View>
       )}
+
+      {booking.status === 'ARRIVING' && (
+        <View style={styles.footer}>
+          <Button
+            title="Indiquer mon arrivée"
+            onPress={() => router.push({ pathname: '/(professional)/intervention', params: { bookingId: booking.id } })}
+          />
+        </View>
+      )}
+
+      {booking.status === 'IN_PROGRESS' && (
+        <View style={styles.footer}>
+          <Button
+            title="Terminer l'intervention"
+            onPress={() => router.push({ pathname: '/(professional)/intervention', params: { bookingId: booking.id } })}
+          />
+        </View>
+      )}
     </SafeAreaView>
   );
 }

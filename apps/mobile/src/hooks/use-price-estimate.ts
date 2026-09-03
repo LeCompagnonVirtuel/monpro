@@ -8,7 +8,7 @@ export function usePriceEstimate(
   longitude?: number,
 ) {
   return useQuery<PriceEstimate>({
-    queryKey: ['price-estimate', serviceId, latitude, longitude],
+    queryKey: ['price-estimate', serviceId, description, latitude, longitude],
     queryFn: async () => {
       if (!serviceId) throw new Error('No service ID');
       const { data: res } = await aiApi.estimatePrice(serviceId, description, latitude, longitude);

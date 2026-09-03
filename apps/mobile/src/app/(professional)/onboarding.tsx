@@ -259,7 +259,7 @@ export default function OnboardingScreen() {
                     maxLength={100}
                     autoFocus
                     returnKeyType="next"
-                    onSubmitEditing={() => { setStep(1); setTimeout(() => descriptionRef.current?.focus(), 100); }}
+                    onSubmitEditing={() => { if (businessName.trim().length >= 2) { animateTransition('next'); setTimeout(() => { setStep(1); setTimeout(() => descriptionRef.current?.focus(), 100); }, 50); } }}
                     accessibilityLabel="Nom commercial"
                   />
                   {businessName.length > 0 && (
@@ -286,7 +286,7 @@ export default function OnboardingScreen() {
                     maxLength={500}
                     autoFocus
                     returnKeyType="next"
-                    onSubmitEditing={() => { setStep(2); setTimeout(() => experienceRef.current?.focus(), 100); }}
+                    onSubmitEditing={() => { if (description.trim().length >= 10) { animateTransition('next'); setTimeout(() => { setStep(2); setTimeout(() => experienceRef.current?.focus(), 100); }, 50); } }}
                     accessibilityLabel="Description de votre activité"
                   />
                   <View style={styles.charCount}>

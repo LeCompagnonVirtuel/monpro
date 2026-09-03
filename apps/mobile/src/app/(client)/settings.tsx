@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -65,7 +65,11 @@ export default function SettingsScreen() {
   const updateSettings = useUpdateSettings();
 
   const handleToggle = async (key: 'pushEnabled' | 'emailEnabled' | 'profileVisible' | 'locationEnabled', value: boolean) => {
-    await updateSettings.mutateAsync({ [key]: value });
+    try {
+      await updateSettings.mutateAsync({ [key]: value });
+    } catch {
+      Alert.alert('Erreur', 'Impossible de modifier le paramètre. Veuillez réessayer.');
+    }
   };
 
   return (

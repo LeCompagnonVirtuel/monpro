@@ -15,7 +15,10 @@ export class AiService {
     private prisma: PrismaService,
   ) {
     const apiKey = this.config.get<string>('OPENAI_API_KEY');
-    this.openai = new OpenAI({ apiKey });
+    this.openai = new OpenAI({
+      apiKey,
+      baseURL: 'https://api.deepseek.com',
+    });
   }
 
   private async chatCompletion(
@@ -23,7 +26,7 @@ export class AiService {
     maxTokens = 500,
   ): Promise<string> {
     const res = await this.openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'deepseek-chat',
       messages,
       max_tokens: maxTokens,
       temperature: 0.7,
@@ -228,7 +231,7 @@ Pas de texte avant ou après le JSON.`;
 
     try {
       const res = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+      model: 'deepseek-chat',
         messages: [
           { role: 'user', content: [
             { type: 'text', text: prompt },

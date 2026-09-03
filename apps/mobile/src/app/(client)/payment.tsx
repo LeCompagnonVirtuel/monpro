@@ -81,8 +81,8 @@ export default function PaymentScreen() {
   const handleInitiate = async () => {
     if (!selectedProvider || !bookingId) return;
 
-    if (!phoneNumber || !/^\+\d{10,15}$/.test(phoneNumber)) {
-      Alert.alert('Erreur', 'Veuillez entrer un numéro de téléphone valide au format +225XXXXXXXX');
+    if (!phoneNumber || !/^\d{10}$/.test(phoneNumber.replace(/\s/g, ''))) {
+      Alert.alert('Erreur', 'Veuillez entrer un numéro de téléphone valide à 10 chiffres (ex: 0707070707).');
       return;
     }
 
@@ -170,6 +170,12 @@ export default function PaymentScreen() {
                 onPress={() => router.replace({ pathname: '/(client)/payment', params: { bookingId } })}
                 size="lg"
               />
+              <Button
+                title="Retour à l'accueil"
+                onPress={() => router.replace('/(client)/(tabs)/home')}
+                variant="outline"
+                size="lg"
+              />
             </View>
           )}
 
@@ -221,10 +227,11 @@ export default function PaymentScreen() {
             style={styles.phoneInput}
             value={phoneNumber}
             onChangeText={setPhoneNumber}
-            placeholder="+225XXXXXXXX"
+            placeholder="0707070707"
             placeholderTextColor={colors.textTertiary}
             keyboardType="phone-pad"
             autoComplete="tel"
+            maxLength={10}
           />
         </View>
 

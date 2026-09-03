@@ -414,7 +414,7 @@ export default function CreateRequestScreen() {
               <View style={styles.dateToggleRow}>
                 <Pressable
                   style={[styles.dateToggle, dateMode === 'asap' && styles.dateToggleActive]}
-                  onPress={() => setDateMode('asap')}
+                  onPress={() => { setDateMode('asap'); setPreferredDate(''); }}
                   accessibilityRole="radio"
                   accessibilityState={{ selected: dateMode === 'asap' }}
                   accessibilityLabel="Dès que possible"

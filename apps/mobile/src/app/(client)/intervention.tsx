@@ -1,4 +1,4 @@
-import { StyleSheet, View, ScrollView, Pressable, Image } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, Image, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -167,11 +167,16 @@ export default function InterventionScreen() {
             <Button
               title="Confirmer l'intervention"
               onPress={async () => {
-                await confirmMutation.mutateAsync(bookingId);
-                refetch();
+                if (!bookingId) return;
+                try {
+                  await confirmMutation.mutateAsync(bookingId);
+                  refetch();
+                } catch {
+                  Alert.alert('Erreur', "Impossible de confirmer l'intervention. Veuillez réessayer.");
+                }
               }}
               loading={confirmMutation.isPending}
-              disabled={confirmMutation.isPending}
+              disabled={confirmMutation.isPending || !bookingId}
               size="lg"
             />
           </View>
