@@ -166,6 +166,20 @@ export default function SearchScreen() {
       );
     }
 
+    if (professionals.isError && hasSearchCriteria) {
+      return (
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {renderHeader()}
+          <View style={styles.emptyContainer}>
+            <EmptyState
+              title="Erreur de chargement"
+              description="Impossible de charger les résultats. Veuillez réessayer."
+            />
+          </View>
+        </ScrollView>
+      );
+    }
+
     if (hasSearchCriteria && proList.length === 0 && !professionals.isLoading) {
       return (
         <ScrollView showsVerticalScrollIndicator={false}>

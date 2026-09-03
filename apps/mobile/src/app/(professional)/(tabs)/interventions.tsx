@@ -87,7 +87,7 @@ export default function InterventionsScreen() {
         renderItem={({ item }) => <BookingCard booking={item} />}
         contentContainerStyle={styles.listContent}
         onRefresh={refetch}
-        refreshing={allBookings === undefined}
+        refreshing={false}
         ListHeaderComponent={activeBookings.length > 0 ? (
           <View style={styles.sectionHeader}>
             <Ionicons name="time-outline" size={16} color={colors.warning} />

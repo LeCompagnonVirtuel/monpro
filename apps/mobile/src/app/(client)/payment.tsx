@@ -8,7 +8,7 @@ import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { Text, Button, Skeleton, Divider, Badge } from '@/components/ui';
 import { useBooking } from '@/hooks/use-bookings';
-import { usePaymentForBooking, useInitiatePayment, usePollPaymentStatus } from '@/hooks/use-payments';
+import { usePaymentForBooking, useInitiatePayment } from '@/hooks/use-payments';
 import { PaymentProvider, PaymentStatus } from '@/api/payments';
 import { formatCurrency } from '@/lib/format';
 
@@ -181,6 +181,22 @@ export default function PaymentScreen() {
 
           <DevNotice />
         </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  if (!booking) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <Header />
+        <View style={styles.statusBanner}>
+          <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
+          <Text variant="h2" align="center">Réservation introuvable</Text>
+          <Text variant="bodySmall" color={colors.textSecondary} align="center">
+            Impossible de trouver les détails de cette réservation.
+          </Text>
+          <Button title="Retour" onPress={() => router.back()} variant="outline" size="lg" />
+        </View>
       </SafeAreaView>
     );
   }

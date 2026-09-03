@@ -9,10 +9,9 @@ import { radius } from '@/theme/radius';
 import { Text } from '@/components/ui';
 import { AiChatBubble } from '@/components/messages/AiChatBubble';
 import { useAiChat } from '@/hooks/use-ai-chat';
-import { ChatMessage } from '@/api/ai';
 
 export default function AiChatScreen() {
-  const { messages, isLoading, error, sendMessage, aiContact } = useAiChat();
+  const { messages, isLoading, error, sendMessage } = useAiChat();
   const [text, setText] = useState('');
   const flatListRef = useRef<FlatList>(null);
 

@@ -150,13 +150,13 @@ export default function SettingsScreen() {
             <MenuItem
               icon="document-text-outline"
               label="Conditions d'utilisation"
-              onPress={() => router.push('/(client)/terms')}
+              onPress={() => router.push('/(professional)/terms')}
             />
             <View style={styles.divider} />
             <MenuItem
               icon="shield-checkmark-outline"
               label="Politique de confidentialité"
-              onPress={() => router.push('/(client)/privacy-policy')}
+              onPress={() => router.push('/(professional)/privacy-policy')}
             />
           </View>
         </View>

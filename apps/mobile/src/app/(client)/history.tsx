@@ -11,8 +11,7 @@ import { Text, Skeleton } from '@/components/ui';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useServiceRequests } from '@/hooks/use-service-requests';
-import { formatCurrency, formatDate } from '@/lib/format';
-import { ServiceRequestStatus } from '@/api/requests';
+import { formatDate } from '@/lib/format';
 
 const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
   COMPLETED: { color: colors.success, label: 'Terminé' },
@@ -43,7 +42,7 @@ export default function HistoryScreen() {
   }, [refetch]);
 
   const handleRequestPress = (requestId: string) => {
-    router.push({ pathname: '/(client)/request-detail', params: { requestId } });
+    router.push({ pathname: '/(client)/request-detail', params: { id: requestId } });
   };
 
   if (isLoading) {

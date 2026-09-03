@@ -1,4 +1,4 @@
-import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useState, useCallback } from 'react';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -92,6 +92,34 @@ export default function EditProfileScreen() {
           <View style={styles.avatarSkeleton} />
           <View style={styles.skeletonLine} />
           <View style={styles.skeletonLineShort} />
+        </View>
+      </View>
+    );
+  }
+
+  if (me.isError) {
+    return (
+      <View style={styles.container}>
+        <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
+          <View style={styles.headerRow}>
+            <Ionicons
+              name="chevron-back"
+              size={24}
+              color={colors.text}
+              onPress={() => router.back()}
+            />
+            <Text variant="h2" color={colors.text}>Modifier le profil</Text>
+            <View style={styles.headerRight} />
+          </View>
+        </View>
+        <View style={styles.errorContent}>
+          <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
+          <Text variant="body" color={colors.textSecondary} align="center">
+            Impossible de charger votre profil.
+          </Text>
+          <Pressable style={styles.retryBtn} onPress={() => me.refetch()}>
+            <Text variant="buttonSmall" color={colors.primary}>Réessayer</Text>
+          </Pressable>
         </View>
       </View>
     );
@@ -222,6 +250,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: spacing.xxxl,
     gap: spacing.md,
+  },
+  errorContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.md,
+    paddingHorizontal: spacing.xxl,
+  },
+  retryBtn: {
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.sm,
   },
   avatarSkeleton: {
     width: 100,

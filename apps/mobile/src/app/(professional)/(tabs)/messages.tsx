@@ -72,7 +72,7 @@ export default function ProfessionalMessagesScreen() {
         )}
         contentContainerStyle={styles.listContent}
         onRefresh={refetch}
-        refreshing={conversations === undefined}
+        refreshing={false}
       />
     </SafeAreaView>
   );

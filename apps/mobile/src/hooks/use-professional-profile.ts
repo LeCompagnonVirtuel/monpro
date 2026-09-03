@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import { professionalsApi } from '@/api/professionals';
 import { useAuthStore } from '@/stores/auth.store';
 
@@ -8,8 +9,15 @@ export function useMyProfessionalProfile() {
   return useQuery({
     queryKey: ['professional', 'me'],
     queryFn: async () => {
-      const { data } = await professionalsApi.getMe();
-      return data.data;
+      try {
+        const { data } = await professionalsApi.getMe();
+        return data.data;
+      } catch (err) {
+        if ((err as AxiosError)?.response?.status === 404) {
+          return null;
+        }
+        throw err;
+      }
     },
     enabled: !!userId,
   });
