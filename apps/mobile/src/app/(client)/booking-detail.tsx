@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { StyleSheet, View, ScrollView, Pressable, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -29,6 +29,24 @@ export default function BookingDetailScreen() {
   const createBooking = useCreateBooking();
   const cancelBooking = useCancelBooking();
   const [creating, setCreating] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow;
+  });
+
+  const dateOptions = useMemo(() => {
+    const options: { label: string; date: Date }[] = [];
+    for (let i = 1; i <= 14; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      const dayName = d.toLocaleDateString('fr-FR', { weekday: 'short' });
+      const dayNum = d.getDate();
+      const month = d.toLocaleDateString('fr-FR', { month: 'short' });
+      options.push({ label: `${dayName} ${dayNum} ${month}`, date: d });
+    }
+    return options;
+  }, []);
 
   const handleCancelBooking = () => {
     if (!booking) return;
@@ -169,6 +187,27 @@ export default function BookingDetailScreen() {
             )}
           </View>
 
+          <View style={styles.dateSection}>
+            <Text variant="bodyMedium" style={styles.dateSectionTitle}>Choisissez une date</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dateChips}>
+              {dateOptions.map((opt) => {
+                const isSelected = opt.date.toDateString() === selectedDate.toDateString();
+                return (
+                  <Pressable
+                    key={opt.date.toISOString()}
+                    style={[styles.dateChip, isSelected && styles.dateChipActive]}
+                    onPress={() => setSelectedDate(opt.date)}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: isSelected }}
+                    accessibilityLabel={opt.label}
+                  >
+                    <Text variant="bodySmall" color={isSelected ? colors.textInverse : colors.text}>{opt.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+
           <View style={styles.actions}>
             <Button
               title="Créer la réservation"
@@ -196,7 +235,7 @@ export default function BookingDetailScreen() {
     try {
       const payload: CreateBookingPayload = {
         quoteId: acceptedQuote.id,
-        scheduledDate: new Date().toISOString().split('T')[0],
+        scheduledDate: selectedDate.toISOString().split('T')[0],
       };
       const newBooking = await createBooking.mutateAsync(payload);
       router.replace({ pathname: '/(client)/booking-detail', params: { bookingId: newBooking.id } });
@@ -291,4 +330,9 @@ const styles = StyleSheet.create({
   timelineVLine: { width: 2, flex: 1, backgroundColor: colors.border, marginVertical: 2 },
   timelineVLineDone: { backgroundColor: colors.success },
   timelineLabel: { marginLeft: spacing.md, paddingTop: 2 },
+  dateSection: { paddingVertical: spacing.lg, gap: spacing.md },
+  dateSectionTitle: { marginBottom: spacing.xs },
+  dateChips: { gap: spacing.sm, paddingRight: spacing.lg },
+  dateChip: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderRadius: 20, borderWidth: 1.5, borderColor: colors.border, backgroundColor: colors.surface },
+  dateChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
 });

@@ -67,7 +67,7 @@ export const professionalsApi = {
     return apiClient.post<{ success: boolean; data: Professional }>('/professionals', payload);
   },
 
-  update(id: string, payload: { businessName?: string; description?: string; experienceYears?: number; isAvailable?: boolean }) {
+  update(id: string, payload: { businessName?: string; description?: string; experienceYears?: number; isAvailable?: boolean; serviceIds?: string[] }) {
     return apiClient.patch<{ success: boolean; data: Professional }>(`/professionals/${id}`, payload);
   },
 

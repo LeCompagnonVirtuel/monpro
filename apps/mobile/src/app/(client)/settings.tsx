@@ -123,20 +123,15 @@ export default function SettingsScreen() {
               value={settings?.pushEnabled ?? true}
               onValueChange={(v) => handleToggle('pushEnabled', v)}
             />
-            <View style={styles.separator} />
-            <SettingRow
-              icon="mail-outline"
-              label="Notifications par e-mail"
-              type="toggle"
-              value={settings?.emailEnabled ?? false}
-              onValueChange={(v) => handleToggle('emailEnabled', v)}
-            />
           </View>
+          <Text variant="caption" color={colors.textTertiary} style={styles.settingNote}>
+            Active ou désactive les notifications sur cet appareil.
+          </Text>
         </View>
 
         <View style={styles.section}>
           <Text variant="bodySmall" color={colors.textSecondary} style={styles.sectionTitle}>
-            Confidentialité
+            Préférences locales
           </Text>
           <View style={styles.card}>
             <SettingRow
@@ -155,6 +150,9 @@ export default function SettingsScreen() {
               onValueChange={(v) => handleToggle('locationEnabled', v)}
             />
           </View>
+          <Text variant="caption" color={colors.textTertiary} style={styles.settingNote}>
+            Préférences enregistrées sur cet appareil uniquement.
+          </Text>
         </View>
 
         <View style={styles.section}>
@@ -242,6 +240,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.borderLight,
     marginLeft: spacing.lg + 32 + spacing.md,
     marginRight: spacing.lg,
+  },
+  settingNote: {
+    marginTop: spacing.xs,
+    marginLeft: spacing.xs,
+    fontStyle: 'italic',
   },
   bottomSpacer: {
     height: spacing.xxxl,

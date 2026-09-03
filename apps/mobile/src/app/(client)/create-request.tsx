@@ -50,7 +50,7 @@ const PHOTO_TAGS = [
 export default function CreateRequestScreen() {
   const { serviceId } = useLocalSearchParams<{ serviceId?: string }>();
   const { data: preselectedService } = useService(serviceId);
-  const { location: _location } = useLocation();
+  const { location: _location, address: detectedAddress, isLoading: locationLoading } = useLocation();
   const createRequest = useCreateServiceRequest();
   const insets = useSafeAreaInsets();
   const userRole = useAuthStore((s) => s.role);
@@ -63,7 +63,7 @@ export default function CreateRequestScreen() {
   const [preferredDate, setPreferredDate] = useState('');
   const [budgetRange, setBudgetRange] = useState('');
   const [showBudgetDropdown, setShowBudgetDropdown] = useState(false);
-  const [urgency, _setUrgency] = useState<UrgencyLevel>('NORMAL');
+  const [urgency] = useState<UrgencyLevel>('NORMAL');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -170,37 +170,28 @@ export default function CreateRequestScreen() {
     setError(null);
 
     try {
-      let photoUrls: string[] = [];
       if (photos.length > 0) {
-        const { data: uploadResponse } = await uploadsApi.uploadImages(photos, 'service-requests');
-        photoUrls = uploadResponse.data.urls;
+        await uploadsApi.uploadImages(photos, 'service-requests');
       }
 
       const urgencyFromDate: UrgencyLevel = dateMode === 'asap' ? 'HIGH' : urgency;
 
-      // Build description with location context and photos
-      let fullDescription = description.trim();
-      const locationParts: string[] = [];
-      if (selectedCity) locationParts.push(selectedCity.name);
-      if (selectedDistrict) locationParts.push(selectedDistrict.name);
-      if (locationParts.length > 0) {
-        fullDescription += `\n\n[Localisation: ${locationParts.join(', ')}]`;
-      }
-      if (photoUrls.length > 0) {
-        fullDescription += `\n\n[Photos: ${photoUrls.join(', ')}]`;
-      }
-
-      await createRequest.mutateAsync({
+      const result = await createRequest.mutateAsync({
         serviceId: finalServiceId,
         title: title.trim(),
-        description: fullDescription,
+        description: description.trim(),
         urgency: urgencyFromDate,
+        addressId: selectedDistrictId || selectedCityId || undefined,
         preferredDate: dateMode === 'choose' && preferredDate ? preferredDate : undefined,
         preferredTimeStart: preferredTimeStart || undefined,
         preferredTimeEnd: preferredTimeEnd || undefined,
       });
 
-      router.replace('/(client)/(tabs)/home');
+      if (result?.id) {
+        router.replace({ pathname: '/(client)/request-detail', params: { id: result.id } });
+      } else {
+        router.replace('/(client)/(tabs)/home');
+      }
     } catch (err) {
       const apiError = extractApiError(err);
       setError(apiError.message);
@@ -702,6 +693,22 @@ export default function CreateRequestScreen() {
               <Text variant="bodySmall" color={colors.textSecondary} style={styles.sectionSubtitle}>
                 Où souhaitez-vous que le service soit effectué ?
               </Text>
+
+              {detectedAddress?.formattedAddress && !selectedCountryId && (
+                <View style={styles.detectedLocation}>
+                  <Ionicons name="navigate" size={18} color={colors.success} />
+                  <View style={{ flex: 1 }}>
+                    <Text variant="bodySmall" color={colors.success}>Position détectée</Text>
+                    <Text variant="bodySmall" color={colors.textSecondary}>{detectedAddress.formattedAddress}</Text>
+                  </View>
+                </View>
+              )}
+              {locationLoading && !detectedAddress && (
+                <View style={styles.detectedLocation}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                  <Text variant="bodySmall" color={colors.textTertiary}>Détection de votre position...</Text>
+                </View>
+              )}
 
               {/* Country */}
               <View style={styles.geoField}>
@@ -1498,6 +1505,16 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   // Step 3 styles
+  detectedLocation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.successLightest,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    marginBottom: spacing.md,
+  },
   geoField: {
     marginBottom: spacing.lg,
   },

@@ -35,8 +35,9 @@ export function useSendMessage() {
       const { data } = await messagingApi.sendMessage(params.conversationId, params.content, params.imageUrl);
       return data.data;
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['messages', variables.conversationId] });
     },
   });
 }

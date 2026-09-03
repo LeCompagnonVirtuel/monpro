@@ -138,6 +138,7 @@ export default function OnboardingScreen() {
           businessName: payload.businessName,
           description: payload.description,
           experienceYears: payload.experienceYears,
+          serviceIds: payload.serviceIds,
         });
       } else {
         await createProfile.mutateAsync(payload);

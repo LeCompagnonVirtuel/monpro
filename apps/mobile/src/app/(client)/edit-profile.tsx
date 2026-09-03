@@ -22,7 +22,7 @@ export default function EditProfileScreen() {
   const user = me.data;
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [fullNameError, setFullNameError] = useState('');
-  const [city, setCity] = useState('');
+  const [city] = useState(user?.city?.name || '');
 
   const isSaving = updateProfile.isPending || isUploading;
 
@@ -209,9 +209,9 @@ export default function EditProfileScreen() {
             <Input
               label="Ville"
               value={city}
-              onChangeText={setCity}
-              placeholder="Votre ville"
-              autoCapitalize="words"
+              editable={false}
+              placeholder="Non renseignée"
+              style={styles.phoneInput}
             />
           </View>
         </View>

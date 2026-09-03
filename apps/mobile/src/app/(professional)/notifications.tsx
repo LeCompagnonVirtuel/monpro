@@ -12,14 +12,16 @@ import { Notification } from '@/api/notifications';
 import { formatRelativeDate } from '@/lib/format';
 
 const TYPE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  message: 'chatbubble-outline',
-  quote: 'document-text-outline',
-  booking: 'calendar-outline',
-  intervention: 'construct-outline',
-  payment: 'card-outline',
-  review: 'star-outline',
-  request: 'document-text-outline',
-  system: 'information-circle-outline',
+  NEW_MESSAGE: 'chatbubble-outline',
+  NEW_QUOTE: 'document-text-outline',
+  QUOTE_ACCEPTED: 'checkmark-circle-outline',
+  BOOKING_CONFIRMED: 'calendar-outline',
+  REMINDER: 'alarm-outline',
+  PROFESSIONAL_ARRIVING: 'navigate-outline',
+  INTERVENTION_COMPLETED: 'construct-outline',
+  NEW_PAYMENT: 'card-outline',
+  NEW_REVIEW: 'star-outline',
+  NEW_REQUEST: 'document-text-outline',
 };
 
 function getDeepLink(notification: Notification): string | null {

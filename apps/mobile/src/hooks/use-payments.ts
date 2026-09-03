@@ -27,21 +27,6 @@ export function useInitiatePayment() {
   });
 }
 
-export function usePollPaymentStatus() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (paymentId: string) => {
-      const { data } = await paymentsApi.pollStatus(paymentId);
-      return data.data;
-    },
-    onSuccess: (result, paymentId) => {
-      queryClient.invalidateQueries({ queryKey: ['payments'] });
-      queryClient.invalidateQueries({ queryKey: ['bookings'] });
-    },
-  });
-}
-
 export function useRefundPayment() {
   const queryClient = useQueryClient();
 
@@ -50,7 +35,7 @@ export function useRefundPayment() {
       const { data } = await paymentsApi.refund(paymentId, reason);
       return data.data;
     },
-    onSuccess: (_result, { paymentId }) => {
+    onSuccess: (_result, { paymentId: _paymentId }) => {
       queryClient.invalidateQueries({ queryKey: ['payments'] });
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
     },

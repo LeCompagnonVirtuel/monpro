@@ -41,7 +41,7 @@ export function useUpdateProfessionalProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...payload }: { id: string; businessName?: string; description?: string; experienceYears?: number; isAvailable?: boolean }) => {
+    mutationFn: async ({ id, ...payload }: { id: string; businessName?: string; description?: string; experienceYears?: number; isAvailable?: boolean; serviceIds?: string[] }) => {
       const { data } = await professionalsApi.update(id, payload);
       return data.data;
     },

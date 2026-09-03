@@ -9,7 +9,7 @@ import { radius } from '@/theme/radius';
 import { Text, Button, Divider, Skeleton } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useBooking } from '@/hooks/use-bookings';
-import { useCreateReview } from '@/hooks/use-create-review';
+import { useCreateReview, useHasReviewed } from '@/hooks/use-create-review';
 
 const RATING_LABELS = ['', 'Très mauvais', 'Mauvais', 'Correct', 'Bien', 'Excellent'];
 
@@ -24,6 +24,7 @@ export default function ReviewScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
   const { data: booking, isLoading: bookingLoading, isError: bookingError, refetch } = useBooking(bookingId);
   const createReview = useCreateReview();
+  const { data: alreadyReviewed } = useHasReviewed(bookingId);
 
   const [overallRating, setOverallRating] = useState(0);
   const [dimensionRatings, setDimensionRatings] = useState<Record<string, number>>({});
@@ -99,7 +100,7 @@ export default function ReviewScreen() {
     );
   }
 
-  if (submitted) {
+  if (submitted || alreadyReviewed) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />

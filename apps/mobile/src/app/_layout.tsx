@@ -11,6 +11,7 @@ import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { useRealtimeSync } from '@/hooks/use-realtime-sync';
 import { OfflineBanner } from '@/components/feedback/OfflineBanner';
 import { GlobalErrorBoundary } from '@/components/feedback/GlobalErrorBoundary';
+import { AnimatedSplash } from '@/components/feedback/AnimatedSplash';
 import { hasCompletedOnboarding } from '@/lib/onboarding';
 import { initSentry } from '@/lib/sentry';
 import '@/lib/i18n';
@@ -35,6 +36,7 @@ export default function RootLayout() {
   const restoreSession = useAuthStore((s) => s.restoreSession);
   const logout = useAuthStore((s) => s.logout);
   const [appReady, setAppReady] = useState(false);
+  const [splashDone, setSplashDone] = useState(false);
 
   useEffect(() => {
     setSessionExpiredHandler(() => {
@@ -61,7 +63,8 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <AppServices />
         <OfflineBanner />
-        <StatusBar style="dark" />
+        <StatusBar style={splashDone ? 'dark' : 'light'} />
+        {!splashDone && <AnimatedSplash onFinish={() => setSplashDone(true)} />}
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(onboarding)" />
           <Stack.Screen name="(auth)" />
