@@ -143,7 +143,7 @@ export default function WelcomeScreen() {
                   },
                 ]}
               >
-                {'\n' + TAGLINES[currentIndex.current].rest}
+                {TAGLINES[currentIndex.current].rest}
               </Animated.Text>
             </View>
 
@@ -264,12 +264,12 @@ const styles = StyleSheet.create({
   heroRest: {
     fontSize: 30,
     fontWeight: '700',
-    color: colors.textInverseSoft,
+    color: colors.textInverse,
     letterSpacing: -0.3,
     lineHeight: 38,
   },
   goldBar: { height: 3, backgroundColor: colors.secondary, borderRadius: 1.5 },
-  subtitle: { fontSize: 14, lineHeight: 20, color: colors.textInverseSoft },
+  subtitle: { fontSize: 14, lineHeight: 20, color: colors.textInverse },
   dots: { flexDirection: 'row', gap: 5, marginTop: spacing.xs },
   dot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: 'rgba(255,255,255,0.3)' },
   dotActive: { width: 18, backgroundColor: colors.secondary },
