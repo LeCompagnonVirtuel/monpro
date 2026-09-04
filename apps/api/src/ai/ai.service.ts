@@ -15,16 +15,23 @@ export class AiService {
     private prisma: PrismaService,
   ) {
     const apiKey = this.config.get<string>('OPENAI_API_KEY');
-    this.openai = new OpenAI({
-      apiKey,
-      baseURL: 'https://api.deepseek.com',
-    });
+    if (apiKey) {
+      this.openai = new OpenAI({
+        apiKey,
+        baseURL: 'https://api.deepseek.com',
+      });
+    } else {
+      this.logger.warn('OPENAI_API_KEY not set — AI features disabled');
+    }
   }
 
   private async chatCompletion(
     messages: { role: 'system' | 'user' | 'assistant'; content: string }[],
     maxTokens = 500,
   ): Promise<string> {
+    if (!this.isOpenAiAvailable()) {
+      return 'Service IA non configuré. Contactez le support.';
+    }
     const res = await this.openai.chat.completions.create({
       model: 'deepseek-chat',
       messages,
@@ -35,6 +42,10 @@ export class AiService {
   }
 
   // ─── Feature 1: Chatbot ───────────────────────────────────────────────
+
+  private isOpenAiAvailable(): boolean {
+    return !!this.openai;
+  }
 
   private readonly CHATBOT_SYSTEM = `Tu es l'assistant MONPRO, un service de mise en relation clients-professionnels en Côte d'Ivoire.
 Tu aides les clients à décrire leurs besoms et à trouver le bon professionnel.
@@ -215,6 +226,16 @@ Pas de texte avant ou après le JSON.`;
   // ─── Feature 4: Photo Diagnosis ───────────────────────────────────────
 
   async diagnosePhoto(imageBase64: string): Promise<DiagnosisResult> {
+    if (!this.isOpenAiAvailable()) {
+      return {
+        issue: 'Service IA non configuré',
+        category: 'Autre',
+        serviceSuggested: 'Service général',
+        urgency: 'NORMAL',
+        confidence: 0,
+      };
+    }
+
     const prompt = `Analyse cette image et identifie le problème technique ou le besoin de service.
 
 Catégories possibles: Plomberie, Électricité, Peinture, Menuiserie, Jardinage, Nettoyage, Serrurerie, Carrelage, Toiture, Climatisation, Autre.
