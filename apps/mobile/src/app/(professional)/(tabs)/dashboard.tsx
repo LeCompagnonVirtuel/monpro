@@ -238,7 +238,7 @@ export default function DashboardScreen() {
                 />
                 <QuickAction
                   icon="document-text-outline"
-                  label="Devis"
+                  label="Demandes"
                   color={colors.warning}
                   badge={(requestsData?.total || 0) > 0 ? requestsData?.total : undefined}
                   onPress={() => router.push('/(professional)/(tabs)/requests')}

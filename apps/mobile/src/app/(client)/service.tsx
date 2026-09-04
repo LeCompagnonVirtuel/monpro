@@ -4,6 +4,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
+import { radius } from '@/theme/radius';
 import { Text, Button, Card, Skeleton } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -15,7 +16,7 @@ import { Professional } from '@/api/professionals';
 export default function ServiceScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: service, isLoading: serviceLoading } = useService(id);
-  const { location } = useLocation();
+  const { location, error: locationError, refresh: refreshLocation } = useLocation();
   const insets = useSafeAreaInsets();
 
   const matchParams = id ? {
@@ -42,6 +43,18 @@ export default function ServiceScreen() {
           <Text variant="body" color={colors.textSecondary}>
             {service.description}
           </Text>
+        </View>
+      )}
+
+      {locationError && (
+        <View style={styles.locationBanner}>
+          <Ionicons name="location-outline" size={18} color={colors.warning} />
+          <Text variant="bodySmall" color={colors.textSecondary} style={styles.locationBannerText}>
+            Activez la localisation pour voir les professionnels proches de vous.
+          </Text>
+          <Pressable onPress={refreshLocation} accessibilityLabel="Activer la localisation" accessibilityRole="button">
+            <Text variant="bodySmall" color={colors.primary}>Activer</Text>
+          </Pressable>
         </View>
       )}
 
@@ -211,5 +224,18 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.borderLight,
     backgroundColor: colors.surface,
+  },
+  locationBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.lg,
+    padding: spacing.md,
+    backgroundColor: colors.warningLight,
+    borderRadius: radius.md,
+    gap: spacing.sm,
+  },
+  locationBannerText: {
+    flex: 1,
   },
 });

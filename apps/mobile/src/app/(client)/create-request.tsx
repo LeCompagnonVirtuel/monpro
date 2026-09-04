@@ -264,7 +264,7 @@ export default function CreateRequestScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} onScrollBeginDrag={() => showBudgetDropdown && setShowBudgetDropdown(false)}>
         {currentStep === 0 && (
           <>
             {/* Info Banner */}
@@ -465,7 +465,7 @@ export default function CreateRequestScreen() {
                     ? BUDGET_RANGES.find(b => b.value === budgetRange)?.label
                     : 'Sélectionnez une plage de budget'}
                 </Text>
-                <Ionicons name="chevron-down" size={20} color={colors.textTertiary} />
+                <Ionicons name={showBudgetDropdown ? 'chevron-up' : 'chevron-down'} size={20} color={colors.textTertiary} />
               </Pressable>
               {showBudgetDropdown && (
                 <View style={styles.dropdownList}>

@@ -29,6 +29,7 @@ export default function ConversationScreen() {
   const [typingUserId, setTypingUserId] = useState<string | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
+  const [isNearBottom, setIsNearBottom] = useState(true);
   const flatListRef = useRef<FlatList>(null);
   const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -89,6 +90,13 @@ export default function ConversationScreen() {
     }
   };
 
+  const handleScroll = useCallback((event: any) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const paddingToBottom = 100;
+    const atBottom = contentSize.height - layoutMeasurement.height - contentOffset.y < paddingToBottom;
+    setIsNearBottom(atBottom);
+  }, []);
+
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -131,7 +139,12 @@ export default function ConversationScreen() {
             </View>
           ) : undefined}
           contentContainerStyle={styles.messagesContent}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
+          onScroll={handleScroll}
+          onContentSizeChange={() => {
+            if (isNearBottom) {
+              flatListRef.current?.scrollToEnd({ animated: true });
+            }
+          }}
           onEndReached={() => { if (hasNextPage) fetchNextPage(); }}
           onEndReachedThreshold={0.3}
           inverted={false}

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { StyleSheet, View, ScrollView, Pressable, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -35,7 +35,7 @@ export default function BookingDetailScreen() {
     return tomorrow;
   });
 
-  const dateOptions = useMemo(() => {
+  const dateOptions = (() => {
     const options: { label: string; date: Date }[] = [];
     for (let i = 1; i <= 14; i++) {
       const d = new Date();
@@ -46,7 +46,7 @@ export default function BookingDetailScreen() {
       options.push({ label: `${dayName} ${dayNum} ${month}`, date: d });
     }
     return options;
-  }, []);
+  })();
 
   const handleCancelBooking = () => {
     if (!booking) return;
