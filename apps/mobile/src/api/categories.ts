@@ -16,6 +16,7 @@ export interface Subcategory {
   name: string;
   slug: string;
   categoryId: string;
+  services?: { id: string; name: string; slug: string; description?: string; isActive: boolean }[];
 }
 
 export const categoriesApi = {

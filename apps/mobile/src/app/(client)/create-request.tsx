@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { StyleSheet, View, ScrollView, Pressable, TextInput, Image, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
@@ -12,6 +13,7 @@ import { Text } from '@/components/ui';
 import { Skeleton } from '@/components/ui';
 import { UrgencyLevel } from '@/api/requests';
 import { uploadsApi } from '@/api/uploads';
+import { aiApi, DiagnosisResult } from '@/api/ai';
 import { useCreateServiceRequest } from '@/hooks/use-service-requests';
 import { useService } from '@/hooks/use-services';
 import { useServices } from '@/hooks/use-services';
@@ -79,6 +81,42 @@ export default function CreateRequestScreen() {
   const [preferredTimeStart, setPreferredTimeStart] = useState('');
   const [preferredTimeEnd, setPreferredTimeEnd] = useState('');
 
+  // AI photo diagnosis
+  const [diagnosis, setDiagnosis] = useState<DiagnosisResult | null>(null);
+  const [diagnosisLoading, setDiagnosisLoading] = useState(false);
+
+  const runDiagnosis = useCallback(async (photoUri: string) => {
+    setDiagnosisLoading(true);
+    try {
+      const base64 = await FileSystem.readAsStringAsync(photoUri, { encoding: FileSystem.EncodingType.Base64 });
+      const { data: res } = await aiApi.diagnose(base64);
+      setDiagnosis(res.data);
+      if (res.data.confidence > 0.5) {
+        if (!title.trim()) setTitle(res.data.issue.slice(0, 80));
+        if (!description.trim()) setDescription(res.data.issue);
+      }
+    } catch {
+      // Silent fail — diagnosis is optional
+    } finally {
+      setDiagnosisLoading(false);
+    }
+  }, [title, description]);
+
+  const handleTagPress = useCallback(async (tagLabel: string) => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: false,
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets.length > 0) {
+      const asset = result.assets[0];
+      const newPhoto = { uri: asset.uri, name: asset.fileName || `photo_${Date.now()}.jpg`, type: asset.mimeType || 'image/jpeg' };
+      setPhotos((prev) => [...prev, newPhoto].slice(0, 5));
+      if (!title.trim()) setTitle(tagLabel);
+      runDiagnosis(asset.uri);
+    }
+  }, [title, runDiagnosis]);
+
   // AI price estimate
   const { data: priceEstimate } = usePriceEstimate(
     selectedServiceId || serviceId || null,
@@ -122,6 +160,9 @@ export default function CreateRequestScreen() {
         type: asset.mimeType || 'image/jpeg',
       }));
       setPhotos((prev) => [...prev, ...newPhotos].slice(0, 5));
+      if (result.assets.length > 0 && !diagnosis) {
+        runDiagnosis(result.assets[0].uri);
+      }
     }
   };
 
@@ -389,14 +430,40 @@ export default function CreateRequestScreen() {
               {/* Photo tags */}
               <View style={styles.photoTags}>
                 {PHOTO_TAGS.map((tag) => (
-                  <View key={tag.label} style={styles.photoTag}>
+                  <Pressable
+                    key={tag.label}
+                    style={styles.photoTag}
+                    onPress={() => handleTagPress(tag.label)}
+                    accessibilityLabel={`Photographier : ${tag.label}`}
+                    accessibilityRole="button"
+                  >
                     <View style={styles.photoTagIcon}>
                       <Ionicons name={tag.icon} size={20} color={colors.primary} />
                     </View>
                     <Text variant="caption" color={colors.textSecondary} numberOfLines={1}>{tag.label}</Text>
-                  </View>
+                  </Pressable>
                 ))}
               </View>
+
+              {/* AI Diagnosis */}
+              {diagnosisLoading && (
+                <View style={styles.diagnosisBanner}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                  <Text variant="bodySmall" color={colors.textSecondary}>Analyse IA en cours...</Text>
+                </View>
+              )}
+              {diagnosis && !diagnosisLoading && diagnosis.confidence > 0 && (
+                <View style={styles.diagnosisBanner}>
+                  <Ionicons name="sparkles" size={18} color={colors.primary} />
+                  <View style={{ flex: 1, gap: spacing.xs }}>
+                    <Text variant="bodySmall" color={colors.primary}>Diagnostic IA</Text>
+                    <Text variant="bodySmall" color={colors.text}>{diagnosis.issue}</Text>
+                    <Text variant="caption" color={colors.textTertiary}>
+                      {diagnosis.category} • {diagnosis.serviceSuggested} • Confiance {Math.round(diagnosis.confidence * 100)}%
+                    </Text>
+                  </View>
+                </View>
+              )}
             </View>
 
             {/* Date Section */}
@@ -655,7 +722,7 @@ export default function CreateRequestScreen() {
                 </View>
                 <Pressable
                   style={styles.changeServiceBtn}
-                  onPress={() => setSelectedCategoryId(preselectedService.categoryId)}
+                  onPress={() => setSelectedCategoryId(preselectedService.subcategory?.categoryId)}
                   accessibilityRole="button"
                   accessibilityLabel="Changer de service"
                 >
@@ -1307,6 +1374,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  diagnosisBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    backgroundColor: colors.secondaryMuted,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginTop: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.secondary + '30',
   },
   dateToggleRow: {
     flexDirection: 'row',

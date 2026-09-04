@@ -4,8 +4,13 @@ export interface Service {
   id: string;
   name: string;
   description?: string;
-  categoryId: string;
-  subcategoryId?: string;
+  subcategoryId: string;
+  subcategory?: {
+    id: string;
+    name: string;
+    categoryId: string;
+    category?: { id: string; name: string };
+  };
   basePrice?: number;
   isActive: boolean;
 }

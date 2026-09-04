@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { StyleSheet, View, FlatList, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, View, FlatList, TextInput, Pressable, KeyboardAvoidingView, Platform, Image, ActivityIndicator } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
@@ -13,8 +15,9 @@ import { useConversations, useMarkConversationRead } from '@/hooks/use-conversat
 import { useAuthStore } from '@/stores/auth.store';
 import { socketService } from '@/lib/socket';
 import { Message } from '@/api/messaging';
+import { uploadsApi } from '@/api/uploads';
+import { aiApi, DiagnosisResult } from '@/api/ai';
 import { formatRelativeDate } from '@/lib/format';
-import { aiApi } from '@/api/ai';
 
 export default function ConversationScreen() {
   const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
@@ -30,6 +33,9 @@ export default function ConversationScreen() {
   const [summary, setSummary] = useState<string | null>(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [isNearBottom, setIsNearBottom] = useState(true);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [diagnosis, setDiagnosis] = useState<DiagnosisResult | null>(null);
+  const [diagnosisLoading, setDiagnosisLoading] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -69,6 +75,50 @@ export default function ConversationScreen() {
       setSending(false);
     }
   }, [text, sending, conversationId, sendMessageMutation]);
+
+  const handlePickImage = useCallback(async () => {
+    if (!conversationId || uploadingImage) return;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: false,
+      quality: 0.7,
+    });
+
+    if (result.canceled || result.assets.length === 0) return;
+
+    const asset = result.assets[0];
+    setUploadingImage(true);
+    try {
+      const file = { uri: asset.uri, name: asset.fileName || `img_${Date.now()}.jpg`, type: asset.mimeType || 'image/jpeg' };
+      const { data: uploadRes } = await uploadsApi.uploadImage(file, 'messages');
+      const imageUrl = uploadRes.data.url;
+      await sendMessageMutation.mutateAsync({
+        conversationId,
+        content: text.trim() || '📷 Image',
+        imageUrl,
+      });
+      setText('');
+
+      // Run AI diagnosis in background
+      setDiagnosisLoading(true);
+      try {
+        const base64 = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.Base64 });
+        const { data: diagRes } = await aiApi.diagnose(base64);
+        if (diagRes.data.confidence > 0.3) {
+          setDiagnosis(diagRes.data);
+        }
+      } catch {
+        // Diagnosis is optional
+      } finally {
+        setDiagnosisLoading(false);
+      }
+    } catch {
+      // Upload/send failed silently
+    } finally {
+      setUploadingImage(false);
+    }
+  }, [conversationId, uploadingImage, text, sendMessageMutation]);
 
   const handleSummarize = useCallback(async () => {
     if (!conversationId || loadingSummary) return;
@@ -150,6 +200,29 @@ export default function ConversationScreen() {
           inverted={false}
         />
 
+        {/* AI Diagnosis result */}
+        {diagnosisLoading && (
+          <View style={styles.diagnosisBanner}>
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text variant="bodySmall" color={colors.textSecondary}>Analyse IA de l{"'"}image...</Text>
+          </View>
+        )}
+        {diagnosis && !diagnosisLoading && (
+          <View style={styles.diagnosisBanner}>
+            <Ionicons name="sparkles" size={16} color={colors.primary} />
+            <View style={{ flex: 1 }}>
+              <Text variant="bodySmall" color={colors.primary}>Diagnostic IA</Text>
+              <Text variant="bodySmall" color={colors.text}>{diagnosis.issue}</Text>
+              <Text variant="caption" color={colors.textTertiary}>
+                {diagnosis.serviceSuggested} • {diagnosis.urgency === 'URGENT' ? '🔴 Urgent' : diagnosis.urgency === 'HIGH' ? '🟠 Prioritaire' : '🟢 Normal'}
+              </Text>
+            </View>
+            <Pressable onPress={() => setDiagnosis(null)} accessibilityLabel="Fermer" accessibilityRole="button">
+              <Ionicons name="close" size={18} color={colors.textTertiary} />
+            </Pressable>
+          </View>
+        )}
+
         {typingUserId && (
           <View style={styles.typingBar}>
             <Text variant="bodySmall" color={colors.textTertiary}>
@@ -159,6 +232,19 @@ export default function ConversationScreen() {
         )}
 
         <View style={styles.composer}>
+          <Pressable
+            style={styles.attachBtn}
+            onPress={handlePickImage}
+            disabled={uploadingImage}
+            accessibilityLabel="Envoyer une image"
+            accessibilityRole="button"
+          >
+            {uploadingImage ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <Ionicons name="image-outline" size={22} color={colors.primary} />
+            )}
+          </Pressable>
           <TextInput
             style={styles.input}
             value={text}
@@ -211,9 +297,19 @@ function Header({ name, onSummarize, loadingSummary }: { name?: string; onSummar
 function MessageBubble({ message, isOwn }: { message: Message; isOwn: boolean }) {
   return (
     <View style={[styles.bubble, isOwn ? styles.bubbleOwn : styles.bubbleOther]}>
-      <Text variant="body" color={isOwn ? colors.textInverse : colors.text}>
-        {message.content}
-      </Text>
+      {message.imageUrl && (
+        <Image
+          source={{ uri: message.imageUrl }}
+          style={styles.messageImage}
+          resizeMode="cover"
+          accessibilityLabel="Image envoyée"
+        />
+      )}
+      {message.content !== '📷 Image' && (
+        <Text variant="body" color={isOwn ? colors.textInverse : colors.text}>
+          {message.content}
+        </Text>
+      )}
       <Text variant="bodySmall" color={isOwn ? colors.textInverseMuted : colors.textTertiary} align="right">
         {formatRelativeDate(message.createdAt)}
       </Text>
@@ -232,11 +328,14 @@ const styles = StyleSheet.create({
   bubble: { maxWidth: '78%', padding: spacing.md, borderRadius: radius.lg, gap: 4 },
   bubbleOwn: { alignSelf: 'flex-end', backgroundColor: colors.primary, borderBottomRightRadius: radius.xs },
   bubbleOther: { alignSelf: 'flex-start', backgroundColor: colors.surfaceSecondary, borderBottomLeftRadius: radius.xs },
+  messageImage: { width: 200, height: 150, borderRadius: radius.md, marginBottom: spacing.xs },
   typingBar: { paddingHorizontal: spacing.lg, paddingVertical: spacing.xs },
   composer: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderTopWidth: 1, borderTopColor: colors.borderLight, gap: spacing.sm },
+  attachBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   input: { flex: 1, minHeight: 40, maxHeight: 100, backgroundColor: colors.surfaceSecondary, borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, fontSize: 14, color: colors.text },
   sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   sendBtnDisabled: { backgroundColor: colors.border },
   summaryBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   summaryCard: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, backgroundColor: colors.secondaryMuted, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm },
+  diagnosisBanner: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, backgroundColor: colors.secondaryMuted, marginHorizontal: spacing.lg, marginBottom: spacing.xs, borderRadius: radius.md, padding: spacing.md },
 });
