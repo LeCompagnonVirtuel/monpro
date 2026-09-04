@@ -13,7 +13,7 @@ export class AiController {
   // ─── Feature 1: Chatbot ───────────────────────────────────────────────
 
   @Post('chat')
-  @Throttle({ ai: { ttl: 60000, limit: 10 } })
+  @Throttle({ default: { ttl: 60000, limit: 10 } })
   async chat(@Body() dto: ChatDto) {
     const reply = await this.aiService.chat(dto.message, dto.conversationHistory);
     return { reply };
@@ -22,7 +22,7 @@ export class AiController {
   // ─── Feature 3: Price Estimation ──────────────────────────────────────
 
   @Post('estimate-price')
-  @Throttle({ ai: { ttl: 60000, limit: 5 } })
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   async estimatePrice(@Body() dto: EstimatePriceDto) {
     return this.aiService.estimatePrice(
       dto.serviceId,
@@ -35,7 +35,7 @@ export class AiController {
   // ─── Feature 4: Photo Diagnosis ───────────────────────────────────────
 
   @Post('diagnose')
-  @Throttle({ ai: { ttl: 60000, limit: 5 } })
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   async diagnose(@Body() dto: DiagnoseDto) {
     return this.aiService.diagnosePhoto(dto.imageBase64);
   }
@@ -44,7 +44,7 @@ export class AiController {
 
   @Get('summary/:conversationId')
   @UseGuards(JwtAuthGuard)
-  @Throttle({ ai: { ttl: 60000, limit: 10 } })
+  @Throttle({ default: { ttl: 60000, limit: 10 } })
   async getSummary(@Param('conversationId') conversationId: string) {
     const summary = await this.aiService.summarizeConversation(conversationId);
     return { summary };
@@ -54,7 +54,7 @@ export class AiController {
 
   @Get('availability/:professionalId')
   @UseGuards(JwtAuthGuard)
-  @Throttle({ ai: { ttl: 60000, limit: 5 } })
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   async getAvailability(
     @Param('professionalId') professionalId: string,
     @Query('preferredDate') preferredDate?: string,

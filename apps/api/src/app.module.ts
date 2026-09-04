@@ -39,7 +39,6 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
       { name: 'default', ttl: 60000, limit: 200 },
       { name: 'sensitive', ttl: 60000, limit: 10 },
       { name: 'health', ttl: 60000, limit: 600 },
-      { name: 'ai', ttl: 60000, limit: 5 },
     ]),
     PrismaModule,
     RealtimeModule,
