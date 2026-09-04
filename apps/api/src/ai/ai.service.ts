@@ -252,7 +252,7 @@ Pas de texte avant ou après le JSON.`;
 
     try {
       const res = await this.openai.chat.completions.create({
-      model: 'deepseek-chat',
+      model: 'deepseek-v4-flash-vision-exp',
         messages: [
           { role: 'user', content: [
             { type: 'text', text: prompt },
