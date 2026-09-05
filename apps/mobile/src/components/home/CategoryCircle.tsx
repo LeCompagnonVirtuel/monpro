@@ -2,7 +2,6 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
-import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
 import { Text } from '@/components/ui';
 import { CATEGORY_ICONS, CATEGORY_COLORS } from '@/constants/category-maps';

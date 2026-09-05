@@ -223,7 +223,7 @@ export default function ProfessionalInterventionScreen() {
               </ScrollView>
             ) : (
               <Text variant="bodySmall" color={colors.textSecondary}>
-                Ajoutez des photos de l'état avant l'intervention
+                {"Ajoutez des photos de l'état avant l'intervention"}
               </Text>
             )}
           </View>
@@ -251,7 +251,7 @@ export default function ProfessionalInterventionScreen() {
               </ScrollView>
             ) : (
               <Text variant="bodySmall" color={colors.textSecondary}>
-                Ajoutez des photos de l'état après l'intervention
+                {"Ajoutez des photos de l'état après l'intervention"}
               </Text>
             )}
           </View>

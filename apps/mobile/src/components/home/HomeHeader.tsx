@@ -5,7 +5,6 @@ import { router } from 'expo-router';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
-import { shadows } from '@/theme/shadows';
 import { Text } from '@/components/ui';
 import { useUnreadNotificationCount } from '@/hooks/use-notifications';
 

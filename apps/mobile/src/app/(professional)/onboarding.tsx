@@ -302,7 +302,7 @@ export default function OnboardingScreen() {
             {step === 2 && (
               <View style={styles.stepContent}>
                 <View style={styles.inputGroup}>
-                  <Text variant="caption" color={colors.textSecondary} style={styles.inputLabel}>ANNÉES D'EXPÉRIENCE</Text>
+                  <Text variant="caption" color={colors.textSecondary} style={styles.inputLabel}>{"ANNÉES D'EXPÉRIENCE"}</Text>
                   <TextInput
                     ref={experienceRef}
                     style={[styles.input, styles.inputCenter]}

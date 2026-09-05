@@ -1,4 +1,5 @@
 import { io, Socket } from 'socket.io-client';
+import { InfiniteData } from '@tanstack/react-query';
 import { tokenStorage } from '@/lib/storage';
 import { queryClient } from '@/lib/query-client';
 import { Message, Conversation } from '@/api/messaging';
@@ -10,6 +11,7 @@ const SOCKET_URL = API_BASE_URL.replace('/api/v1', '');
 
 let socket: Socket | null = null;
 let isConnecting = false;
+let activeConversationId: string | null = null;
 
 export type ConnectionStatus = 'connected' | 'disconnected' | 'connecting' | 'error';
 type StatusListener = (status: ConnectionStatus) => void;
@@ -136,26 +138,46 @@ export const socketService = {
     return () => { realtimeListeners.delete(fn); };
   },
 
+  setActiveConversation(conversationId: string | null) {
+    activeConversationId = conversationId;
+  },
+
   isConnected() {
     return socket?.connected ?? false;
   },
 };
 
+type MessagesPage = { messages: Message[]; total: number };
+
 function updateQueryCache(message: Message) {
-  queryClient.setQueryData<Message[]>(
+  queryClient.setQueryData<InfiniteData<MessagesPage>>(
     ['messages', message.conversationId],
-    (old: Message[] | undefined) => {
-      if (!old) return [message];
-      if (old.some((m: Message) => m.id === message.id)) return old;
-      return [...old, message];
+    (old: InfiniteData<MessagesPage> | undefined) => {
+      if (!old || old.pages.length === 0) return old;
+      const allMessages = old.pages.flatMap((p: MessagesPage) => p.messages);
+      if (allMessages.some((m: Message) => m.id === message.id)) return old;
+      const pages = [...old.pages];
+      const last = pages.length - 1;
+      pages[last] = {
+        ...pages[last],
+        messages: [...pages[last].messages, message],
+        total: pages[last].total + 1,
+      };
+      return { ...old, pages };
     },
   );
+
+  const isViewing = message.conversationId === activeConversationId;
 
   queryClient.setQueryData<Conversation[]>(['conversations'], (old: Conversation[] | undefined) => {
     if (!old) return old;
     return old.map((conv: Conversation) =>
       conv.id === message.conversationId
-        ? { ...conv, lastMessage: { content: message.content, createdAt: message.createdAt }, unreadCount: conv.unreadCount + 1 }
+        ? {
+            ...conv,
+            lastMessage: { content: message.content, createdAt: message.createdAt },
+            unreadCount: isViewing ? conv.unreadCount : conv.unreadCount + 1,
+          }
         : conv,
     );
   });

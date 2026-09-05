@@ -43,8 +43,12 @@ export default function ProfessionalConversationScreen() {
   useEffect(() => {
     if (conversationId) {
       socketService.joinConversation(conversationId);
+      socketService.setActiveConversation(conversationId);
       markRead.mutate(conversationId);
     }
+    return () => {
+      socketService.setActiveConversation(null);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
 

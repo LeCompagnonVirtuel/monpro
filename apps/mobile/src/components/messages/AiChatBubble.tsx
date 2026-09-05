@@ -5,7 +5,6 @@ import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { Text } from '@/components/ui';
 import { ChatMessage } from '@/api/ai';
-import { formatRelativeDate } from '@/lib/format';
 
 interface Props {
   message: ChatMessage;
