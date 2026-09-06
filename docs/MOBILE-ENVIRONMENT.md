@@ -27,7 +27,7 @@ cd apps/mobile
 
 | Variable | Description | Défaut |
 |----------|-------------|--------|
-| `EXPO_PUBLIC_API_URL` | URL de l'API backend | `https://monpro-api.onrender.com/api/v1` |
+| `EXPO_PUBLIC_API_URL` | URL de l'API backend | `https://srv1288413.hstgr.cloud/api/v1` |
 
 ### Configuration par fichier
 
@@ -48,7 +48,7 @@ Dans `app.json` → `expo.extra` :
 
 1. `Constants.expoConfig.extra.apiUrl` (EAS build config)
 2. `process.env.EXPO_PUBLIC_API_URL`
-3. Fallback : `https://monpro-api.onrender.com/api/v1`
+3. Fallback : `https://srv1288413.hstgr.cloud/api/v1`
 
 ## Démarrage en développement
 

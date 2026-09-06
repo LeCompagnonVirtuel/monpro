@@ -162,7 +162,7 @@ describe('Phase 8 — Socket Cleanup', () => {
       },
     }));
     jest.mock('../lib/config', () => ({
-      API_BASE_URL: 'https://monpro-api.onrender.com/api/v1',
+      API_BASE_URL: 'https://srv1288413.hstgr.cloud/api/v1',
     }));
     jest.mock('../api/messaging', () => ({}));
     socketService = require('../lib/socket').socketService;
@@ -247,7 +247,7 @@ describe('Phase 8 — API Client Configuration', () => {
   it('client module exports apiClient and setSessionExpiredHandler', () => {
     jest.resetModules();
     jest.mock('../lib/config', () => ({
-      API_BASE_URL: 'https://monpro-api.onrender.com/api/v1',
+      API_BASE_URL: 'https://srv1288413.hstgr.cloud/api/v1',
     }));
     jest.mock('../lib/storage', () => ({
       tokenStorage: {
