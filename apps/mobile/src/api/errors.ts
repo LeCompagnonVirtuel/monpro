@@ -40,7 +40,10 @@ export class ApiError {
 
     const rawMessage = Array.isArray(data.message) ? data.message[0] : data.message;
     const code = data.error || `HTTP_${status}`;
-    const message = rawMessage || STATUS_MESSAGES[status] || 'Une erreur inattendue est survenue.';
+    const isTechnical = rawMessage && /Exception|^\w+Error:|^[A-Z][a-z]+[A-Z]/.test(rawMessage);
+    const message = (!rawMessage || isTechnical)
+      ? (STATUS_MESSAGES[status] || rawMessage || 'Une erreur inattendue est survenue.')
+      : rawMessage;
 
     return new ApiError(status, code, message, data);
   }

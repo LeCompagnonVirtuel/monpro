@@ -59,7 +59,8 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (originalRequest.url?.includes('/auth/refresh')) {
+    const url = originalRequest.url || '';
+    if (url.includes('/auth/')) {
       return Promise.reject(error);
     }
 
