@@ -60,8 +60,8 @@ export default function OnboardingScreen() {
     if (!initialized && profile && !profileLoading) {
       setBusinessName(profile.businessName || '');
       setDescription(profile.description || '');
-      setExperienceYears(String(profile.experienceYears || ''));
-      setSelectedServices(profile.services?.map((s: { id: string }) => s.id) || []);
+      setExperienceYears(String(profile.experienceYears ?? 0));
+      setSelectedServices(profile.services?.map((s) => s.service?.id).filter((id): id is string => !!id) || []);
       setInitialized(true);
     }
     if (!initialized && !profile && !profileLoading) {
@@ -108,7 +108,7 @@ export default function OnboardingScreen() {
     switch (step) {
       case 0: return businessName.trim().length >= 2;
       case 1: return description.trim().length >= 10;
-      case 2: return experienceYears.trim().length > 0 && Number(experienceYears) >= 0;
+      case 2: return experienceYears.trim().length > 0 && !isNaN(Number(experienceYears)) && Number(experienceYears) >= 0;
       case 3: return selectedServices.length > 0;
       case 4: return true;
       default: return false;
@@ -131,17 +131,23 @@ export default function OnboardingScreen() {
       serviceIds: selectedServices,
     };
 
+    const expYears = Math.max(0, Math.floor(Number(experienceYears) || 0));
+
     try {
       if (profile) {
         await updateProfile.mutateAsync({
           id: profile.id,
-          businessName: payload.businessName,
-          description: payload.description,
-          experienceYears: payload.experienceYears,
-          serviceIds: payload.serviceIds,
+          businessName: businessName.trim(),
+          description: description.trim(),
+          experienceYears: expYears,
         });
       } else {
-        await createProfile.mutateAsync(payload);
+        await createProfile.mutateAsync({
+          businessName: businessName.trim(),
+          description: description.trim(),
+          experienceYears: expYears,
+          serviceIds: selectedServices,
+        });
       }
       router.replace('/(professional)/(tabs)/dashboard');
     } catch {

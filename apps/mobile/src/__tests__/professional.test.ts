@@ -269,7 +269,7 @@ describe('Phase 7 - Security', () => {
       'utf-8',
     );
     expect(source).toContain('useProfessionalWallet');
-    expect(source).toContain('wallet.balance');
+    expect(source).toContain('wallet.availableBalance');
     expect(source).not.toContain('totalAmount * 0.');
   });
 

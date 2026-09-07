@@ -1,9 +1,10 @@
 import { apiClient } from './client';
 
 export interface Wallet {
-  balance: number;
+  professionalId: string;
+  availableBalance: number;
   totalEarned: number;
-  totalCommission: number;
+  totalPaidOut: number;
   currency: string;
 }
 

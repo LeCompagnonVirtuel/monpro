@@ -15,7 +15,7 @@ interface ProfessionalSuggestionCardProps {
 
 export function ProfessionalSuggestionCard({ professional }: ProfessionalSuggestionCardProps) {
   const name = professional.user?.fullName || professional.businessName || 'Professionnel';
-  const profession = professional.services?.[0]?.name || 'Professionnel';
+  const profession = professional.services?.[0]?.service?.name || 'Professionnel';
   const createConversation = useCreateConversation();
 
   const handleContact = async () => {

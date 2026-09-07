@@ -129,10 +129,10 @@ export default function ProfessionalScreen() {
                   key={s.id}
                   style={styles.serviceChip}
                   onPress={() => router.push({ pathname: '/(client)/service', params: { id: s.id } })}
-                  accessibilityLabel={s.name}
+                  accessibilityLabel={s.service?.name || 'Service'}
                   accessibilityRole="button"
                 >
-                  <Text variant="caption">{s.name}</Text>
+                  <Text variant="caption">{s.service?.name || 'Service'}</Text>
                 </Pressable>
               ))}
             </View>

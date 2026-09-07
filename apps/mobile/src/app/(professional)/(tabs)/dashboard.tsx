@@ -177,14 +177,14 @@ export default function DashboardScreen() {
                 <Pressable
                   style={styles.statCard}
                   onPress={() => router.push('/(professional)/revenue')}
-                  accessibilityLabel={`Solde : ${formatCurrency(wallet.balance ?? 0)}`}
+                  accessibilityLabel={`Solde : ${formatCurrency(wallet.availableBalance ?? 0)}`}
                   accessibilityRole="button"
                 >
                   <View style={[styles.statIcon, { backgroundColor: colors.infoLight }]}>
                     <Ionicons name="wallet-outline" size={16} color={colors.info} />
                   </View>
                   <Text variant="h3" color={colors.primary} style={styles.statValue}>
-                    {formatCurrency(wallet.balance ?? 0)}
+                    {formatCurrency(wallet.availableBalance ?? 0)}
                   </Text>
                   <Text variant="caption" color={colors.textSecondary}>Solde</Text>
                 </Pressable>

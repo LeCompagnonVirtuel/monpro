@@ -15,7 +15,7 @@ interface ProfessionalHomeCardProps {
 export function ProfessionalHomeCard({ professional }: ProfessionalHomeCardProps) {
   const name = professional.user?.fullName || professional.businessName || 'Professionnel';
   const shortName = name.split(' ').map((w, i) => i === 0 ? w : `${w[0]}.`).join(' ');
-  const profession = professional.services?.[0]?.name || 'Professionnel';
+  const profession = professional.services?.[0]?.service?.name || 'Professionnel';
 
   return (
     <Pressable

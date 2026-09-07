@@ -52,7 +52,7 @@ export default function RevenueScreen() {
         {/* Balance Card */}
         <View style={styles.balanceCard}>
           <Text variant="caption" color={colors.textInverse}>SOLDE DISPONIBLE</Text>
-          <Text variant="h1" color={colors.textInverse}>{formatCurrency(wallet.balance)}</Text>
+          <Text variant="h1" color={colors.textInverse}>{formatCurrency(wallet.availableBalance)}</Text>
         </View>
 
         {/* Stats */}
@@ -70,7 +70,7 @@ export default function RevenueScreen() {
               <Ionicons name="cash-outline" size={18} color={colors.error} />
               <Text variant="body" color={colors.textSecondary}>Commissions</Text>
             </View>
-            <Text variant="bodyMedium" color={colors.error}>-{formatCurrency(wallet.totalCommission)}</Text>
+            <Text variant="bodyMedium" color={colors.error}>-{formatCurrency(wallet.totalPaidOut)}</Text>
           </View>
         </View>
 

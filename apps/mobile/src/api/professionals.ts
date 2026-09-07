@@ -1,5 +1,24 @@
 import { apiClient } from './client';
 
+export interface ProfessionalService {
+  id: string;
+  professionalId: string;
+  serviceId: string;
+  service: {
+    id: string;
+    name: string;
+    description?: string;
+    subcategory?: {
+      id: string;
+      name: string;
+      category?: { id: string; name: string };
+    };
+  };
+  priceMin?: number;
+  priceMax?: number;
+  description?: string;
+}
+
 export interface Professional {
   id: string;
   userId: string;
@@ -17,7 +36,7 @@ export interface Professional {
     avatarUrl?: string;
     phone: string;
   };
-  services?: { id: string; name: string }[];
+  services?: ProfessionalService[];
 }
 
 export interface ProfessionalListParams {
@@ -67,7 +86,7 @@ export const professionalsApi = {
     return apiClient.post<{ success: boolean; data: Professional }>('/professionals', payload);
   },
 
-  update(id: string, payload: { businessName?: string; description?: string; experienceYears?: number; isAvailable?: boolean; serviceIds?: string[] }) {
+  update(id: string, payload: { businessName?: string; description?: string; experienceYears?: number; isAvailable?: boolean }) {
     return apiClient.patch<{ success: boolean; data: Professional }>(`/professionals/${id}`, payload);
   },
 

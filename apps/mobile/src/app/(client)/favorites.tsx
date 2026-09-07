@@ -87,7 +87,7 @@ function FavoriteRow({ professional, onPress, onRemove }: { professional: Profes
         <Text variant="body" numberOfLines={1}>{name}</Text>
         {professional.services && professional.services.length > 0 && (
           <Text variant="bodySmall" color={colors.textSecondary} numberOfLines={1}>
-            {professional.services.map((s) => s.name).join(', ')}
+            {professional.services.map((s) => s.service?.name || 'Service').join(', ')}
           </Text>
         )}
         {professional.averageRating && (

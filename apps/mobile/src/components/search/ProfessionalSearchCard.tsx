@@ -14,7 +14,7 @@ interface ProfessionalSearchCardProps {
 
 export function ProfessionalSearchCard({ professional }: ProfessionalSearchCardProps) {
   const name = professional.user?.fullName || professional.businessName || 'Professionnel';
-  const profession = professional.services?.[0]?.name || 'Professionnel';
+  const profession = professional.services?.[0]?.service?.name || 'Professionnel';
   const isVerified = professional.verificationStatus === 'VERIFIED';
   const isAvailable = professional.isAvailable;
   const servicesTags = professional.services?.slice(0, 3) || [];
@@ -106,7 +106,7 @@ export function ProfessionalSearchCard({ professional }: ProfessionalSearchCardP
           {servicesTags.map((s) => (
             <View key={s.id} style={styles.tag}>
               <Text variant="caption" color={colors.text} style={styles.tagText}>
-                {s.name}
+                {s.service?.name || 'Service'}
               </Text>
             </View>
           ))}

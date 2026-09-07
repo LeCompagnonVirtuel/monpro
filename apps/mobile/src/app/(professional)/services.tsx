@@ -99,20 +99,37 @@ export default function ServicesScreen() {
         <Text variant="bodySmall" color={colors.textSecondary} style={styles.countLabel}>
           {services.length} service{services.length > 1 ? 's' : ''} actif{services.length > 1 ? 's' : ''}
         </Text>
-        {services.map((svc) => (
-          <View
-            key={svc.id}
-            style={styles.serviceCard}
-            accessibilityLabel={`Service : ${svc.name}`}
-          >
-            <View style={styles.serviceIcon}>
-              <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+        {services.map((svc) => {
+          const serviceName = svc.service?.name || 'Service';
+          const categoryName = svc.service?.subcategory?.category?.name;
+          const subcategoryName = svc.service?.subcategory?.name;
+          const description = svc.description || svc.service?.description;
+
+          return (
+            <View
+              key={svc.id}
+              style={styles.serviceCard}
+              accessibilityLabel={`Service : ${serviceName}`}
+            >
+              <View style={styles.serviceIcon}>
+                <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+              </View>
+              <View style={styles.serviceInfo}>
+                <Text variant="bodyMedium">{serviceName}</Text>
+                {categoryName && (
+                  <Text variant="caption" color={colors.textSecondary}>
+                    {subcategoryName ? `${categoryName} > ${subcategoryName}` : categoryName}
+                  </Text>
+                )}
+                {description && (
+                  <Text variant="caption" color={colors.textTertiary} numberOfLines={2}>
+                    {description}
+                  </Text>
+                )}
+              </View>
             </View>
-            <View style={styles.serviceInfo}>
-              <Text variant="body">{svc.name}</Text>
-            </View>
-          </View>
-        ))}
+          );
+        })}
       </ScrollView>
       <View style={styles.footer}>
         <Pressable
