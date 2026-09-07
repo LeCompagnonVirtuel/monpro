@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { requestsApi } from '@/api/requests';
+import { requestsApi, ServiceRequestStatus } from '@/api/requests';
 import { AxiosError } from 'axios';
 
-export function useProfessionalRequests(params?: { page?: number; limit?: number }) {
+export function useProfessionalRequests(params?: { status?: ServiceRequestStatus; page?: number; limit?: number }) {
   return useQuery({
     queryKey: ['pro-requests', params],
     queryFn: async () => {

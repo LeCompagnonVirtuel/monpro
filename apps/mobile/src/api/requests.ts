@@ -6,6 +6,20 @@ export type ServiceRequestStatus =
   | 'ACCEPTED' | 'SCHEDULED' | 'IN_PROGRESS'
   | 'COMPLETED' | 'CANCELLED' | 'DISPUTED';
 
+export interface ServiceRequestMedia {
+  id: string;
+  url: string;
+  mimeType: string;
+}
+
+export interface ServiceRequestAddress {
+  id: string;
+  label?: string;
+  fullAddress: string;
+  latitude?: number;
+  longitude?: number;
+}
+
 export interface ServiceRequest {
   id: string;
   clientId: string;
@@ -18,8 +32,13 @@ export interface ServiceRequest {
   preferredTimeStart?: string;
   preferredTimeEnd?: string;
   addressId?: string;
+  latitude?: number;
+  longitude?: number;
   createdAt: string;
   service?: { id: string; name: string };
+  client?: { fullName: string; avatarUrl?: string };
+  media?: ServiceRequestMedia[];
+  address?: ServiceRequestAddress;
 }
 
 export interface CreateServiceRequestPayload {
@@ -51,7 +70,7 @@ export const requestsApi = {
     );
   },
 
-  getAvailable(params?: { professionalId?: string; page?: number; limit?: number }) {
+  getAvailable(params?: { professionalId?: string; status?: ServiceRequestStatus; page?: number; limit?: number }) {
     return apiClient.get<{ success: boolean; data: ServiceRequest[]; total: number }>(
       '/service-requests/available',
       { params },

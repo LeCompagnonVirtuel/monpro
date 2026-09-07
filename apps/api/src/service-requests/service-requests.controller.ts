@@ -34,10 +34,11 @@ export class ServiceRequestsController {
   @ApiOperation({ summary: 'Demandes disponibles (professionnel)' })
   async findAvailable(
     @CurrentUser('id') userId: string,
+    @Query('status') status?: ServiceRequestStatus,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
-    return this.serviceRequestsService.findForProfessionalByUserId(userId, page, limit);
+    return this.serviceRequestsService.findForProfessionalByUserId(userId, page, limit, status);
   }
 
   @Get(':id')

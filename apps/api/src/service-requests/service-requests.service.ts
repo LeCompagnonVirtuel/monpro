@@ -120,16 +120,16 @@ export class ServiceRequestsService {
     return { data, total, page: p, limit: l, totalPages: Math.ceil(total / l) };
   }
 
-  async findForProfessionalByUserId(userId: string, page?: number, limit?: number) {
+  async findForProfessionalByUserId(userId: string, page?: number, limit?: number, status?: ServiceRequestStatus) {
     const pro = await this.prisma.professional.findUnique({
       where: { userId },
       include: { services: true },
     });
     if (!pro) throw new NotFoundException('Profil professionnel non trouvé');
-    return this.findForProfessional(pro.id, page, limit);
+    return this.findForProfessional(pro.id, page, limit, status);
   }
 
-  async findForProfessional(professionalId: string, page = 1, limit = 20) {
+  async findForProfessional(professionalId: string, page = 1, limit = 20, status?: ServiceRequestStatus) {
     const pro = await this.prisma.professional.findUnique({
       where: { id: professionalId },
       include: { services: true },
@@ -140,11 +140,15 @@ export class ServiceRequestsService {
     const serviceIds = pro.services.map((s) => s.serviceId);
     const skip = (page - 1) * limit;
 
+    const statusFilter = status
+      ? { status }
+      : { status: { in: [ServiceRequestStatus.SUBMITTED, ServiceRequestStatus.MATCHING] } };
+
     const [data, total] = await Promise.all([
       this.prisma.serviceRequest.findMany({
         where: {
           serviceId: { in: serviceIds },
-          status: { in: [ServiceRequestStatus.SUBMITTED, ServiceRequestStatus.MATCHING] },
+          ...statusFilter,
         },
         skip,
         take: limit,
@@ -159,7 +163,7 @@ export class ServiceRequestsService {
       this.prisma.serviceRequest.count({
         where: {
           serviceId: { in: serviceIds },
-          status: { in: [ServiceRequestStatus.SUBMITTED, ServiceRequestStatus.MATCHING] },
+          ...statusFilter,
         },
       }),
     ]);
