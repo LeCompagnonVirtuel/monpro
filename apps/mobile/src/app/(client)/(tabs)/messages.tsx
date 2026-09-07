@@ -6,7 +6,6 @@ import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { shadows } from '@/theme/shadows';
 import { Text, Skeleton } from '@/components/ui';
-import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { MessagesHeader } from '@/components/messages/MessagesHeader';
 import { SecurityBanner } from '@/components/messages/SecurityBanner';
@@ -151,13 +150,34 @@ export default function MessagesScreen() {
     return (
       <View style={styles.container}>
         <MessagesHeader />
-        {renderHeader()}
-        <EmptyState
-          title="Aucune conversation"
-          description="Vos conversations apparaîtront ici lorsque vous contacterez un professionnel."
-          icon="chatbubbles-outline"
-        />
-        {renderFooter()}
+        <ScrollView
+          contentContainerStyle={styles.emptyScroll}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />
+          }
+        >
+          {renderHeader()}
+          <View style={styles.emptyBlock}>
+            <Ionicons name="chatbubbles-outline" size={56} color={colors.textTertiary} />
+            <Text variant="h3" color={colors.textSecondary} align="center">
+              Aucune conversation
+            </Text>
+            <Text variant="bodySmall" color={colors.textTertiary} align="center">
+              Vos conversations apparaîtront ici lorsque vous contacterez un professionnel.
+            </Text>
+          </View>
+          {renderFooter()}
+        </ScrollView>
+
+        <Pressable
+          style={styles.fab}
+          onPress={() => router.push('/(client)/(tabs)/search')}
+          accessibilityLabel="Créer une nouvelle conversation"
+          accessibilityRole="button"
+        >
+          <Ionicons name="create-outline" size={22} color={colors.textInverse} />
+        </Pressable>
       </View>
     );
   }
@@ -245,6 +265,16 @@ const styles = StyleSheet.create({
   },
   suggestionsScroll: {
     paddingHorizontal: spacing.xl,
+    gap: spacing.md,
+  },
+  emptyScroll: {
+    flexGrow: 1,
+  },
+  emptyBlock: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xxl,
+    paddingVertical: spacing.xxxxl,
     gap: spacing.md,
   },
   bottomSpacer: {

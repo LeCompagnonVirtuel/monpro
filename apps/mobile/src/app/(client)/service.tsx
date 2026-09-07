@@ -7,7 +7,6 @@ import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { Text, Button, Card, Skeleton } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
-import { EmptyState } from '@/components/feedback/EmptyState';
 import { useService } from '@/hooks/use-services';
 import { useProfessionalMatch } from '@/hooks/use-professionals';
 import { useLocation } from '@/hooks/use-location';
@@ -71,10 +70,15 @@ export default function ServiceScreen() {
       ) : error ? (
         <ErrorState message="Erreur de chargement" onRetry={refetch} />
       ) : !professionals?.length ? (
-        <EmptyState
-          title="Aucun professionnel"
-          description="Aucun professionnel ne propose ce service pour le moment."
-        />
+        <View style={styles.emptyBlock}>
+          <Ionicons name="people-outline" size={48} color={colors.textTertiary} />
+          <Text variant="h3" color={colors.textSecondary} align="center">
+            Aucun professionnel
+          </Text>
+          <Text variant="bodySmall" color={colors.textTertiary} align="center">
+            Aucun professionnel ne propose ce service pour le moment.
+          </Text>
+        </View>
       ) : (
         <FlatList
           data={professionals}
@@ -174,6 +178,13 @@ const styles = StyleSheet.create({
   prosHeader: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
+  },
+  emptyBlock: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xxl,
+    paddingVertical: spacing.xxxxl,
+    gap: spacing.md,
   },
   loadingList: {
     padding: spacing.lg,

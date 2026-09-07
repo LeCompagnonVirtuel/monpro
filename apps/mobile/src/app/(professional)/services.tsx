@@ -7,7 +7,6 @@ import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
 import { Text, Skeleton } from '@/components/ui';
-import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useMyProfessionalProfile } from '@/hooks/use-professional-profile';
 import { useState, useCallback } from 'react';
@@ -61,12 +60,18 @@ export default function ServicesScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <EmptyState
-          title="Aucun service configuré"
-          description="Vos services apparaîtront ici une fois configurés dans votre profil professionnel."
-          icon="list-outline"
-        />
-      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
+        <ScrollView contentContainerStyle={styles.emptyScroll} showsVerticalScrollIndicator={false}>
+          <View style={styles.emptyBlock}>
+            <Ionicons name="list-outline" size={56} color={colors.textTertiary} />
+            <Text variant="h3" color={colors.textSecondary} align="center">
+              Aucun service configuré
+            </Text>
+            <Text variant="bodySmall" color={colors.textTertiary} align="center">
+              Vos services apparaîtront ici une fois configurés dans votre profil professionnel.
+            </Text>
+          </View>
+        </ScrollView>
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
           <Pressable
             style={styles.editBtn}
             onPress={() => router.push('/(professional)/onboarding')}
@@ -154,6 +159,8 @@ const styles = StyleSheet.create({
   serviceCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, gap: spacing.md, minHeight: 56, ...shadows.sm },
   serviceIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.surfaceSecondary, alignItems: 'center', justifyContent: 'center' },
   serviceInfo: { flex: 1 },
+  emptyScroll: { flexGrow: 1 },
+  emptyBlock: { alignItems: 'center', justifyContent: 'center', flex: 1, paddingHorizontal: spacing.xxl, paddingVertical: spacing.xxxxl, gap: spacing.md },
   footer: { padding: spacing.lg, borderTopWidth: 1, borderTopColor: colors.borderLight, gap: spacing.sm },
   editBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, minHeight: 48 },
   footerHint: { marginTop: spacing.xxs },

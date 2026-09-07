@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -43,7 +44,11 @@ export class GlobalErrorBoundary extends Component<Props, State> {
 
   handleGoHome = () => {
     this.setState({ hasError: false, error: null });
-    this.props.onRetry?.();
+    try {
+      router.replace('/');
+    } catch {
+      this.props.onRetry?.();
+    }
   };
 
   render() {
