@@ -1,68 +1,108 @@
 import { useState, useCallback, useMemo } from 'react';
-import { StyleSheet, View, FlatList, Pressable, RefreshControl } from 'react-native';
+import { StyleSheet, View, FlatList, Pressable, TextInput, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
-import { Text, Avatar, Skeleton } from '@/components/ui';
+import { Text, Skeleton } from '@/components/ui';
+import { Avatar } from '@/components/ui/Avatar';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useConversations } from '@/hooks/use-conversations';
+import { useNotifications, useUnreadNotificationCount } from '@/hooks/use-notifications';
 import { useAuthStore } from '@/stores/auth.store';
 import { Conversation } from '@/api/messaging';
 import { formatRelativeDate } from '@/lib/format';
 
-type SortMode = 'recent' | 'unread';
+type FilterTab = 'all' | 'unread' | 'clients' | 'notifications';
 
 export default function ProfessionalMessagesScreen() {
-  const { data: conversations, isLoading, error, refetch } = useConversations();
+  const { data: conversations, isLoading, error, refetch, isRefetching } = useConversations();
+  const { data: notificationsData } = useNotifications({ limit: 50 });
+  const { data: unreadNotifCount } = useUnreadNotificationCount();
   const userId = useAuthStore((s) => s.userId);
-  const [sortMode, setSortMode] = useState<SortMode>('recent');
-  const [refreshing, setRefreshing] = useState(false);
 
-  const handleRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await refetch();
-    setRefreshing(false);
-  }, [refetch]);
+  const [filter, setFilter] = useState<FilterTab>('all');
+  const [searchVisible, setSearchVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const toggleSort = useCallback(() => {
-    setSortMode((prev) => (prev === 'recent' ? 'unread' : 'recent'));
-  }, []);
+  const allConversations = useMemo(() => conversations || [], [conversations]);
+  const allNotifications = useMemo(() => notificationsData?.notifications || [], [notificationsData]);
 
-  const sortedConversations = useMemo(() => {
-    const list = conversations || [];
-    if (sortMode === 'unread') {
-      return [...list].sort((a, b) => {
-        if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
-        if (a.unreadCount === 0 && b.unreadCount > 0) return 1;
-        const dateA = a.lastMessage?.createdAt || a.createdAt;
-        const dateB = b.lastMessage?.createdAt || b.createdAt;
-        return new Date(dateB).getTime() - new Date(dateA).getTime();
+  const unreadMsgCount = useMemo(
+    () => allConversations.reduce((sum, c) => sum + c.unreadCount, 0),
+    [allConversations],
+  );
+
+  const clientsCount = useMemo(() => allConversations.length, [allConversations]);
+
+  const filteredConversations = useMemo(() => {
+    let list = allConversations;
+
+    if (filter === 'unread') {
+      list = list.filter((c) => c.unreadCount > 0);
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter((c) => {
+        const other = c.participants.find((p) => p.id !== userId);
+        const name = other?.fullName || '';
+        const lastMsg = c.lastMessage?.content || '';
+        return name.toLowerCase().includes(q) || lastMsg.toLowerCase().includes(q);
       });
     }
+
     return [...list].sort((a, b) => {
       const dateA = a.lastMessage?.createdAt || a.createdAt;
       const dateB = b.lastMessage?.createdAt || b.createdAt;
       return new Date(dateB).getTime() - new Date(dateA).getTime();
     });
-  }, [conversations, sortMode]);
+  }, [allConversations, filter, searchQuery, userId]);
 
-  const unreadTotal = useMemo(() => {
-    return (conversations || []).reduce((sum, c) => sum + c.unreadCount, 0);
-  }, [conversations]);
+  const filteredNotifications = useMemo(() => {
+    if (!searchQuery.trim()) return allNotifications;
+    const q = searchQuery.toLowerCase();
+    return allNotifications.filter(
+      (n) => n.title.toLowerCase().includes(q) || n.body.toLowerCase().includes(q),
+    );
+  }, [allNotifications, searchQuery]);
+
+  const showNotifications = filter === 'notifications';
+
+  const renderConversation = useCallback(({ item }: { item: Conversation }) => (
+    <ConversationRow conversation={item} currentUserId={userId} />
+  ), [userId]);
+
+  const renderNotification = useCallback(({ item }: { item: { id: string; title: string; body: string; createdAt: string; isRead: boolean } }) => (
+    <NotificationRow notification={item} />
+  ), []);
+
+  const keyExtractor = useCallback((item: Conversation | { id: string }) => item.id, []);
 
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
-          <Text variant="h2">Messages</Text>
+          <View style={styles.headerLeft}>
+            <Skeleton width="35%" height={26} />
+            <Skeleton width="65%" height={14} />
+          </View>
+          <View style={styles.headerActions}>
+            <Skeleton width={40} height={40} style={{ borderRadius: 20 }} />
+            <Skeleton width={40} height={40} style={{ borderRadius: 20 }} />
+          </View>
         </View>
-        <View style={styles.loadingContent}>
+        <View style={styles.tabsRow}>
+          <Skeleton width="18%" height={32} borderRadius={radius.lg} />
+          <Skeleton width="22%" height={32} borderRadius={radius.lg} />
+          <Skeleton width="18%" height={32} borderRadius={radius.lg} />
+          <Skeleton width="30%" height={32} borderRadius={radius.lg} />
+        </View>
+        <View style={styles.listContent}>
           {[1, 2, 3, 4, 5].map((i) => (
             <View key={i} style={styles.skeletonRow}>
               <Skeleton width={52} height={52} borderRadius={26} />
@@ -80,24 +120,9 @@ export default function ProfessionalMessagesScreen() {
   if (error) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Text variant="h2">Messages</Text>
-        </View>
-        <ErrorState message="Impossible de charger les conversations" onRetry={refetch} />
-      </SafeAreaView>
-    );
-  }
-
-  if (!sortedConversations.length) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <Animated.View entering={FadeIn.duration(300)} style={styles.header}>
-          <Text variant="h2">Messages</Text>
-        </Animated.View>
-        <EmptyState
-          title="Aucune conversation"
-          description="Les conversations avec vos clients apparaîtront ici lorsqu'ils vous contacteront."
-          icon="chatbubbles-outline"
+        <ErrorState
+          message="Impossible de charger vos conversations."
+          onRetry={refetch}
         />
       </SafeAreaView>
     );
@@ -105,51 +130,148 @@ export default function ProfessionalMessagesScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Animated.View entering={FadeIn.duration(300)} style={styles.header}>
-        <View style={styles.headerRow}>
-          <View style={styles.headerLeft}>
-            <Text variant="h2">Messages</Text>
-            {unreadTotal > 0 && (
-              <View style={styles.unreadBadge}>
-                <Text variant="caption" color={colors.textInverse} style={styles.unreadBadgeText}>
-                  {unreadTotal > 99 ? '99+' : unreadTotal}
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Text variant="h2">Messages</Text>
+          <Text variant="bodySmall" color={colors.textSecondary}>
+            Échangez avec vos clients et gérez vos conversations.
+          </Text>
+        </View>
+        <View style={styles.headerActions}>
+          <Pressable
+            style={styles.iconBtn}
+            onPress={() => setSearchVisible(!searchVisible)}
+            accessibilityLabel="Rechercher"
+            accessibilityRole="button"
+          >
+            <Ionicons name={searchVisible ? 'close-outline' : 'search-outline'} size={20} color={colors.text} />
+          </Pressable>
+          <Pressable
+            style={styles.iconBtn}
+            onPress={() => router.push('/(professional)/notifications')}
+            accessibilityLabel="Notifications"
+            accessibilityRole="button"
+          >
+            <Ionicons name="notifications-outline" size={20} color={colors.text} />
+            {(unreadNotifCount ?? 0) > 0 && (
+              <View style={styles.notifBadge}>
+                <Text variant="caption" color={colors.textInverse} style={styles.notifBadgeText}>
+                  {unreadNotifCount! > 9 ? '9+' : unreadNotifCount}
                 </Text>
               </View>
             )}
-          </View>
-          <Pressable
-            style={styles.sortButton}
-            onPress={toggleSort}
-            accessibilityLabel={`Trier par ${sortMode === 'recent' ? 'non lus' : 'récents'}`}
-            accessibilityRole="button"
-          >
-            <Text variant="caption" color={sortMode === 'unread' ? colors.primary : colors.textSecondary}>
-              {sortMode === 'recent' ? 'Récents' : 'Non lus'}
-            </Text>
-            <Ionicons
-              name={sortMode === 'unread' ? 'mail-unread-outline' : 'time-outline'}
-              size={16}
-              color={sortMode === 'unread' ? colors.primary : colors.textSecondary}
-            />
           </Pressable>
         </View>
-      </Animated.View>
+      </View>
 
-      <FlatList
-        data={sortedConversations}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item, index }) => (
-          <Animated.View entering={FadeInDown.delay(index * 50).duration(300)}>
-            <ConversationRow conversation={item} currentUserId={userId} />
-          </Animated.View>
-        )}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />
-        }
-      />
+      {/* Search */}
+      {searchVisible && (
+        <View style={styles.searchBar}>
+          <Ionicons name="search-outline" size={16} color={colors.textTertiary} />
+          <TextInput
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Rechercher..."
+            placeholderTextColor={colors.textTertiary}
+            autoFocus
+            accessibilityLabel="Rechercher des conversations"
+          />
+          {searchQuery.length > 0 && (
+            <Pressable onPress={() => setSearchQuery('')} accessibilityLabel="Effacer">
+              <Ionicons name="close-circle" size={16} color={colors.textTertiary} />
+            </Pressable>
+          )}
+        </View>
+      )}
+
+      {/* Tabs */}
+      <View style={styles.tabsRow}>
+        <FilterTabBtn label="Tous" count={clientsCount} active={filter === 'all'} onPress={() => setFilter('all')} />
+        <FilterTabBtn label="Non lus" count={unreadMsgCount} active={filter === 'unread'} onPress={() => setFilter('unread')} />
+        <FilterTabBtn label="Clients" count={clientsCount} active={filter === 'clients'} onPress={() => setFilter('clients')} />
+        <FilterTabBtn label="Notifications" count={unreadNotifCount} active={filter === 'notifications'} onPress={() => setFilter('notifications')} />
+      </View>
+
+      {/* Banner */}
+      {!showNotifications && (
+        <View style={styles.banner}>
+          <View style={styles.bannerIconWrap}>
+            <Ionicons name="chatbubble-ellipses-outline" size={22} color={colors.primary} />
+          </View>
+          <View style={styles.bannerContent}>
+            <Text variant="bodyMedium">Répondez rapidement !</Text>
+            <Text variant="caption" color={colors.textSecondary}>
+              Une bonne communication renforce la confiance et augmente vos chances d'obtenir plus d'interventions.
+            </Text>
+          </View>
+        </View>
+      )}
+
+      {/* List */}
+      {showNotifications ? (
+        filteredNotifications.length === 0 ? (
+          <EmptyState
+            icon="notifications-off-outline"
+            title="Aucune notification"
+            description="Vos notifications apparaîtront ici."
+          />
+        ) : (
+          <FlatList
+            data={filteredNotifications}
+            keyExtractor={(item) => item.id}
+            renderItem={renderNotification}
+            contentContainerStyle={styles.listContent}
+            onRefresh={refetch}
+            refreshing={isRefetching}
+            showsVerticalScrollIndicator={false}
+          />
+        )
+      ) : filteredConversations.length === 0 ? (
+        <EmptyState
+          icon="chatbubbles-outline"
+          title={filter === 'unread' ? 'Aucun message non lu' : 'Aucune conversation'}
+          description={
+            filter === 'unread'
+              ? 'Tous vos messages ont été lus.'
+              : 'Vos échanges avec les clients apparaîtront ici.'
+          }
+        />
+      ) : (
+        <FlatList
+          data={filteredConversations}
+          keyExtractor={keyExtractor}
+          renderItem={renderConversation}
+          contentContainerStyle={styles.listContent}
+          onRefresh={refetch}
+          refreshing={isRefetching}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </SafeAreaView>
+  );
+}
+
+// ──────────── SUB COMPONENTS ────────────
+
+function FilterTabBtn({ label, count, active, onPress }: {
+  label: string;
+  count?: number;
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      style={[styles.tab, active && styles.tabActive]}
+      onPress={onPress}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: active }}
+    >
+      <Text variant="caption" color={active ? colors.primary : colors.textSecondary}>
+        {label}{count !== undefined && count > 0 ? ` ${count}` : ''}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -165,7 +287,10 @@ function ConversationRow({ conversation, currentUserId }: { conversation: Conver
       accessibilityLabel={`Conversation avec ${name}${hasUnread ? `, ${conversation.unreadCount} messages non lus` : ''}`}
       accessibilityRole="button"
     >
-      <Avatar uri={other?.avatarUrl} name={name} size={52} />
+      <View style={styles.avatarWrap}>
+        <Avatar uri={other?.avatarUrl} name={name} size={52} />
+        {hasUnread && <View style={styles.unreadDot} />}
+      </View>
       <View style={styles.rowContent}>
         <View style={styles.rowTop}>
           <Text variant="body" numberOfLines={1} style={[styles.rowName, hasUnread && styles.rowNameBold]}>
@@ -181,7 +306,7 @@ function ConversationRow({ conversation, currentUserId }: { conversation: Conver
           <Text
             variant="caption"
             color={hasUnread ? colors.text : colors.textSecondary}
-            numberOfLines={2}
+            numberOfLines={1}
             style={styles.preview}
           >
             {conversation.lastMessage?.content || 'Nouvelle conversation'}
@@ -202,34 +327,164 @@ function ConversationRow({ conversation, currentUserId }: { conversation: Conver
   );
 }
 
+function NotificationRow({ notification }: { notification: { id: string; title: string; body: string; createdAt: string; isRead: boolean } }) {
+  return (
+    <View style={[styles.row, !notification.isRead && styles.rowUnread]}>
+      <View style={[styles.notifIconWrap, { backgroundColor: notification.isRead ? colors.surfaceSecondary : colors.primaryLight }]}>
+        <Ionicons
+          name={notification.isRead ? 'notifications-outline' : 'notifications'}
+          size={20}
+          color={notification.isRead ? colors.textTertiary : colors.primary}
+        />
+      </View>
+      <View style={styles.rowContent}>
+        <View style={styles.rowTop}>
+          <Text
+            variant="bodySmall"
+            numberOfLines={1}
+            style={[styles.rowName, !notification.isRead && styles.rowNameBold]}
+          >
+            {notification.title}
+          </Text>
+          <Text variant="caption" color={colors.textTertiary} style={styles.time}>
+            {formatRelativeDate(notification.createdAt)}
+          </Text>
+        </View>
+        <Text variant="caption" color={colors.textSecondary} numberOfLines={2}>
+          {notification.body}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+// ──────────── STYLES ────────────
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  header: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.sm },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  unreadBadge: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.full,
-    minWidth: 22,
-    height: 22,
+
+  // Header
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  headerLeft: { flex: 1, gap: spacing.xxs },
+  headerActions: { flexDirection: 'row', gap: spacing.sm },
+  iconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 6,
+    ...shadows.sm,
   },
-  unreadBadgeText: { fontSize: 11, fontWeight: '700' },
-  sortButton: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  loadingContent: { padding: spacing.xl, gap: spacing.lg },
-  skeletonRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  skeletonText: { flex: 1, gap: spacing.sm },
-  listContent: { paddingBottom: spacing.xxxxl },
+  notifBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    backgroundColor: colors.error,
+    borderRadius: radius.full,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  notifBadgeText: { fontSize: 9, fontWeight: '700' },
+
+  // Search
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    height: 44,
+    ...shadows.sm,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: colors.text,
+    padding: 0,
+  },
+
+  // Tabs
+  tabsRow: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
+    paddingBottom: spacing.md,
+  },
+  tab: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surfaceSecondary,
+  },
+  tabActive: {
+    backgroundColor: colors.primaryLight,
+  },
+
+  // Banner
+  banner: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    backgroundColor: colors.infoLight,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+  },
+  bannerIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bannerContent: { flex: 1, gap: spacing.xxs },
+
+  // List
+  listContent: {
+    paddingBottom: spacing.xxxl,
+  },
+
+  // Conversation row
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     gap: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderLight,
+  },
+  rowUnread: {
+    backgroundColor: colors.primaryLight + '08',
+  },
+  avatarWrap: {
+    position: 'relative',
+  },
+  unreadDot: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: colors.secondary,
+    borderWidth: 2,
+    borderColor: colors.background,
   },
   rowContent: { flex: 1, gap: spacing.xs },
   rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -250,4 +505,25 @@ const styles = StyleSheet.create({
     ...shadows.sm,
   },
   badgeText: { fontSize: 10, fontWeight: '700' },
+
+  // Notification row
+  notifIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Skeleton
+  skeletonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    gap: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  skeletonText: { flex: 1, gap: spacing.sm },
 });
