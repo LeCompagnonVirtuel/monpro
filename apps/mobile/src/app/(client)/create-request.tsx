@@ -81,6 +81,7 @@ export default function CreateRequestScreen() {
   const [urgency] = useState<UrgencyLevel>('NORMAL');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
 
   // Step 2 state
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>(undefined);
@@ -257,12 +258,22 @@ export default function CreateRequestScreen() {
     setError(null);
 
     try {
-      let mediaUrls: string[] | undefined;
+      let mediaUrls: string[] = [];
 
       if (photos.length > 0) {
-        const uploadResult = await uploadsApi.uploadImages(photos, 'service-requests');
-        mediaUrls = uploadResult.data.data.urls;
+        for (let i = 0; i < photos.length; i++) {
+          setUploadProgress(`Upload photo ${i + 1}/${photos.length}...`);
+          try {
+            const uploadResult = await uploadsApi.uploadImage(photos[i], 'service-requests');
+            mediaUrls.push(uploadResult.data.data.url);
+          } catch (uploadErr) {
+            console.warn(`Failed to upload photo ${i + 1}:`, uploadErr);
+          }
+        }
+        setUploadProgress(null);
       }
+
+      setUploadProgress('Publication de votre demande...');
 
       const urgencyFromDate: UrgencyLevel = dateMode === 'asap' ? 'HIGH' : urgency;
 
@@ -275,8 +286,10 @@ export default function CreateRequestScreen() {
         preferredDate: dateMode === 'choose' && computedDate ? computedDate : undefined,
         preferredTimeStart: preferredTimeStart || undefined,
         preferredTimeEnd: preferredTimeEnd || undefined,
-        mediaUrls,
+        mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
       });
+
+      setUploadProgress(null);
 
       if (result?.id) {
         router.replace({ pathname: '/(client)/request-detail', params: { id: result.id } });
@@ -284,6 +297,7 @@ export default function CreateRequestScreen() {
         router.replace('/(client)/(tabs)/home');
       }
     } catch (err) {
+      setUploadProgress(null);
       const apiError = extractApiError(err);
       setError(apiError.message);
     } finally {
@@ -1228,6 +1242,12 @@ export default function CreateRequestScreen() {
 
       {/* CTA Button */}
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
+        {uploadProgress && (
+          <View style={styles.uploadProgressBar}>
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text variant="caption" color={colors.textSecondary}>{uploadProgress}</Text>
+          </View>
+        )}
         <Pressable
           style={[styles.ctaButton, !canProceed() && styles.ctaButtonDisabled]}
           onPress={currentStep === STEPS.length - 1 ? handleSubmit : goNext}
@@ -1591,6 +1611,14 @@ const styles = StyleSheet.create({
   },
   ctaButtonDisabled: {
     opacity: 0.6,
+  },
+  uploadProgressBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.sm,
   },
   // Step 2 styles
   skeletonGrid: {

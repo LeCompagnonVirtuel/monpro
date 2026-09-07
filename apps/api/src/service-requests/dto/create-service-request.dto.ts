@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsUUID, IsEnum, MaxLength, IsArray, IsUrl } from 'class-validator';
+import { IsString, IsOptional, IsUUID, IsEnum, MaxLength, IsArray } from 'class-validator';
 import { UrgencyLevel } from '@prisma/client';
 
 export class CreateServiceRequestDto {
@@ -34,6 +34,6 @@ export class CreateServiceRequestDto {
 
   @IsOptional()
   @IsArray()
-  @IsUrl({}, { each: true })
+  @IsString({ each: true })
   mediaUrls?: string[];
 }
