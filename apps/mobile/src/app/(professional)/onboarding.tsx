@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   StyleSheet, View, ScrollView, Pressable, TextInput,
-  Alert, KeyboardAvoidingView, Platform, Animated, Easing,
+  Alert, KeyboardAvoidingView, Platform, Animated, Easing, ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
@@ -22,6 +23,7 @@ const STEPS = [
   { key: 'name', title: 'Nom commercial', icon: 'person-outline' as const, subtitle: 'Le nom affiché aux clients' },
   { key: 'desc', title: 'Description', icon: 'document-text-outline' as const, subtitle: 'Présentez votre expertise' },
   { key: 'exp', title: 'Expérience', icon: 'trophy-outline' as const, subtitle: "Vos années d'expérience" },
+  { key: 'loc', title: 'Localisation', icon: 'location-outline' as const, subtitle: 'Votre zone d\'intervention' },
   { key: 'svc', title: 'Services', icon: 'briefcase-outline' as const, subtitle: 'Ce que vous proposez' },
   { key: 'sum', title: 'Résumé', icon: 'checkmark-circle-outline' as const, subtitle: 'Vérifiez avant de soumettre' },
 ];
@@ -46,6 +48,14 @@ export default function OnboardingScreen() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>();
   const [initialized, setInitialized] = useState(false);
 
+  // Zone/location state
+  const [zoneName, setZoneName] = useState('');
+  const [zoneLatitude, setZoneLatitude] = useState<number | null>(null);
+  const [zoneLongitude, setZoneLongitude] = useState<number | null>(null);
+  const [zoneRadiusKm, setZoneRadiusKm] = useState('15');
+  const [zoneLoading, setZoneLoading] = useState(false);
+  const [zoneError, setZoneError] = useState<string | null>(null);
+
   const { data: services, isLoading: servicesLoading, isError: servicesError, refetch: refetchServices } = useServices(
     selectedCategoryId ? { categoryId: selectedCategoryId } : undefined,
   );
@@ -62,6 +72,13 @@ export default function OnboardingScreen() {
       setDescription(profile.description || '');
       setExperienceYears(String(profile.experienceYears ?? 0));
       setSelectedServices(profile.services?.map((s) => s.service?.id).filter((id): id is string => !!id) || []);
+      if (profile.zones && profile.zones.length > 0) {
+        const zone = profile.zones[0];
+        setZoneName(zone.name || '');
+        setZoneLatitude(zone.latitude ?? null);
+        setZoneLongitude(zone.longitude ?? null);
+        setZoneRadiusKm(String(zone.radiusKm ?? 15));
+      }
       setInitialized(true);
     }
     if (!initialized && !profile && !profileLoading) {
@@ -109,8 +126,9 @@ export default function OnboardingScreen() {
       case 0: return businessName.trim().length >= 2;
       case 1: return description.trim().length >= 10;
       case 2: return experienceYears.trim().length > 0 && !isNaN(Number(experienceYears)) && Number(experienceYears) >= 0;
-      case 3: return selectedServices.length > 0;
-      case 4: return true;
+      case 3: return zoneName.trim().length > 0;
+      case 4: return selectedServices.length > 0;
+      case 5: return true;
       default: return false;
     }
   })();
@@ -133,6 +151,13 @@ export default function OnboardingScreen() {
 
     const expYears = Math.max(0, Math.floor(Number(experienceYears) || 0));
 
+    const zones = zoneName.trim() ? [{
+      name: zoneName.trim(),
+      latitude: zoneLatitude ?? undefined,
+      longitude: zoneLongitude ?? undefined,
+      radiusKm: Number(zoneRadiusKm) || 15,
+    }] : [];
+
     try {
       if (profile) {
         await updateProfile.mutateAsync({
@@ -140,6 +165,7 @@ export default function OnboardingScreen() {
           businessName: businessName.trim(),
           description: description.trim(),
           experienceYears: expYears,
+          zones,
         });
       } else {
         await createProfile.mutateAsync({
@@ -147,13 +173,14 @@ export default function OnboardingScreen() {
           description: description.trim(),
           experienceYears: expYears,
           serviceIds: selectedServices,
+          zones,
         });
       }
       router.replace('/(professional)/(tabs)/dashboard');
     } catch {
       Alert.alert('Erreur', "Impossible d'enregistrer votre profil professionnel. Veuillez réessayer.");
     }
-  }, [isLastStep, step, businessName, description, experienceYears, selectedServices, profile, updateProfile, createProfile, animateTransition]);
+  }, [isLastStep, step, businessName, description, experienceYears, selectedServices, zoneName, zoneLatitude, zoneLongitude, zoneRadiusKm, profile, updateProfile, createProfile, animateTransition]);
 
   const handleBack = useCallback(() => {
     if (step > 0) {
@@ -339,6 +366,95 @@ export default function OnboardingScreen() {
 
             {step === 3 && (
               <View style={styles.stepContent}>
+                <Text variant="bodySmall" color={colors.textSecondary} style={styles.stepSubtitle}>
+                  Définissez votre zone d'intervention pour être trouvé par les clients proches.
+                </Text>
+
+                {/* GPS capture */}
+                <Pressable
+                  style={styles.gpsButton}
+                  onPress={async () => {
+                    setZoneLoading(true);
+                    setZoneError(null);
+                    try {
+                      const { status } = await Location.requestForegroundPermissionsAsync();
+                      if (status !== 'granted') {
+                        setZoneError('Autorisez la localisation pour capturer votre position.');
+                        setZoneLoading(false);
+                        return;
+                      }
+                      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+                      setZoneLatitude(loc.coords.latitude);
+                      setZoneLongitude(loc.coords.longitude);
+                      const [result] = await Location.reverseGeocodeAsync({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+                      if (result) {
+                        const city = result.city || result.region || '';
+                        if (!zoneName) setZoneName(city || 'Ma zone');
+                      }
+                    } catch {
+                      setZoneError('Impossible d\'obtenir votre position.');
+                    } finally {
+                      setZoneLoading(false);
+                    }
+                  }}
+                  disabled={zoneLoading}
+                  accessibilityLabel="Capturer ma position GPS"
+                  accessibilityRole="button"
+                >
+                  {zoneLoading ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <Ionicons name="location-outline" size={20} color={colors.primary} />
+                  )}
+                  <Text variant="bodyMedium" color={colors.primary}>
+                    {zoneLoading ? 'Localisation en cours...' : 'Utiliser ma position actuelle'}
+                  </Text>
+                </Pressable>
+
+                {zoneError && (
+                  <View style={styles.inlineError}>
+                    <Ionicons name="alert-circle-outline" size={14} color={colors.error} />
+                    <Text variant="caption" color={colors.error}>{zoneError}</Text>
+                  </View>
+                )}
+
+                {zoneLatitude && zoneLongitude && (
+                  <View style={styles.coordsBadge}>
+                    <Ionicons name="checkmark-circle" size={14} color={colors.success} />
+                    <Text variant="caption" color={colors.success}>
+                      Position captée ({zoneLatitude.toFixed(4)}, {zoneLongitude.toFixed(4)})
+                    </Text>
+                  </View>
+                )}
+
+                <TextInput
+                  style={styles.input}
+                  value={zoneName}
+                  onChangeText={setZoneName}
+                  placeholder="Nom de la zone (ex: Cocody et environs)"
+                  placeholderTextColor={colors.textTertiary}
+                  accessibilityLabel="Nom de la zone d'intervention"
+                />
+
+                <View style={styles.radiusRow}>
+                  <Text variant="bodySmall">Rayon :</Text>
+                  <View style={styles.radiusChips}>
+                    {['5', '10', '15', '25', '50'].map((r) => (
+                      <Pressable
+                        key={r}
+                        style={[styles.expChip, zoneRadiusKm === r && styles.expChipActive]}
+                        onPress={() => setZoneRadiusKm(r)}
+                      >
+                        <Text variant="caption" color={zoneRadiusKm === r ? colors.textInverse : colors.textSecondary}>{r} km</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {step === 4 && (
+              <View style={styles.stepContent}>
                 {categoriesLoading && (
                   <View style={styles.categorySkeleton}>
                     {[1, 2, 3, 4].map((i) => <Skeleton key={i} width={90} height={36} style={styles.chipSkeleton} />)}
@@ -430,7 +546,7 @@ export default function OnboardingScreen() {
               </View>
             )}
 
-            {step === 4 && (
+            {step === 5 && (
               <Animated.View style={[styles.stepContent, { opacity: summaryOpacity }]}>
                 <View style={styles.summaryCard}>
                   <View style={styles.summaryHeader}>
@@ -446,6 +562,10 @@ export default function OnboardingScreen() {
                   <View style={styles.summaryDivider} />
 
                   <SummaryRow icon="trophy-outline" label="Expérience" value={`${experienceYears} ans`} />
+                  <SummaryRow icon="location-outline" label="Zone" value={zoneName || 'Non définie'} />
+                  {zoneLatitude && zoneLongitude && (
+                    <SummaryRow icon="navigate-outline" label="Position" value={`${zoneLatitude.toFixed(2)}, ${zoneLongitude.toFixed(2)} • ${zoneRadiusKm} km`} />
+                  )}
                   <SummaryRow icon="briefcase-outline" label="Services" value={`${selectedServices.length} sélectionné(s)`} />
                   <SummaryRow icon="document-text-outline" label="Description" value={description.slice(0, 60) + (description.length > 60 ? '...' : '')} />
                 </View>
@@ -514,6 +634,37 @@ const styles = StyleSheet.create({
   expHints: { flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', marginTop: spacing.sm },
   expChip: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.full, backgroundColor: colors.surfaceSecondary, borderWidth: 1, borderColor: colors.border },
   expChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  gpsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.md,
+    backgroundColor: colors.primaryLight,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    marginBottom: spacing.md,
+  },
+  coordsBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+  },
+  radiusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginTop: spacing.md,
+  },
+  radiusChips: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  stepSubtitle: {
+    marginBottom: spacing.md,
+    lineHeight: 20,
+  },
   categoryScroll: { flexGrow: 0, marginVertical: spacing.xs },
   categoryScrollContent: { gap: spacing.sm },
   categoryChip: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm + 2, borderRadius: radius.full, backgroundColor: colors.surface, borderWidth: 1.5, borderColor: colors.border, minHeight: 40, justifyContent: 'center' },

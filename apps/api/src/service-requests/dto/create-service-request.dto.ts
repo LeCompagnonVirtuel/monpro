@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsUUID, IsEnum, MaxLength, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsUUID, IsEnum, MaxLength, IsArray, IsNumber, Min, Max } from 'class-validator';
 import { UrgencyLevel } from '@prisma/client';
 
 export class CreateServiceRequestDto {
@@ -20,6 +20,18 @@ export class CreateServiceRequestDto {
   @IsOptional()
   @IsUUID()
   addressId?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  latitude?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  longitude?: number;
 
   @IsOptional()
   preferredDate?: Date;

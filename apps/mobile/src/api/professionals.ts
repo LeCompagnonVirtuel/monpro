@@ -1,5 +1,13 @@
 import { apiClient } from './client';
 
+export interface ProfessionalZone {
+  id?: string;
+  name: string;
+  latitude?: number;
+  longitude?: number;
+  radiusKm?: number;
+}
+
 export interface ProfessionalService {
   id: string;
   professionalId: string;
@@ -37,6 +45,7 @@ export interface Professional {
     phone: string;
   };
   services?: ProfessionalService[];
+  zones?: ProfessionalZone[];
 }
 
 export interface ProfessionalListParams {
@@ -82,11 +91,11 @@ export const professionalsApi = {
     );
   },
 
-  create(payload: { businessName?: string; description?: string; experienceYears?: number; serviceIds?: string[] }) {
+  create(payload: { businessName?: string; description?: string; experienceYears?: number; serviceIds?: string[]; zones?: ProfessionalZone[] }) {
     return apiClient.post<{ success: boolean; data: Professional }>('/professionals', payload);
   },
 
-  update(id: string, payload: { businessName?: string; description?: string; experienceYears?: number; isAvailable?: boolean }) {
+  update(id: string, payload: { businessName?: string; description?: string; experienceYears?: number; isAvailable?: boolean; zones?: ProfessionalZone[] }) {
     return apiClient.patch<{ success: boolean; data: Professional }>(`/professionals/${id}`, payload);
   },
 

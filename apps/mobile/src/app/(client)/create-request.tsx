@@ -24,6 +24,7 @@ import { useLocation } from '@/hooks/use-location';
 import { extractApiError } from '@/api/errors';
 import { useAuthStore } from '@/stores/auth.store';
 import { usePriceEstimate } from '@/hooks/use-price-estimate';
+import { useAddresses } from '@/hooks/use-addresses';
 
 type WizardStep = 'details' | 'category' | 'informations' | 'confirmation';
 
@@ -98,6 +99,10 @@ export default function CreateRequestScreen() {
   // AI photo diagnosis
   const [diagnosis, setDiagnosis] = useState<DiagnosisResult | null>(null);
   const [diagnosisLoading, setDiagnosisLoading] = useState(false);
+
+  // Saved addresses
+  const { data: savedAddresses } = useAddresses();
+  const [selectedAddressId, setSelectedAddressId] = useState<string | undefined>(undefined);
 
   const runDiagnosis = useCallback(async (photoUri: string) => {
     setDiagnosisLoading(true);
@@ -277,12 +282,33 @@ export default function CreateRequestScreen() {
 
       const urgencyFromDate: UrgencyLevel = dateMode === 'asap' ? 'HIGH' : urgency;
 
+      // Resolve address: selected saved address > geography selection > GPS
+      let resolvedAddressId: string | undefined;
+      let resolvedLatitude: number | undefined;
+      let resolvedLongitude: number | undefined;
+
+      if (selectedAddressId) {
+        const selectedAddr = savedAddresses?.find((a) => a.id === selectedAddressId);
+        if (selectedAddr) {
+          resolvedAddressId = selectedAddr.id;
+          resolvedLatitude = selectedAddr.latitude ?? undefined;
+          resolvedLongitude = selectedAddr.longitude ?? undefined;
+        }
+      } else if (selectedDistrictId || selectedCityId) {
+        resolvedAddressId = selectedDistrictId || selectedCityId;
+      } else if (_location) {
+        resolvedLatitude = _location.latitude;
+        resolvedLongitude = _location.longitude;
+      }
+
       const result = await createRequest.mutateAsync({
         serviceId: finalServiceId,
         title: title.trim(),
         description: description.trim(),
         urgency: urgencyFromDate,
-        addressId: selectedDistrictId || selectedCityId || undefined,
+        addressId: resolvedAddressId,
+        latitude: resolvedLatitude,
+        longitude: resolvedLongitude,
         preferredDate: dateMode === 'choose' && computedDate ? computedDate : undefined,
         preferredTimeStart: preferredTimeStart || undefined,
         preferredTimeEnd: preferredTimeEnd || undefined,
@@ -893,6 +919,56 @@ export default function CreateRequestScreen() {
                 <View style={styles.detectedLocation}>
                   <ActivityIndicator size="small" color={colors.primary} />
                   <Text variant="bodySmall" color={colors.textTertiary}>Détection de votre position...</Text>
+                </View>
+              )}
+
+              {/* Saved addresses */}
+              {savedAddresses && savedAddresses.length > 0 && (
+                <View style={styles.geoField}>
+                  <Text variant="bodySmall" style={styles.geoLabel}>Vos adresses enregistrées</Text>
+                  {savedAddresses.map((addr) => (
+                    <Pressable
+                      key={addr.id}
+                      style={[styles.addressSelectCard, selectedAddressId === addr.id && styles.addressSelectCardActive]}
+                      onPress={() => {
+                        setSelectedAddressId(addr.id);
+                        setSelectedCountryId(undefined);
+                        setSelectedRegionId(undefined);
+                        setSelectedCityId(undefined);
+                        setSelectedDistrictId(undefined);
+                      }}
+                      accessibilityRole="radio"
+                      accessibilityState={{ selected: selectedAddressId === addr.id }}
+                    >
+                      <View style={styles.addressSelectInfo}>
+                        {addr.label && (
+                          <Text variant="bodySmall" color={selectedAddressId === addr.id ? colors.primary : colors.textSecondary}>
+                            {addr.label}
+                          </Text>
+                        )}
+                        <Text variant="bodySmall" numberOfLines={1}>{addr.fullAddress}</Text>
+                        {addr.latitude != null && addr.longitude != null && (
+                          <Text variant="caption" color={colors.textTertiary}>
+                            GPS disponible
+                          </Text>
+                        )}
+                      </View>
+                      <Ionicons
+                        name={selectedAddressId === addr.id ? 'radio-button-on' : 'radio-button-off'}
+                        size={20}
+                        color={selectedAddressId === addr.id ? colors.primary : colors.textTertiary}
+                      />
+                    </Pressable>
+                  ))}
+                  <Pressable
+                    style={styles.addAddressLink}
+                    onPress={() => router.push('/(client)/addresses')}
+                    accessibilityLabel="Gérer mes adresses"
+                    accessibilityRole="button"
+                  >
+                    <Ionicons name="add-circle-outline" size={16} color={colors.primary} />
+                    <Text variant="caption" color={colors.primary}>Gérer mes adresses</Text>
+                  </Pressable>
                 </View>
               )}
 
@@ -1744,6 +1820,31 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: radius.md,
     marginBottom: spacing.md,
+  },
+  addressSelectCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    marginBottom: spacing.sm,
+    backgroundColor: colors.surface,
+  },
+  addressSelectCardActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryLight,
+  },
+  addressSelectInfo: {
+    flex: 1,
+    gap: spacing.xxs,
+  },
+  addAddressLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
   },
   geoField: {
     marginBottom: spacing.lg,

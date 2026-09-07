@@ -28,6 +28,8 @@ export interface CreateServiceRequestPayload {
   description: string;
   urgency?: UrgencyLevel;
   addressId?: string;
+  latitude?: number;
+  longitude?: number;
   preferredDate?: string;
   preferredTimeStart?: string;
   preferredTimeEnd?: string;

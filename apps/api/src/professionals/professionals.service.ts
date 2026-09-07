@@ -175,8 +175,33 @@ export class ProfessionalsService {
     return this.findOne(professional.id);
   }
 
-  async updateProfile(id: string, data: any) {
-    return this.prisma.professional.update({ where: { id }, data });
+  async updateProfile(id: string, data: {
+    businessName?: string;
+    description?: string;
+    experienceYears?: number;
+    isAvailable?: boolean;
+    zones?: { name: string; latitude?: number; longitude?: number; radiusKm?: number }[];
+  }) {
+    const { zones, ...profileData } = data;
+
+    const updateData: Record<string, unknown> = { ...profileData };
+
+    if (zones) {
+      await this.prisma.professionalZone.deleteMany({ where: { professionalId: id } });
+      if (zones.length > 0) {
+        await this.prisma.professionalZone.createMany({
+          data: zones.map((z) => ({
+            professionalId: id,
+            name: z.name,
+            latitude: z.latitude ?? null,
+            longitude: z.longitude ?? null,
+            radiusKm: z.radiusKm ?? null,
+          })),
+        });
+      }
+    }
+
+    return this.prisma.professional.update({ where: { id }, data: updateData });
   }
 
   async verify(id: string, adminId: string, status: VerificationStatus) {
