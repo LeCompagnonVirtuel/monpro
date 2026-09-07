@@ -17,6 +17,22 @@ export interface Booking {
   createdAt: string;
   quote?: { id: string; totalAmount: number };
   professional?: { id: string; businessName?: string; user?: { fullName: string } };
+  serviceRequest?: {
+    id: string;
+    title: string;
+    description: string;
+    service?: { id: string; name: string };
+    client?: { fullName: string; avatarUrl?: string };
+    media?: { id: string; url: string; mimeType: string }[];
+  };
+  address?: {
+    id: string;
+    fullAddress: string;
+    latitude?: number;
+    longitude?: number;
+  };
+  startedAt?: string;
+  completedAt?: string;
 }
 
 export interface CreateBookingPayload {
