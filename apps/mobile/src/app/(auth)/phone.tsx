@@ -48,9 +48,12 @@ export default function PhoneScreen() {
     defaultValues: { phone: '' },
   });
 
+  const [smsUnavailable, setSmsUnavailable] = useState(false);
+
   const onSubmit = async (data: PhoneForm) => {
     setIsLoading(true);
     setError(null);
+    setSmsUnavailable(false);
 
     try {
       const normalizedPhone = `+225${data.phone}`;
@@ -61,7 +64,13 @@ export default function PhoneScreen() {
       });
     } catch (err) {
       const apiError = extractApiError(err);
-      setError(apiError.message);
+      const msg = apiError.message.toLowerCase();
+      if (msg.includes('envoyer le code') || msg.includes('vérification')) {
+        setSmsUnavailable(true);
+        setError('Le service SMS est temporairement indisponible.');
+      } else {
+        setError(apiError.message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -145,6 +154,38 @@ export default function PhoneScreen() {
               <Text variant="bodySmall" color={colors.error}>
                 {errors.phone?.message || error}
               </Text>
+            )}
+
+            {smsUnavailable && (
+              <View style={styles.fallbackCard}>
+                <View style={styles.fallbackHeader}>
+                  <Ionicons name="mail-outline" size={20} color={colors.secondary} />
+                  <Text variant="bodyMedium" style={styles.fallbackTitle}>
+                    Utilisez plutôt votre email
+                  </Text>
+                </View>
+                <Text variant="bodySmall" color={colors.textSecondary} style={styles.fallbackText}>
+                  Inscrivez-vous ou connectez-vous avec votre adresse email en attendant le rétablissement du service SMS.
+                </Text>
+                <View style={styles.fallbackActions}>
+                  <Pressable
+                    style={({ pressed }) => [styles.fallbackBtn, pressed && styles.ctaDown]}
+                    onPress={() => router.replace('/(auth)/email-register')}
+                  >
+                    <Text variant="bodySmall" color={colors.primary} style={{ fontWeight: '600' }}>
+                      Créer un compte
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={({ pressed }) => [styles.fallbackBtnOutline, pressed && styles.ctaDown]}
+                    onPress={() => router.replace('/(auth)/email-login')}
+                  >
+                    <Text variant="bodySmall" color={colors.secondary} style={{ fontWeight: '600' }}>
+                      Se connecter
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
             )}
           </View>
 
@@ -252,6 +293,49 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   goldAccent: { height: 2, backgroundColor: colors.secondary },
+
+  fallbackCard: {
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  fallbackHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  fallbackTitle: {
+    fontWeight: '700',
+    color: colors.text,
+  },
+  fallbackText: {
+    lineHeight: 20,
+  },
+  fallbackActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  fallbackBtn: {
+    flex: 1,
+    height: 40,
+    backgroundColor: colors.secondary,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fallbackBtnOutline: {
+    flex: 1,
+    height: 40,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.secondary,
+  },
 
   footer: {
     paddingHorizontal: spacing.xxl,
