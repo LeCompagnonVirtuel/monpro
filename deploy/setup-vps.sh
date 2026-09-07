@@ -97,8 +97,8 @@ mv /opt/monpro/deploy/nginx/conf.d/default.conf.tmp /opt/monpro/deploy/nginx/con
 
 docker compose up -d nginx
 
-# Get SSL cert
-docker compose run --rm certbot certonly \
+# Get SSL cert (--entrypoint override required)
+docker compose run --rm --entrypoint "certbot" certbot certonly \
   --webroot \
   --webroot-path=/var/www/certbot \
   --email "$EMAIL" \
