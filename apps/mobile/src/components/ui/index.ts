@@ -7,3 +7,4 @@ export { Badge } from './Badge';
 export { Divider } from './Divider';
 export { Spinner } from './Spinner';
 export { Skeleton } from './Skeleton';
+export { Logo } from './Logo';

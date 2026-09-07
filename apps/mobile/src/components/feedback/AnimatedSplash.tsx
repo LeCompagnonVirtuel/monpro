@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
-import { StyleSheet, View, Animated, Easing } from 'react-native';
+import { StyleSheet, View, Animated, Easing, Image } from 'react-native';
 import { colors } from '@/theme/colors';
+import { spacing } from '@/theme/spacing';
 
 interface AnimatedSplashProps {
   onFinish: () => void;
@@ -34,11 +35,18 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
   return (
     <Animated.View style={[styles.container, { opacity: fadeOut }]}>
       <View style={styles.content}>
-        <Animated.Text
-          style={[styles.logo, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}
-        >
-          MONPRO
-        </Animated.Text>
+        <Animated.View style={[styles.iconWrap, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}>
+          <Image
+            source={require('../../../assets/adaptive-icon.png')}
+            style={styles.iconImage}
+            resizeMode="contain"
+          />
+        </Animated.View>
+
+        <Animated.View style={[styles.logoRow, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}>
+          <Animated.Text style={styles.logoMon}>MON</Animated.Text>
+          <Animated.Text style={styles.logoPro}>PRO</Animated.Text>
+        </Animated.View>
 
         <Animated.View
           style={[
@@ -72,10 +80,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  logo: {
+  iconWrap: {
+    marginBottom: spacing.sm,
+  },
+  iconImage: {
+    width: 72,
+    height: 72,
+    borderRadius: 16,
+  },
+  logoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logoMon: {
     fontSize: 44,
     fontWeight: '800',
     color: colors.textInverse,
+    letterSpacing: 3,
+  },
+  logoPro: {
+    fontSize: 44,
+    fontWeight: '800',
+    color: colors.secondary,
     letterSpacing: 3,
   },
   accent: {

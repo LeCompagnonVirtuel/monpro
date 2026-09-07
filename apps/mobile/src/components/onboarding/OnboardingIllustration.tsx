@@ -7,7 +7,7 @@ import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
 import { Text } from '@/components/ui';
 
-type IllustrationType = 'discover' | 'request' | 'quotes' | 'professional';
+type IllustrationType = 'discover' | 'services' | 'request' | 'messaging' | 'quotes' | 'security' | 'ai' | 'professional';
 
 interface OnboardingIllustrationProps {
   type: IllustrationType;
@@ -182,14 +182,119 @@ function ProfessionalIllustration() {
   );
 }
 
+function ServicesIllustration() {
+  const categories = [
+    { icon: 'home' as const, label: 'Maison', color: colors.primary, delay: 300 },
+    { icon: 'people' as const, label: 'Événements', color: colors.secondary, delay: 450 },
+    { icon: 'flash' as const, label: 'Urgences', color: colors.error, delay: 600 },
+    { icon: 'car' as const, label: 'Auto', color: colors.success, delay: 750 },
+    { icon: 'restaurant' as const, label: 'Traiteur', color: '#E67E22', delay: 900 },
+    { icon: 'construct' as const, label: 'Travaux', color: '#8E44AD', delay: 1050 },
+  ];
+
+  return (
+    <View style={styles.illustrationContainer}>
+      <View style={styles.circleBg} />
+      <View style={styles.servicesGrid}>
+        {categories.map((cat) => (
+          <FloatingCard key={cat.label} style={styles.serviceCard} delay={cat.delay}>
+            <View style={[styles.serviceIconWrap, { backgroundColor: cat.color + '20' }]}>
+              <Ionicons name={cat.icon} size={24} color={cat.color} />
+            </View>
+            <Text variant="caption" color={colors.textSecondary} style={styles.serviceLabel}>
+              {cat.label}
+            </Text>
+          </FloatingCard>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function MessagingIllustration() {
+  return (
+    <View style={styles.illustrationContainer}>
+      <View style={styles.circleBg} />
+      <View style={styles.chatContainer}>
+        <FloatingCard style={styles.chatBubbleLeft} delay={300}>
+          <Text variant="caption" color={colors.text}>Bonjour, je cherche un plombier pour demain</Text>
+        </FloatingCard>
+        <FloatingCard style={styles.chatBubbleRight} delay={600}>
+          <Text variant="caption" color={colors.textInverse}>Bien sûr ! Je suis disponible demain matin</Text>
+        </FloatingCard>
+        <FloatingCard style={styles.chatBubbleLeft} delay={900}>
+          <View style={styles.chatRow}>
+            <Ionicons name="camera" size={16} color={colors.primary} />
+            <Text variant="caption" color={colors.primary}>Photo envoyée</Text>
+          </View>
+        </FloatingCard>
+      </View>
+    </View>
+  );
+}
+
+function SecurityIllustration() {
+  return (
+    <View style={styles.illustrationContainer}>
+      <View style={styles.circleBg} />
+      <Animated.View entering={FadeInDown.delay(200).duration(600).springify()} style={styles.shieldWrap}>
+        <Ionicons name="shield-checkmark" size={48} color={colors.textInverse} />
+      </Animated.View>
+      <FloatingCard style={styles.securityCardLeft} delay={500}>
+        <View style={styles.cardRow}>
+          <Ionicons name="lock-closed" size={16} color={colors.success} />
+          <Text variant="caption" color={colors.success}>Paiement protégé</Text>
+        </View>
+      </FloatingCard>
+      <FloatingCard style={styles.securityCardRight} delay={700}>
+        <View style={styles.cardRow}>
+          <Ionicons name="person-circle" size={16} color={colors.primary} />
+          <Text variant="caption" color={colors.primary}>Pros vérifiés</Text>
+        </View>
+      </FloatingCard>
+    </View>
+  );
+}
+
+function AiIllustration() {
+  return (
+    <View style={styles.illustrationContainer}>
+      <View style={styles.circleBg} />
+      <Animated.View entering={FadeInDown.delay(200).duration(600).springify()} style={styles.aiIconWrap}>
+        <Ionicons name="sparkles" size={44} color={colors.textInverse} />
+      </Animated.View>
+      <FloatingCard style={styles.aiCardTop} delay={500}>
+        <View style={styles.cardRow}>
+          <Ionicons name="image" size={16} color={colors.primary} />
+          <Text variant="caption" color={colors.text}>Analysez une photo</Text>
+        </View>
+      </FloatingCard>
+      <FloatingCard style={styles.aiCardBottom} delay={700}>
+        <View style={styles.cardRow}>
+          <Ionicons name="chatbubble-ellipses" size={16} color={colors.secondary} />
+          <Text variant="caption" color={colors.text}>Diagnostic instantané</Text>
+        </View>
+      </FloatingCard>
+    </View>
+  );
+}
+
 export function OnboardingIllustration({ type }: OnboardingIllustrationProps) {
   switch (type) {
     case 'discover':
       return <DiscoverIllustration />;
+    case 'services':
+      return <ServicesIllustration />;
     case 'request':
       return <RequestIllustration />;
+    case 'messaging':
+      return <MessagingIllustration />;
     case 'quotes':
       return <QuotesIllustration />;
+    case 'security':
+      return <SecurityIllustration />;
+    case 'ai':
+      return <AiIllustration />;
     case 'professional':
       return <ProfessionalIllustration />;
   }
@@ -391,5 +496,87 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontWeight: '500',
+  },
+  servicesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+  },
+  serviceCard: {
+    width: 100,
+    alignItems: 'center',
+    paddingVertical: spacing.lg,
+    gap: spacing.xs,
+  },
+  serviceIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  serviceLabel: {
+    fontWeight: '500',
+  },
+  chatContainer: {
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    width: '100%',
+  },
+  chatBubbleLeft: {
+    alignSelf: 'flex-start',
+    maxWidth: '75%',
+    borderBottomLeftRadius: radius.xs,
+  },
+  chatBubbleRight: {
+    alignSelf: 'flex-end',
+    maxWidth: '75%',
+    backgroundColor: colors.primary,
+    borderBottomRightRadius: radius.xs,
+  },
+  chatRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  shieldWrap: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: colors.success,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.lg,
+  },
+  securityCardLeft: {
+    position: 'absolute',
+    bottom: 40,
+    left: 16,
+  },
+  securityCardRight: {
+    position: 'absolute',
+    top: 20,
+    right: 16,
+  },
+  aiIconWrap: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: colors.secondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.lg,
+  },
+  aiCardTop: {
+    position: 'absolute',
+    top: 20,
+    right: 16,
+  },
+  aiCardBottom: {
+    position: 'absolute',
+    bottom: 30,
+    left: 16,
   },
 });

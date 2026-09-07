@@ -13,7 +13,7 @@ import { completeOnboarding } from '@/lib/onboarding';
 
 const { width } = Dimensions.get('window');
 
-type IllustrationType = 'discover' | 'request' | 'quotes' | 'professional';
+type IllustrationType = 'discover' | 'services' | 'request' | 'messaging' | 'quotes' | 'security' | 'ai' | 'professional';
 
 interface Slide {
   id: string;
@@ -32,20 +32,48 @@ const SLIDES: Slide[] = [
   },
   {
     id: '2',
+    title: 'Tous vos besoins, un seul endroit',
+    description:
+      "Maison, événements amicaux ou familiaux, urgences, auto, traiteur, travaux… Quel que soit le service, MONPRO a le professionnel qu'il vous faut.",
+    illustration: 'services',
+  },
+  {
+    id: '3',
     title: 'Expliquez simplement votre besoin',
     description:
       'Décrivez votre demande, choisissez le service dont vous avez besoin et recevez des réponses de professionnels qualifiés.',
     illustration: 'request',
   },
   {
-    id: '3',
+    id: '4',
+    title: 'Échangez en direct',
+    description:
+      'Discutez avec les professionnels par messagerie instantanée. Envoyez des photos, précisez vos besoins et organisez le rendez-vous.',
+    illustration: 'messaging',
+  },
+  {
+    id: '5',
     title: 'Comparez et choisissez en toute confiance',
     description:
       'Recevez des devis, comparez les propositions et choisissez le professionnel qui correspond le mieux à votre besoin.',
     illustration: 'quotes',
   },
   {
-    id: '4',
+    id: '6',
+    title: 'Paiements sécurisés',
+    description:
+      'Payez en toute sérénité via Orange Money, MTN MoMo, Moov ou Wave. Vos transactions sont protégées et vos professionnels sont vérifiés.',
+    illustration: 'security',
+  },
+  {
+    id: '7',
+    title: 'Votre assistant intelligent',
+    description:
+      "Prenez une photo d'un problème et notre IA vous aide à diagnostiquer la panne, identifier le service nécessaire et estimer le coût.",
+    illustration: 'ai',
+  },
+  {
+    id: '8',
     title: 'Développez aussi votre activité',
     description:
       'Vous êtes professionnel ? Rejoignez MONPRO, recevez des demandes et développez votre activité.',

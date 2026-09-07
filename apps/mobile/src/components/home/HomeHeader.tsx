@@ -1,11 +1,12 @@
-import { Image, ImageBackground, Pressable, StyleSheet, View } from 'react-native';
+import { ImageBackground, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
-import { Text } from '@/components/ui';
+import { Text, Logo } from '@/components/ui';
 import { useUnreadNotificationCount } from '@/hooks/use-notifications';
 
 interface HomeHeaderProps {
@@ -25,13 +26,8 @@ export function HomeHeader({ firstName, locationLabel }: HomeHeaderProps) {
     >
       <View style={styles.overlay} />
 
-      <View style={styles.topRow}>
-        <Image
-          source={require('../../../assets/icon.png')}
-          style={styles.logoImage}
-          resizeMode="contain"
-          accessibilityLabel="MONPRO"
-        />
+      <Animated.View entering={FadeIn.duration(400)} style={styles.topRow}>
+        <Logo variant="full" size="md" color="light" />
 
         <View style={styles.rightRow}>
           {locationLabel ? (
@@ -61,16 +57,16 @@ export function HomeHeader({ firstName, locationLabel }: HomeHeaderProps) {
             </View>
           </Pressable>
         </View>
-      </View>
+      </Animated.View>
 
-      <View style={styles.greeting}>
+      <Animated.View entering={FadeInDown.delay(200).duration(400)} style={styles.greeting}>
         <Text variant="h1" color={colors.textInverse} style={styles.greetingTitle}>
           {firstName ? `Bonjour ${firstName}` : 'Bonjour'}
         </Text>
         <Text variant="bodySmall" color={colors.textInverseSoft} style={styles.greetingSub}>
           {"Que recherchez-vous aujourd'hui ?"}
         </Text>
-      </View>
+      </Animated.View>
     </ImageBackground>
   );
 }
@@ -94,10 +90,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
     marginBottom: spacing.xl,
-  },
-  logoImage: {
-    width: 120,
-    height: 32,
   },
   rightRow: {
     flexDirection: 'row',

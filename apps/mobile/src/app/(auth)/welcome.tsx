@@ -1,4 +1,4 @@
-import { Image, ImageBackground, Pressable, StyleSheet, View, Animated, Easing } from 'react-native';
+import { ImageBackground, Pressable, StyleSheet, View, Animated, Easing } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,7 +6,7 @@ import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
-import { Text } from '@/components/ui';
+import { Text, Logo } from '@/components/ui';
 import { useEffect, useRef, useState } from 'react';
 
 const TAGLINES = [
@@ -111,12 +111,7 @@ export default function WelcomeScreen() {
           ]}
         >
           {/* Logo */}
-          <Image
-            source={require('../../../assets/adaptive-icon.png')}
-            style={styles.logo}
-            resizeMode="contain"
-            accessibilityLabel="MONPRO"
-          />
+          <Logo variant="full" size="lg" color="light" />
 
           <View style={styles.grow} />
 
@@ -249,7 +244,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(7, 31, 73, 0.78)',
   },
   content: { flex: 1, paddingHorizontal: spacing.xxl },
-  logo: { width: 52, height: 52 },
+
   grow: { flex: 1 },
 
   hero: { gap: spacing.md, marginBottom: spacing.xl },
