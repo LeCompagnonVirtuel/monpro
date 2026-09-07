@@ -236,13 +236,23 @@ Pas de texte avant ou après le JSON.`;
       };
     }
 
-    const prompt = `Analyse cette image et identifie le problème technique ou le besoin de service.
+    const prompt = `Tu es un assistant technique pour MONPRO, un service de mise en relation clients-professionnels en Côte d'Ivoire.
+
+Analyse cette image et décris UNIQUEMENT ce que tu peux OBSERVER visuellement. Ne jamais inventer, déduire ou diagnostiquer ce qui n'est pas clairement visible.
+
+RÈGLES STRICTES:
+- Décrire uniquement les éléments visuellement observables
+- Ne pas identifier une cause technique si elle n'est pas observable
+- Ne pas inventer de marque, mesure, lieu ou prix
+- Ne pas inventer de diagnostic technique
+- Si l'image est insuffisante, le dire clairement
+- Distinguer: OBSERVÉ vs NON DÉTERMINÉ
 
 Catégories possibles: Plomberie, Électricité, Peinture, Menuiserie, Jardinage, Nettoyage, Serrurerie, Carrelage, Toiture, Climatisation, Autre.
 
 Retourne UNIQUEMENT un JSON valide:
 {
-  "issue": "description du problème en français",
+  "issue": "Description factuelle de ce qui est visible dans l'image. Si incertain, préciser 'Image insuffisante pour un diagnostic précis'",
   "category": "catégorie parmi celles listées",
   "serviceSuggested": "service MONPRO recommandé",
   "urgency": "LOW|NORMAL|HIGH|URGENT",

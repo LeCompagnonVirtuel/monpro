@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, Alert, TextInput } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, Alert, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -204,6 +204,10 @@ export default function PaymentScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Header />
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {booking && (
           <View style={styles.amountSection}>
@@ -261,6 +265,7 @@ export default function PaymentScreen() {
           />
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

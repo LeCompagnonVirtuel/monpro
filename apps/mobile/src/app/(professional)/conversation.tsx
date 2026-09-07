@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { StyleSheet, View, FlatList, TextInput, Pressable, KeyboardAvoidingView, Platform, Image, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, FlatList, TextInput, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { Image } from 'expo-image';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -84,6 +85,8 @@ export default function ProfessionalConversationScreen() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsMultipleSelection: false,
+      allowsEditing: true,
+      aspect: [4, 3],
       quality: 0.7,
     });
 
@@ -176,6 +179,12 @@ export default function ProfessionalConversationScreen() {
               <Text variant="bodySmall" color={colors.text}>{summary}</Text>
             </View>
           ) : undefined}
+          ListEmptyComponent={
+            <View style={styles.emptyContent}>
+              <Ionicons name="chatbubbles-outline" size={48} color={colors.textTertiary} />
+              <Text variant="body" color={colors.textTertiary}>Aucun message pour le moment</Text>
+            </View>
+          }
           contentContainerStyle={styles.messagesContent}
           onScroll={handleScroll}
           onContentSizeChange={() => {
@@ -265,7 +274,7 @@ function MessageBubble({ message, isOwn }: { message: Message; isOwn: boolean })
         <Image
           source={{ uri: message.imageUrl }}
           style={styles.messageImage}
-          resizeMode="cover"
+          contentFit="cover"
           accessibilityLabel="Image envoyée"
         />
       )}
@@ -288,6 +297,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { flex: 1, textAlign: 'center' },
   loadingContent: { flex: 1, padding: spacing.lg, gap: spacing.md, justifyContent: 'flex-end' },
+  emptyContent: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.md, paddingVertical: spacing.xxl },
   messagesContent: { paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.sm },
   bubble: { maxWidth: '78%', padding: spacing.md, borderRadius: radius.lg, gap: 4 },
   bubbleOwn: { alignSelf: 'flex-end', backgroundColor: colors.primary, borderBottomRightRadius: radius.xs },

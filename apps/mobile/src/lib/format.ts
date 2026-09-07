@@ -1,5 +1,5 @@
-export function formatCurrency(amount: number): string {
-  return `${amount.toLocaleString('fr-FR')} FCFA`;
+export function formatCurrency(amount: number | null | undefined): string {
+  return `${(amount ?? 0).toLocaleString('fr-FR')} FCFA`;
 }
 
 export function formatDate(dateStr: string): string {

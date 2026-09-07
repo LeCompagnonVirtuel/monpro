@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { FlatList, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { FlatList, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Switch, View, KeyboardAvoidingView, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
@@ -209,7 +209,7 @@ export default function SearchScreen() {
           <RefreshControl
             refreshing={professionals.isRefetching || categories.isRefetching}
             onRefresh={handleRefresh}
-            tintColor={colors.secondary}
+            tintColor={colors.primary}
           />
         }
         ItemSeparatorComponent={CardSeparator}
@@ -218,7 +218,10 @@ export default function SearchScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       {renderContent()}
 
       <Modal
@@ -331,7 +334,7 @@ export default function SearchScreen() {
           </Text>
         </View>
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

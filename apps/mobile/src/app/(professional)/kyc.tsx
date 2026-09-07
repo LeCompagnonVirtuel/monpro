@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, Alert, ActivityIndicator, Image } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, Alert, ActivityIndicator } from 'react-native';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -160,7 +161,7 @@ export default function KycScreen() {
       accessibilityRole="button"
     >
       {uri ? (
-        <Image source={{ uri }} style={styles.uploadPreview} resizeMode="cover" />
+        <Image source={{ uri }} style={styles.uploadPreview} contentFit="cover" />
       ) : (
         <View style={styles.uploadPlaceholder}>
           <Ionicons name="camera-outline" size={48} color={colors.textTertiary} />

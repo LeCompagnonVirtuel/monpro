@@ -1,4 +1,4 @@
-import { Alert, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,9 +16,10 @@ interface SettingRowProps {
   value?: boolean;
   onValueChange?: (value: boolean) => void;
   onPress?: () => void;
+  accessibilityLabel?: string;
 }
 
-function SettingRow({ icon, label, type, value, onValueChange, onPress }: SettingRowProps) {
+function SettingRow({ icon, label, type, value, onValueChange, onPress, accessibilityLabel }: SettingRowProps) {
   return (
     <View style={settingStyles.row}>
       <View style={settingStyles.iconWrap}>
@@ -31,9 +32,12 @@ function SettingRow({ icon, label, type, value, onValueChange, onPress }: Settin
           onValueChange={onValueChange}
           trackColor={{ false: colors.border, true: colors.primaryLight }}
           thumbColor={value ? colors.secondary : colors.textTertiary}
+          accessibilityLabel={accessibilityLabel || label}
         />
       ) : (
-        <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} onPress={onPress} />
+        <Pressable onPress={onPress} accessibilityLabel={accessibilityLabel || label} accessibilityRole="button">
+          <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+        </Pressable>
       )}
     </View>
   );
@@ -76,12 +80,13 @@ export default function SettingsScreen() {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <View style={styles.headerRow}>
-          <Ionicons
-            name="chevron-back"
-            size={24}
-            color={colors.text}
-            onPress={() => router.back()}
-          />
+          <Pressable onPress={() => router.back()} accessibilityLabel="Retour" accessibilityRole="button">
+            <Ionicons
+              name="chevron-back"
+              size={24}
+              color={colors.text}
+            />
+          </Pressable>
           <Text variant="h2" color={colors.text}>Paramètres</Text>
         </View>
       </View>
@@ -122,6 +127,7 @@ export default function SettingsScreen() {
               type="toggle"
               value={settings?.pushEnabled ?? true}
               onValueChange={(v) => handleToggle('pushEnabled', v)}
+              accessibilityLabel="Notifications push"
             />
           </View>
           <Text variant="caption" color={colors.textTertiary} style={styles.settingNote}>
@@ -140,6 +146,7 @@ export default function SettingsScreen() {
               type="toggle"
               value={settings?.profileVisible ?? true}
               onValueChange={(v) => handleToggle('profileVisible', v)}
+              accessibilityLabel="Profil visible"
             />
             <View style={styles.separator} />
             <SettingRow
@@ -148,6 +155,7 @@ export default function SettingsScreen() {
               type="toggle"
               value={settings?.locationEnabled ?? true}
               onValueChange={(v) => handleToggle('locationEnabled', v)}
+              accessibilityLabel="Localisation"
             />
           </View>
           <Text variant="caption" color={colors.textTertiary} style={styles.settingNote}>

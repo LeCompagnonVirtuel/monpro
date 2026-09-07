@@ -1,12 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
-import { professionalsApi, ProfessionalListParams, ProfessionalMatchParams } from '@/api/professionals';
+import { professionalsApi, ProfessionalListParams, ProfessionalMatchParams, Professional } from '@/api/professionals';
+
+function isDemo(pro: Professional): boolean {
+  const name = (pro.user?.fullName || pro.businessName || '').toUpperCase();
+  return name.includes('[DEMO]') || name.includes('[TEST]');
+}
 
 export function useProfessionals(params?: ProfessionalListParams) {
   return useQuery({
     queryKey: ['professionals', params],
     queryFn: async () => {
       const { data } = await professionalsApi.list(params);
-      return { professionals: data.data, total: data.total };
+      const professionals = (data.data || []).filter((p) => !isDemo(p));
+      return { professionals, total: professionals.length };
     },
   });
 }
@@ -16,7 +22,9 @@ export function useProfessional(id: string | undefined) {
     queryKey: ['professionals', id],
     queryFn: async () => {
       const { data } = await professionalsApi.getById(id!);
-      return data.data;
+      const pro = data.data;
+      if (pro && isDemo(pro)) return null;
+      return pro;
     },
     enabled: !!id,
   });
@@ -27,7 +35,7 @@ export function useProfessionalMatch(params: ProfessionalMatchParams | undefined
     queryKey: ['professionals', 'match', params],
     queryFn: async () => {
       const { data } = await professionalsApi.match(params!);
-      return data.data;
+      return (data.data || []).filter((p) => !isDemo(p));
     },
     enabled: !!params?.serviceId,
   });

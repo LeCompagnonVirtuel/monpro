@@ -32,7 +32,7 @@ export default function DashboardScreen() {
   const firstName = user?.fullName?.split(' ')[0] || '';
 
   const unreadMessages = useMemo(() => {
-    if (!conversations) return 0;
+    if (!Array.isArray(conversations)) return 0;
     return conversations.reduce((sum, c) => sum + (c.unreadCount > 0 ? 1 : 0), 0);
   }, [conversations]);
 
@@ -177,14 +177,14 @@ export default function DashboardScreen() {
                 <Pressable
                   style={styles.statCard}
                   onPress={() => router.push('/(professional)/revenue')}
-                  accessibilityLabel={`Solde : ${formatCurrency(wallet.balance)}`}
+                  accessibilityLabel={`Solde : ${formatCurrency(wallet.balance ?? 0)}`}
                   accessibilityRole="button"
                 >
                   <View style={[styles.statIcon, { backgroundColor: colors.infoLight }]}>
                     <Ionicons name="wallet-outline" size={16} color={colors.info} />
                   </View>
                   <Text variant="h3" color={colors.primary} style={styles.statValue}>
-                    {formatCurrency(wallet.balance)}
+                    {formatCurrency(wallet.balance ?? 0)}
                   </Text>
                   <Text variant="caption" color={colors.textSecondary}>Solde</Text>
                 </Pressable>

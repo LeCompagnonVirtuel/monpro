@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsUUID, IsEnum, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsUUID, IsEnum, MaxLength, IsArray, IsUrl } from 'class-validator';
 import { UrgencyLevel } from '@prisma/client';
 
 export class CreateServiceRequestDto {
@@ -31,4 +31,9 @@ export class CreateServiceRequestDto {
   @IsOptional()
   @IsString()
   preferredTimeEnd?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsUrl({}, { each: true })
+  mediaUrls?: string[];
 }

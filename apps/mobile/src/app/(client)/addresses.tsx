@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, Alert, TextInput } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, Alert, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -83,7 +83,10 @@ export default function AddressesScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <Header onAdd={() => setShowForm(!showForm)} />
 
       {showForm && (
@@ -171,7 +174,7 @@ export default function AddressesScreen() {
           ))
         )}
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -180,12 +183,13 @@ function Header({ onAdd }: { onAdd: () => void }) {
   return (
     <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
       <View style={styles.headerRow}>
-        <Ionicons
-          name="chevron-back"
-          size={24}
-          color={colors.text}
-          onPress={() => router.back()}
-        />
+        <Pressable onPress={() => router.back()} accessibilityLabel="Retour" accessibilityRole="button">
+          <Ionicons
+            name="chevron-back"
+            size={24}
+            color={colors.text}
+          />
+        </Pressable>
         <Text variant="h2" color={colors.text}>Adresses enregistrées</Text>
         <Pressable onPress={onAdd} style={styles.headerRight}>
           <Ionicons name="add" size={28} color={colors.secondary} />

@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import { StyleSheet, View, FlatList, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,8 +11,14 @@ import { Text, Skeleton } from '@/components/ui';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useProfessionalRequests } from '@/hooks/use-professional-requests';
-import { ServiceRequest } from '@/api/requests';
+import { ServiceRequest, ServiceRequestStatus } from '@/api/requests';
 import { formatRelativeDate } from '@/lib/format';
+
+type FilterTab = 'all' | 'active' | 'completed' | 'cancelled';
+
+const ACTIVE_STATUSES: ServiceRequestStatus[] = [
+  'SUBMITTED', 'MATCHING', 'QUOTED', 'ACCEPTED', 'SCHEDULED', 'IN_PROGRESS',
+];
 
 const QUOTABLE_STATUSES: string[] = ['SUBMITTED', 'MATCHING', 'QUOTED'];
 
@@ -36,44 +43,16 @@ const STATUS_LABELS: Record<string, { color: string; label: string }> = {
 };
 
 export default function ProfessionalRequestsScreen() {
+  const [filter, setFilter] = useState<FilterTab>('all');
   const { data, isLoading, error, refetch, isRefetching } = useProfessionalRequests({ limit: 30 });
 
-  if (isLoading) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Text variant="h2">Demandes</Text>
-        </View>
-        <View style={styles.loadingContent}>
-          {[1, 2, 3, 4].map((i) => <Skeleton key={i} width="100%" height={100} />)}
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (error) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Text variant="h2">Demandes</Text>
-        </View>
-        <ErrorState message="Impossible de charger les demandes" onRetry={refetch} />
-      </SafeAreaView>
-    );
-  }
-
-  const requests = data?.requests || [];
-
-  if (requests.length === 0) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Text variant="h2">Demandes</Text>
-        </View>
-        <EmptyState title="Aucune nouvelle demande" description="Les demandes correspondant à vos services apparaîtront ici." icon="document-text-outline" />
-      </SafeAreaView>
-    );
-  }
+  const filteredRequests = useMemo(() => {
+    const all = data?.requests || [];
+    if (filter === 'active') {
+      return all.filter((r) => ACTIVE_STATUSES.includes(r.status));
+    }
+    return all;
+  }, [data, filter]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -81,14 +60,41 @@ export default function ProfessionalRequestsScreen() {
         <Text variant="h2">Demandes</Text>
         <Text variant="bodySmall" color={colors.textSecondary}>{data?.total || 0} disponible(s)</Text>
       </View>
-      <FlatList
-        data={requests}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <RequestCard request={item} />}
-        contentContainerStyle={styles.listContent}
-        onRefresh={refetch}
-        refreshing={isRefetching}
-      />
+
+      <View style={styles.filters}>
+        {(['all', 'active', 'completed', 'cancelled'] as FilterTab[]).map((tab) => (
+          <Pressable
+            key={tab}
+            style={[styles.filterTab, filter === tab && styles.filterTabActive]}
+            onPress={() => setFilter(tab)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: filter === tab }}
+          >
+            <Text variant="caption" color={filter === tab ? colors.primary : colors.textSecondary}>
+              {tab === 'all' ? 'Toutes' : tab === 'active' ? 'En cours' : tab === 'completed' ? 'Terminées' : 'Annulées'}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      {isLoading ? (
+        <View style={styles.loadingContent}>
+          {[1, 2, 3, 4].map((i) => <Skeleton key={i} width="100%" height={100} />)}
+        </View>
+      ) : error ? (
+        <ErrorState message="Impossible de charger les demandes" onRetry={refetch} />
+      ) : filteredRequests.length === 0 ? (
+        <EmptyState title="Aucune nouvelle demande" description="Les demandes correspondant à vos services apparaîtront ici." icon="document-text-outline" />
+      ) : (
+        <FlatList
+          data={filteredRequests}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <RequestCard request={item} />}
+          contentContainerStyle={styles.listContent}
+          onRefresh={refetch}
+          refreshing={isRefetching}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -157,7 +163,29 @@ function RequestCard({ request }: { request: ServiceRequest }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  header: { paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.xs },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  filters: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
+    paddingBottom: spacing.md,
+  },
+  filterTab: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surfaceSecondary,
+  },
+  filterTabActive: {
+    backgroundColor: colors.successLightest,
+  },
   loadingContent: { padding: spacing.lg, gap: spacing.md },
   listContent: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxxl, gap: spacing.sm },
   card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, gap: spacing.md, ...shadows.sm },

@@ -1,4 +1,5 @@
-import { Image, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Image } from 'expo-image';
 import { colors } from '@/theme/colors';
 import { Text } from './Text';
 
@@ -27,7 +28,7 @@ export function Logo({ variant = 'full', size = 'md', color = 'dark' }: LogoProp
       <Image
         source={require('../../../assets/adaptive-icon.png')}
         style={{ width: s.icon, height: s.icon, borderRadius: s.icon * 0.2 }}
-        resizeMode="contain"
+        contentFit="contain"
         accessibilityLabel="MONPRO"
       />
     );
@@ -59,7 +60,7 @@ export function Logo({ variant = 'full', size = 'md', color = 'dark' }: LogoProp
       <Image
         source={require('../../../assets/adaptive-icon.png')}
         style={{ width: s.icon, height: s.icon, borderRadius: s.icon * 0.2 }}
-        resizeMode="contain"
+        contentFit="contain"
         accessibilityLabel="MONPRO"
       />
       <View style={[styles.textRow, { gap: 2 }]}>

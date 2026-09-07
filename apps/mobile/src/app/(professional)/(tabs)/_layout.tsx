@@ -8,7 +8,9 @@ export default function ProfessionalTabsLayout() {
   const { data: conversations } = useConversations();
   const { data: unreadNotifCount } = useUnreadNotificationCount();
 
-  const unreadMsgCount = conversations?.reduce((sum, c) => sum + c.unreadCount, 0) || 0;
+  const unreadMsgCount = Array.isArray(conversations)
+    ? conversations.reduce((sum, c) => sum + (c.unreadCount ?? 0), 0)
+    : 0;
 
   return (
     <Tabs

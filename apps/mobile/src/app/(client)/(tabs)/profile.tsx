@@ -104,7 +104,7 @@ export default function ProfileScreen() {
           <RefreshControl
             refreshing={me.isRefetching}
             onRefresh={handleRefresh}
-            tintColor={colors.secondary}
+            tintColor={colors.primary}
           />
         }
       >

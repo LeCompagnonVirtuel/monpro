@@ -10,15 +10,17 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { useProfessional } from '@/hooks/use-professionals';
 import { useReviews } from '@/hooks/use-reviews';
 import { useIsFavorite, useAddFavorite, useRemoveFavorite } from '@/hooks/use-favorites';
+import { useCreateConversation } from '@/hooks/use-conversations';
 import { Review } from '@/api/reviews';
 
 export default function ProfessionalScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: pro, isLoading, error, refetch } = useProfessional(id);
-  const { data: reviewsData } = useReviews(id, { limit: 5 });
+  const { data: reviewsData, error: reviewsError, refetch: refetchReviews } = useReviews(id, { limit: 5 });
   const { data: isFavorite } = useIsFavorite(id);
   const addFavorite = useAddFavorite();
   const removeFavorite = useRemoveFavorite();
+  const createConversation = useCreateConversation();
   const insets = useSafeAreaInsets();
 
   const toggleFavorite = () => {
@@ -137,31 +139,65 @@ export default function ProfessionalScreen() {
           </View>
         ) : null}
 
-        {reviewsData && reviewsData.reviews.length > 0 ? (
-          <View style={styles.section}>
-            <Text variant="h3">Avis ({reviewsData.total})</Text>
-            {reviewsData.reviews.map((review) => (
-              <ReviewCard key={review.id} review={review} />
-            ))}
-          </View>
-        ) : null}
+        <View style={styles.section}>
+          <Text variant="h3">Avis</Text>
+          {reviewsError ? (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="alert-circle-outline" size={24} color={colors.error} />
+              <Text variant="bodySmall" color={colors.textSecondary}>Impossible de charger les avis</Text>
+              <Pressable onPress={() => refetchReviews()} style={styles.retryBtn} accessibilityLabel="Réessayer">
+                <Text variant="caption" color={colors.primary}>Réessayer</Text>
+              </Pressable>
+            </View>
+          ) : reviewsData && reviewsData.reviews.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text variant="bodySmall" color={colors.textSecondary}>Aucun avis pour le moment</Text>
+            </View>
+          ) : reviewsData ? (
+            <>
+              <Text variant="bodySmall" color={colors.textSecondary}>{reviewsData.total} avis</Text>
+              {reviewsData.reviews.map((review) => (
+                <ReviewCard key={review.id} review={review} />
+              ))}
+            </>
+          ) : null}
+        </View>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
       <View style={[styles.ctaContainer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
-        <Button
-          title="Demander un service"
-          variant="secondary"
-          onPress={() => {
-            const serviceId = pro.services?.[0]?.id;
-            router.push({
-              pathname: '/(client)/create-request',
-              params: serviceId ? { serviceId, professionalId: id } : { professionalId: id },
-            });
-          }}
-          size="lg"
-        />
+        <View style={styles.ctaRow}>
+          <Button
+            title="Envoyer un message"
+            variant="outline"
+            onPress={async () => {
+              if (!pro.user?.id) return;
+              try {
+                const conversation = await createConversation.mutateAsync(pro.user.id);
+                router.push({ pathname: '/(client)/conversation', params: { conversationId: conversation.id } });
+              } catch {
+                // Silently fail – user can retry
+              }
+            }}
+            loading={createConversation.isPending}
+            size="lg"
+            style={styles.ctaFlex}
+          />
+          <Button
+            title="Demander un service"
+            variant="secondary"
+            onPress={() => {
+              const serviceId = pro.services?.[0]?.id;
+              router.push({
+                pathname: '/(client)/create-request',
+                params: serviceId ? { serviceId, professionalId: id } : { professionalId: id },
+              });
+            }}
+            size="lg"
+            style={styles.ctaFlex}
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -265,6 +301,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xxs,
   },
+  emptyContainer: {
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.lg,
+  },
+  retryBtn: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
   bottomSpacer: {
     height: spacing.xxxxl,
   },
@@ -273,5 +318,12 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.borderLight,
     backgroundColor: colors.surface,
+  },
+  ctaRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  ctaFlex: {
+    flex: 1,
   },
 });

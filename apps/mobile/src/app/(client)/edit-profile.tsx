@@ -1,4 +1,5 @@
-import { Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image } from 'expo-image';
 import { useState, useCallback } from 'react';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -102,12 +103,13 @@ export default function EditProfileScreen() {
       <View style={styles.container}>
         <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
           <View style={styles.headerRow}>
-            <Ionicons
-              name="chevron-back"
-              size={24}
-              color={colors.text}
+            <Pressable
               onPress={() => router.back()}
-            />
+              accessibilityLabel="Retour"
+              accessibilityRole="button"
+            >
+              <Ionicons name="chevron-back" size={24} color={colors.text} />
+            </Pressable>
             <Text variant="h2" color={colors.text}>Modifier le profil</Text>
             <View style={styles.headerRight} />
           </View>
@@ -132,25 +134,28 @@ export default function EditProfileScreen() {
     >
       <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <View style={styles.headerRow}>
-          <Ionicons
-            name="chevron-back"
-            size={24}
-            color={colors.text}
+          <Pressable
             onPress={() => router.back()}
-          />
+            accessibilityLabel="Retour"
+            accessibilityRole="button"
+          >
+            <Ionicons name="chevron-back" size={24} color={colors.text} />
+          </Pressable>
           <Text variant="h2" color={colors.text}>Modifier le profil</Text>
           <View style={styles.headerRight}>
             {isSaving ? (
               <Spinner size="small" color={colors.secondary} />
             ) : (
-              <Text
-                variant="body"
-                color={colors.secondary}
+              <Pressable
                 onPress={handleSave}
+                accessibilityLabel="Sauvegarder les modifications"
+                accessibilityRole="button"
                 style={styles.saveButton}
               >
-                Modifier
-              </Text>
+                <Text variant="body" color={colors.secondary}>
+                  Modifier
+                </Text>
+              </Pressable>
             )}
           </View>
         </View>
@@ -177,9 +182,15 @@ export default function EditProfileScreen() {
               <Ionicons name="camera" size={20} color={colors.textInverse} />
             </View>
           </View>
-          <Text variant="bodySmall" color={colors.textSecondary} onPress={handleAvatarPress} style={styles.changePhotoLink}>
-            Modifier la photo
-          </Text>
+          <Pressable
+            onPress={handleAvatarPress}
+            accessibilityLabel="Modifier la photo de profil"
+            accessibilityRole="button"
+          >
+            <Text variant="bodySmall" color={colors.textSecondary} style={styles.changePhotoLink}>
+              Modifier la photo
+            </Text>
+          </Pressable>
         </View>
 
         <View style={styles.formSection}>

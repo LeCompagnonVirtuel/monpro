@@ -1,4 +1,5 @@
-import { View, Image, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import Animated, { FadeInLeft, FadeInRight } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
@@ -22,7 +23,7 @@ export function AiChatBubble({ message }: Props) {
           <Image
             source={{ uri: message.imageUri }}
             style={styles.chatImage}
-            resizeMode="cover"
+            contentFit="cover"
             accessibilityLabel="Photo envoyée pour analyse"
           />
         )}

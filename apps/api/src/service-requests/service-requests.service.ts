@@ -4,6 +4,16 @@ import { ServiceRequestStatus, UrgencyLevel } from '@prisma/client';
 import { validateServiceRequestTransition } from '../common/state-machines';
 import { paginate } from '../common/utils/pagination';
 
+function inferMimeType(url: string): string {
+  const ext = url.split('.').pop()?.split('?')[0]?.toLowerCase();
+  switch (ext) {
+    case 'png': return 'image/png';
+    case 'webp': return 'image/webp';
+    case 'heic': return 'image/heic';
+    default: return 'image/jpeg';
+  }
+}
+
 @Injectable()
 export class ServiceRequestsService {
   constructor(private prisma: PrismaService) {}
@@ -43,7 +53,7 @@ export class ServiceRequestsService {
         data: data.mediaUrls.map((url) => ({
           serviceRequestId: request.id,
           url,
-          mimeType: 'image/jpeg',
+          mimeType: inferMimeType(url),
         })),
       });
     }

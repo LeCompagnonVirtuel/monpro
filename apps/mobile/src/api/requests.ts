@@ -31,6 +31,7 @@ export interface CreateServiceRequestPayload {
   preferredDate?: string;
   preferredTimeStart?: string;
   preferredTimeEnd?: string;
+  mediaUrls?: string[];
 }
 
 export const requestsApi = {

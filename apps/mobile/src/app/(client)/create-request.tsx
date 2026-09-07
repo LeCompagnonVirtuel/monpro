@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, TextInput, Image, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { useState, useCallback, useMemo } from 'react';
+import { StyleSheet, View, ScrollView, Pressable, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -41,6 +42,17 @@ const BUDGET_RANGES = [
   { label: 'Plus de 100 000 FCFA', value: '100000+' },
 ];
 
+const DATE_OPTIONS = [
+  { key: 'today', label: "Aujourd'hui" },
+  { key: 'tomorrow', label: 'Demain' },
+  { key: '3days', label: 'Dans 3 jours' },
+  { key: 'thisweek', label: 'Cette semaine' },
+  { key: 'free', label: 'Libre' },
+  { key: 'custom', label: 'Autre date' },
+] as const;
+
+type DateOptionKey = typeof DATE_OPTIONS[number]['key'];
+
 const PHOTO_TAGS = [
   { label: "Fuite d'eau", icon: 'water-outline' as const },
   { label: 'Installation', icon: 'construct-outline' as const },
@@ -63,6 +75,7 @@ export default function CreateRequestScreen() {
   const [photos, setPhotos] = useState<{ uri: string; name: string; type: string }[]>([]);
   const [dateMode, setDateMode] = useState<'asap' | 'choose'>('asap');
   const [preferredDate, setPreferredDate] = useState('');
+  const [dateOption, setDateOption] = useState<DateOptionKey>('today');
   const [budgetRange, setBudgetRange] = useState('');
   const [showBudgetDropdown, setShowBudgetDropdown] = useState(false);
   const [urgency] = useState<UrgencyLevel>('NORMAL');
@@ -91,12 +104,12 @@ export default function CreateRequestScreen() {
       const base64 = await FileSystem.readAsStringAsync(photoUri, { encoding: FileSystem.EncodingType.Base64 });
       const { data: res } = await aiApi.diagnose(base64);
       setDiagnosis(res.data);
-      if (res.data.confidence > 0.5) {
+      if (res.data.confidence >= 0.6) {
         if (!title.trim()) setTitle(res.data.issue.slice(0, 80));
         if (!description.trim()) setDescription(res.data.issue);
       }
     } catch {
-      // Silent fail — diagnosis is optional
+      // Silent fail — diagnosis is optional, client can always write manually
     } finally {
       setDiagnosisLoading(false);
     }
@@ -144,6 +157,39 @@ export default function CreateRequestScreen() {
   const selectedRegion = regions?.find((r) => r.id === selectedRegionId);
   const selectedCity = cities?.find((c) => c.id === selectedCityId);
   const selectedDistrict = districts?.find((d) => d.id === selectedDistrictId);
+
+  // Compute actual date string from date option
+  const computedDate = useMemo(() => {
+    if (dateOption === 'custom' || dateOption === 'free') return preferredDate || undefined;
+    const now = new Date();
+    let d: Date;
+    switch (dateOption) {
+      case 'today':
+        d = now;
+        break;
+      case 'tomorrow':
+        d = new Date(now);
+        d.setDate(d.getDate() + 1);
+        break;
+      case '3days':
+        d = new Date(now);
+        d.setDate(d.getDate() + 3);
+        break;
+      case 'thisweek': {
+        d = new Date(now);
+        const day = d.getDay();
+        const daysToSunday = day === 0 ? 0 : 7 - day;
+        d.setDate(d.getDate() + daysToSunday);
+        break;
+      }
+      default:
+        return undefined;
+    }
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dayStr = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${dayStr}`;
+  }, [dateOption, preferredDate]);
 
   const pickImages = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -211,8 +257,11 @@ export default function CreateRequestScreen() {
     setError(null);
 
     try {
+      let mediaUrls: string[] | undefined;
+
       if (photos.length > 0) {
-        await uploadsApi.uploadImages(photos, 'service-requests');
+        const uploadResult = await uploadsApi.uploadImages(photos, 'service-requests');
+        mediaUrls = uploadResult.data.data.urls;
       }
 
       const urgencyFromDate: UrgencyLevel = dateMode === 'asap' ? 'HIGH' : urgency;
@@ -223,9 +272,10 @@ export default function CreateRequestScreen() {
         description: description.trim(),
         urgency: urgencyFromDate,
         addressId: selectedDistrictId || selectedCityId || undefined,
-        preferredDate: dateMode === 'choose' && preferredDate ? preferredDate : undefined,
+        preferredDate: dateMode === 'choose' && computedDate ? computedDate : undefined,
         preferredTimeStart: preferredTimeStart || undefined,
         preferredTimeEnd: preferredTimeEnd || undefined,
+        mediaUrls,
       });
 
       if (result?.id) {
@@ -449,17 +499,34 @@ export default function CreateRequestScreen() {
               {diagnosisLoading && (
                 <View style={styles.diagnosisBanner}>
                   <ActivityIndicator size="small" color={colors.primary} />
-                  <Text variant="bodySmall" color={colors.textSecondary}>Analyse IA en cours...</Text>
+                  <Text variant="bodySmall" color={colors.textSecondary}>Analyse de votre photo en cours...</Text>
                 </View>
               )}
               {diagnosis && !diagnosisLoading && diagnosis.confidence > 0 && (
                 <View style={styles.diagnosisBanner}>
                   <Ionicons name="sparkles" size={18} color={colors.primary} />
                   <View style={{ flex: 1, gap: spacing.xs }}>
-                    <Text variant="bodySmall" color={colors.primary}>Diagnostic IA</Text>
+                    <Text variant="bodySmall" color={colors.primary}>Suggestion générée à partir de votre photo</Text>
                     <Text variant="bodySmall" color={colors.text}>{diagnosis.issue}</Text>
                     <Text variant="caption" color={colors.textTertiary}>
-                      {diagnosis.category} • {diagnosis.serviceSuggested} • Confiance {Math.round(diagnosis.confidence * 100)}%
+                      {diagnosis.category} • Confiance {Math.round(diagnosis.confidence * 100)}%
+                    </Text>
+                    <Text variant="caption" color={colors.textTertiary}>
+                      Vous pouvez modifier cette suggestion avant de publier.
+                    </Text>
+                  </View>
+                </View>
+              )}
+              {diagnosis && !diagnosisLoading && diagnosis.confidence === 0 && diagnosis.issue && (
+                <View style={styles.diagnosisBanner}>
+                  <Ionicons name="alert-circle-outline" size={18} color={colors.textTertiary} />
+                  <View style={{ flex: 1, gap: spacing.xs }}>
+                    <Text variant="bodySmall" color={colors.textSecondary}>Analyse non conclusive</Text>
+                    <Text variant="bodySmall" color={colors.textSecondary}>
+                      {diagnosis.issue}
+                    </Text>
+                    <Text variant="caption" color={colors.textTertiary}>
+                      Vous pouvez décrire votre besoin manuellement ci-dessus.
                     </Text>
                   </View>
                 </View>
@@ -496,14 +563,52 @@ export default function CreateRequestScreen() {
                 </Pressable>
               </View>
               {dateMode === 'choose' && (
-                <TextInput
-                  style={[styles.input, { marginTop: spacing.md }]}
-                  placeholder="AAAA-MM-JJ (ex: 2026-09-01)"
-                  placeholderTextColor={colors.textTertiary}
-                  value={preferredDate}
-                  onChangeText={setPreferredDate}
-                  accessibilityLabel="Date préférée"
-                />
+                <View style={styles.dateChipsContainer}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dateChipsScroll}>
+                    {DATE_OPTIONS.map((opt) => (
+                      <Pressable
+                        key={opt.key}
+                        style={[styles.dateChip, dateOption === opt.key && styles.dateChipActive]}
+                        onPress={() => {
+                          setDateOption(opt.key);
+                          if (opt.key !== 'custom' && opt.key !== 'free') {
+                            setPreferredDate('');
+                          }
+                        }}
+                        accessibilityRole="radio"
+                        accessibilityState={{ selected: dateOption === opt.key }}
+                        accessibilityLabel={opt.label}
+                      >
+                        <Text
+                          variant="bodySmall"
+                          color={dateOption === opt.key ? colors.primary : colors.textSecondary}
+                        >
+                          {opt.label}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                  {dateOption === 'custom' && (
+                    <TextInput
+                      style={[styles.input, { marginTop: spacing.md }]}
+                      placeholder="AAAA-MM-JJ (ex: 2026-09-01)"
+                      placeholderTextColor={colors.textTertiary}
+                      value={preferredDate}
+                      onChangeText={setPreferredDate}
+                      accessibilityLabel="Date préférée"
+                    />
+                  )}
+                  {dateOption === 'free' && (
+                    <TextInput
+                      style={[styles.input, { marginTop: spacing.md }]}
+                      placeholder="AAAA-MM-JJ (optionnel)"
+                      placeholderTextColor={colors.textTertiary}
+                      value={preferredDate}
+                      onChangeText={setPreferredDate}
+                      accessibilityLabel="Date préférée"
+                    />
+                  )}
+                </View>
               )}
             </View>
 
@@ -1036,7 +1141,7 @@ export default function CreateRequestScreen() {
                 </Pressable>
               </View>
               <Text variant="body" color={colors.text}>
-                {dateMode === 'asap' ? 'Dès que possible' : preferredDate || 'Date non précisée'}
+                {dateMode === 'asap' ? 'Dès que possible' : (dateOption === 'custom' || dateOption === 'free') && preferredDate ? preferredDate : DATE_OPTIONS.find((o) => o.key === dateOption)?.label || 'Date non précisée'}
               </Text>
               <Text variant="caption" color={colors.textSecondary}>
                 Urgence : {dateMode === 'asap' ? 'Élevée' : 'Normale'}
@@ -1404,6 +1509,25 @@ const styles = StyleSheet.create({
   dateToggleActive: {
     borderColor: colors.secondary,
     backgroundColor: colors.warningLightest,
+  },
+  dateChipsContainer: {
+    marginTop: spacing.md,
+  },
+  dateChipsScroll: {
+    flexGrow: 0,
+  },
+  dateChip: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: radius.full,
+    marginRight: spacing.sm,
+    backgroundColor: colors.background,
+  },
+  dateChipActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.surfaceSecondary,
   },
   budgetHeader: {
     flexDirection: 'row',

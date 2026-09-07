@@ -7,6 +7,7 @@ import { EstimatePriceDto } from './dto/price.dto';
 import { DiagnoseDto } from './dto/diagnose.dto';
 
 @Controller('ai')
+@UseGuards(JwtAuthGuard)
 export class AiController {
   constructor(private readonly aiService: AiService) {}
 
@@ -43,7 +44,6 @@ export class AiController {
   // ─── Feature 5: Conversation Summary ──────────────────────────────────
 
   @Get('summary/:conversationId')
-  @UseGuards(JwtAuthGuard)
   @Throttle({ default: { ttl: 60000, limit: 10 } })
   async getSummary(@Param('conversationId') conversationId: string) {
     const summary = await this.aiService.summarizeConversation(conversationId);
@@ -53,7 +53,6 @@ export class AiController {
   // ─── Feature 6: Availability Prediction ───────────────────────────────
 
   @Get('availability/:professionalId')
-  @UseGuards(JwtAuthGuard)
   @Throttle({ default: { ttl: 60000, limit: 5 } })
   async getAvailability(
     @Param('professionalId') professionalId: string,

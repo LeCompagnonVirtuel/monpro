@@ -1,4 +1,5 @@
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
@@ -15,7 +16,7 @@ export function HeroCard() {
           <Image
             source={require('../../../assets/images/hero-technicians.png')}
             style={styles.image}
-            resizeMode="cover"
+            contentFit="cover"
             accessibilityLabel="Techniciens MONPRO"
           />
           <View style={styles.imageOverlay} />
