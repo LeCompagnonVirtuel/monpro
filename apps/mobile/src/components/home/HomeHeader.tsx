@@ -28,7 +28,7 @@ export function HomeHeader({ firstName, avatarUrl }: HomeHeaderProps) {
       imageStyle={styles.bgImage}
     >
       <LinearGradient
-        colors={['rgba(7,31,73,0.95)', 'rgba(7,31,73,0.82)', 'rgba(7,31,73,0.65)']}
+        colors={[colors.primaryOverlayHeavy, 'rgba(7,31,73,0.82)', colors.primaryOverlayLight]}
         style={styles.gradient}
       />
 
@@ -145,11 +145,11 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: colors.whiteOverlaySubtle,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.whiteOverlaySubtle,
   },
   badge: {
     position: 'absolute',

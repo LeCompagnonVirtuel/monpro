@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { StyleSheet, View, FlatList, TextInput, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, FlatList, TextInput, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -75,7 +75,7 @@ export default function ConversationScreen() {
       await sendMessageMutation.mutateAsync({ conversationId, content: trimmed });
       setText('');
     } catch {
-      // Keep text for retry
+      Alert.alert('Erreur', 'Message non envoyé. Réessayez.');
     } finally {
       setSending(false);
     }
@@ -121,7 +121,7 @@ export default function ConversationScreen() {
         setDiagnosisLoading(false);
       }
     } catch {
-      // Upload/send failed silently
+      Alert.alert('Erreur', 'Image non envoyée. Réessayez.');
     } finally {
       setUploadingImage(false);
     }
@@ -223,7 +223,7 @@ export default function ConversationScreen() {
         {diagnosis && !diagnosisLoading && (
           <View style={styles.diagnosisBanner}>
             <Ionicons name="sparkles" size={16} color={colors.primary} />
-            <View style={{ flex: 1 }}>
+            <View style={styles.diagnosisContent}>
               <Text variant="bodySmall" color={colors.primary}>Diagnostic IA</Text>
               <Text variant="bodySmall" color={colors.text}>{diagnosis.issue}</Text>
               <Text variant="caption" color={colors.textTertiary}>
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
   loadingContent: { flex: 1, padding: spacing.lg, gap: spacing.md, justifyContent: 'flex-end' },
   emptyContent: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.md, paddingVertical: spacing.xxl },
   messagesContent: { paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.sm },
-  bubble: { maxWidth: '78%', padding: spacing.md, borderRadius: radius.lg, gap: 4 },
+  bubble: { maxWidth: '78%', padding: spacing.md, borderRadius: radius.lg, gap: spacing.xs },
   bubbleOwn: { alignSelf: 'flex-end', backgroundColor: colors.primary, borderBottomRightRadius: radius.xs },
   bubbleOther: { alignSelf: 'flex-start', backgroundColor: colors.surfaceSecondary, borderBottomLeftRadius: radius.xs },
   messageImage: { width: 200, height: 150, borderRadius: radius.md, marginBottom: spacing.xs },
@@ -352,4 +352,5 @@ const styles = StyleSheet.create({
   summaryBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   summaryCard: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, backgroundColor: colors.secondaryMuted, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm },
   diagnosisBanner: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, backgroundColor: colors.secondaryMuted, marginHorizontal: spacing.lg, marginBottom: spacing.xs, borderRadius: radius.md, padding: spacing.md },
+  diagnosisContent: { flex: 1 },
 });

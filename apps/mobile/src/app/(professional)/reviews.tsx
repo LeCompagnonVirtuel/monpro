@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
+import { shadows } from '@/theme/shadows';
 import { Text, Avatar, Skeleton } from '@/components/ui';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
@@ -17,7 +18,7 @@ import { formatRelativeDate } from '@/lib/format';
 export default function ReviewsScreen() {
   const insets = useSafeAreaInsets();
   const { data: profile } = useMyProfessionalProfile();
-  const { data, isLoading, error, refetch } = useProfessionalReviews(profile?.id);
+  const { data, isLoading, error, refetch, isRefetching } = useProfessionalReviews(profile?.id);
 
   if (isLoading) {
     return (
@@ -63,7 +64,7 @@ export default function ReviewsScreen() {
       )}
 
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 60 : 0}
       >
@@ -73,7 +74,7 @@ export default function ReviewsScreen() {
           renderItem={({ item }) => <ReviewCard review={item} />}
           contentContainerStyle={styles.listContent}
           onRefresh={refetch}
-          refreshing={false}
+          refreshing={isRefetching}
           keyboardShouldPersistTaps="handled"
         />
       </KeyboardAvoidingView>
@@ -101,7 +102,7 @@ function ReviewCard({ review }: { review: Review }) {
           <Text variant="body">{review.client?.fullName || 'Client'}</Text>
           <Text variant="bodySmall" color={colors.textTertiary}>{formatRelativeDate(review.createdAt)}</Text>
         </View>
-        <View style={styles.starsRow}>
+        <View style={styles.starsRow} accessibilityLabel={`${review.overallRating} étoiles sur 5`} accessibilityRole="text">
           {[1, 2, 3, 4, 5].map((s) => (
             <Ionicons key={s} name={s <= review.overallRating ? 'star' : 'star-outline'} size={14} color={colors.warning} />
           ))}
@@ -120,7 +121,7 @@ function ReviewCard({ review }: { review: Review }) {
       )}
 
       {!review.response && !showReply && (
-        <Pressable onPress={() => setShowReply(true)} style={styles.replyLink}>
+        <Pressable onPress={() => setShowReply(true)} style={({ pressed }) => [styles.replyLink, pressed && { opacity: 0.7 }]} accessibilityLabel="Répondre à cet avis" accessibilityRole="button">
           <Text variant="bodySmall" color={colors.primary}>Répondre</Text>
         </Pressable>
       )}
@@ -138,10 +139,10 @@ function ReviewCard({ review }: { review: Review }) {
             accessibilityLabel="Réponse à l'avis"
           />
           <View style={styles.replyActions}>
-            <Pressable onPress={() => setShowReply(false)}>
+            <Pressable onPress={() => setShowReply(false)} accessibilityLabel="Annuler la réponse" accessibilityRole="button">
               <Text variant="bodySmall" color={colors.textTertiary}>Annuler</Text>
             </Pressable>
-            <Pressable onPress={handleRespond} disabled={!replyText.trim() || respondMutation.isPending}>
+            <Pressable onPress={handleRespond} disabled={!replyText.trim() || respondMutation.isPending} accessibilityLabel="Envoyer la réponse" accessibilityRole="button">
               <Text variant="bodySmall" color={colors.primary}>
                 {respondMutation.isPending ? 'Envoi...' : 'Envoyer'}
               </Text>
@@ -167,17 +168,18 @@ function Header() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  keyboardView: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
   backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { flex: 1, textAlign: 'center' },
   loadingContent: { padding: spacing.lg, gap: spacing.md },
-  summaryBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingVertical: spacing.sm },
+  summaryBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingVertical: spacing.sm, ...shadows.sm },
   listContent: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxxl, gap: spacing.md },
-  reviewCard: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, gap: spacing.sm },
+  reviewCard: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, gap: spacing.sm, ...shadows.sm },
   reviewHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   reviewHeaderInfo: { flex: 1, gap: 0 },
-  starsRow: { flexDirection: 'row', gap: 1 },
-  responseBox: { backgroundColor: colors.surfaceSecondary, borderRadius: radius.sm, padding: spacing.sm, gap: 2 },
+  starsRow: { flexDirection: 'row', gap: spacing.xxs },
+  responseBox: { backgroundColor: colors.surfaceSecondary, borderRadius: radius.sm, padding: spacing.sm, gap: spacing.xxs },
   replyLink: { alignSelf: 'flex-start' },
   replySection: { gap: spacing.sm },
   replyInput: { backgroundColor: colors.surfaceSecondary, borderRadius: radius.sm, padding: spacing.sm, fontSize: 14, color: colors.text, minHeight: 60, textAlignVertical: 'top' },

@@ -43,7 +43,7 @@ export function PremiumBanner({ memberSince }: PremiumBannerProps) {
               Premium
             </Text>
           </View>
-          <Text variant="caption" color="rgba(255,255,255,0.7)" style={styles.desc}>
+          <Text variant="caption" color={colors.textInverseSoft} style={styles.desc}>
             {"Profitez d'avantages exclusifs et d'un service prioritaire."}
           </Text>
         </View>

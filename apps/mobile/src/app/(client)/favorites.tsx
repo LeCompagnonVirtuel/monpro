@@ -115,6 +115,6 @@ const styles = StyleSheet.create({
   listContent: { paddingBottom: spacing.xxxl },
   row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.md },
   rowContent: { flex: 1, gap: 2 },
-  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   heartBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
 });

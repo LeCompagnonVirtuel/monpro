@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   roleIconActive: {
-    backgroundColor: 'rgba(255,184,0,0.12)',
+    backgroundColor: colors.goldTint,
   },
   roleText: { flex: 1, gap: spacing.xxs },
   roleName: { fontWeight: '700', color: colors.text },

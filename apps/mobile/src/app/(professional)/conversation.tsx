@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { StyleSheet, View, FlatList, TextInput, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, FlatList, TextInput, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -73,7 +73,7 @@ export default function ProfessionalConversationScreen() {
       await sendMessageMutation.mutateAsync({ conversationId, content: trimmed });
       setText('');
     } catch {
-      // Keep text for retry
+      Alert.alert('Erreur', 'Message non envoyé. Réessayez.');
     } finally {
       setSending(false);
     }
@@ -105,7 +105,7 @@ export default function ProfessionalConversationScreen() {
       });
       setText('');
     } catch {
-      // Upload/send failed
+      Alert.alert('Erreur', 'Image non envoyée. Réessayez.');
     } finally {
       setUploadingImage(false);
     }
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   loadingContent: { flex: 1, padding: spacing.lg, gap: spacing.md, justifyContent: 'flex-end' },
   emptyContent: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.md, paddingVertical: spacing.xxl },
   messagesContent: { paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.sm },
-  bubble: { maxWidth: '78%', padding: spacing.md, borderRadius: radius.lg, gap: 4 },
+  bubble: { maxWidth: '78%', padding: spacing.md, borderRadius: radius.lg, gap: spacing.xs },
   bubbleOwn: { alignSelf: 'flex-end', backgroundColor: colors.primary, borderBottomRightRadius: radius.xs },
   bubbleOther: { alignSelf: 'flex-start', backgroundColor: colors.surfaceSecondary, borderBottomLeftRadius: radius.xs },
   messageImage: { width: 200, height: 150, borderRadius: radius.md, marginBottom: spacing.xs },

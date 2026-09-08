@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(7,31,73,0.85)',
+    backgroundColor: colors.primaryOverlayDark,
   },
   content: {
     flex: 1,
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: radius.md,
-    backgroundColor: 'rgba(255,184,0,0.2)',
+    backgroundColor: colors.goldTintMedium,
     alignItems: 'center',
     justifyContent: 'center',
   },

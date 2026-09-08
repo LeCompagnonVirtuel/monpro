@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   },
   imageOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(7, 31, 73, 0.55)',
+    backgroundColor: colors.primaryOverlayLight,
   },
   content: {
     flex: 1,
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xxs,
-    backgroundColor: 'rgba(255,184,0,0.25)',
+    backgroundColor: colors.goldTintStrong,
     alignSelf: 'flex-start',
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xxs + 1,

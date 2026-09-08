@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
   cellActive: {
     borderColor: colors.secondary,
     borderWidth: 2,
-    backgroundColor: 'rgba(255, 184, 0, 0.04)',
+    backgroundColor: colors.goldTintLight,
   },
   cellFilled: {
     borderColor: colors.primary,

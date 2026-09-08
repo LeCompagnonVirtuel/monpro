@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   bg: { flex: 1 },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(7, 31, 73, 0.78)',
+    backgroundColor: colors.primaryOverlayMedium,
   },
   content: { flex: 1, paddingHorizontal: spacing.xxl },
 
@@ -265,8 +265,8 @@ const styles = StyleSheet.create({
   },
   goldBar: { height: 3, backgroundColor: colors.secondary, borderRadius: 1.5 },
   subtitle: { fontSize: 14, lineHeight: 20, color: colors.textInverse },
-  dots: { flexDirection: 'row', gap: 5, marginTop: spacing.xs },
-  dot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: 'rgba(255,255,255,0.3)' },
+  dots: { flexDirection: 'row', gap: spacing.xs, marginTop: spacing.xs },
+  dot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: colors.whiteOverlayMedium },
   dotActive: { width: 18, backgroundColor: colors.secondary },
 
   ctas: { gap: spacing.md, marginBottom: spacing.lg },
@@ -276,9 +276,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm, ...shadows.md,
   },
   secondaryCtaBtn: {
-    flexDirection: 'row', height: 52, backgroundColor: 'rgba(255,255,255,0.15)',
+    flexDirection: 'row', height: 52, backgroundColor: colors.whiteOverlayLight,
     borderRadius: radius.xl, alignItems: 'center', justifyContent: 'center',
-    gap: spacing.sm, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
+    gap: spacing.sm, borderWidth: 1, borderColor: colors.whiteOverlayMedium,
   },
   ctaPressed: { opacity: 0.9 },
   loginCta: { alignItems: 'center', paddingVertical: spacing.xs },
@@ -286,5 +286,5 @@ const styles = StyleSheet.create({
 
   trust: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.md },
   trustItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  trustDot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: 'rgba(255,255,255,0.3)' },
+  trustDot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: colors.whiteOverlayMedium },
 });

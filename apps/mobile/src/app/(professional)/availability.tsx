@@ -149,7 +149,7 @@ export default function AvailabilityScreen() {
                 <View style={styles.timeRow}>
                   <Pressable
                     onPress={() => openTimePicker(slot.dayOfWeek, 'startTime')}
-                    style={styles.timeChip}
+                    style={({ pressed }) => [styles.timeChip, pressed && { opacity: 0.7 }]}
                     accessibilityLabel={`Heure de début : ${slot.startTime}`}
                     accessibilityRole="button"
                   >
@@ -158,7 +158,7 @@ export default function AvailabilityScreen() {
                   <Text variant="caption" color={colors.textTertiary}>—</Text>
                   <Pressable
                     onPress={() => openTimePicker(slot.dayOfWeek, 'endTime')}
-                    style={styles.timeChip}
+                    style={({ pressed }) => [styles.timeChip, pressed && { opacity: 0.7 }]}
                     accessibilityLabel={`Heure de fin : ${slot.endTime}`}
                     accessibilityRole="button"
                   >
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   headerTitle: { flex: 1, textAlign: 'center' },
   content: { padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xxxxl },
   dayCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: radius.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.md, minHeight: 56, ...shadows.sm },
-  dayInfo: { flex: 1, gap: 2 },
+  dayInfo: { flex: 1, gap: spacing.xxs },
   timeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   timeChip: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, backgroundColor: colors.surfaceSecondary, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
   footer: { padding: spacing.lg, borderTopWidth: 1, borderTopColor: colors.borderLight },

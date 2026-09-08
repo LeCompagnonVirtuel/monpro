@@ -37,6 +37,21 @@ export const colors = {
   // Overlay
   overlay: 'rgba(0, 0, 0, 0.5)',
   overlayLight: 'rgba(0, 0, 0, 0.4)',
+  // Primary overlays (Navy)
+  primaryOverlayHeavy: 'rgba(7,31,73,0.95)',
+  primaryOverlayDark: 'rgba(7,31,73,0.85)',
+  primaryOverlayMedium: 'rgba(7,31,73,0.75)',
+  primaryOverlayLight: 'rgba(7,31,73,0.55)',
+  // Gold tints
+  goldTintLight: 'rgba(255,184,0,0.04)',
+  goldTint: 'rgba(255,184,0,0.12)',
+  goldTintMedium: 'rgba(255,184,0,0.2)',
+  goldTintStrong: 'rgba(255,184,0,0.25)',
+  // White overlays (for dark backgrounds)
+  whiteOverlaySubtle: 'rgba(255,255,255,0.08)',
+  whiteOverlayLight: 'rgba(255,255,255,0.15)',
+  whiteOverlayMedium: 'rgba(255,255,255,0.3)',
+  whiteOverlayStrong: 'rgba(255,255,255,0.7)',
   // Secondary muted (gold at reduced opacity)
   secondaryMuted: 'rgba(255, 184, 0, 0.15)',
   transparent: 'transparent',

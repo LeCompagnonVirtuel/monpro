@@ -131,9 +131,10 @@ function NotificationRow({ notification, onPress }: { notification: Notification
 
   return (
     <Pressable
-      style={[styles.notifRow, !notification.isRead && styles.notifRowUnread]}
+      style={({ pressed }) => [styles.notifRow, !notification.isRead && styles.notifRowUnread, pressed && { opacity: 0.85 }]}
       onPress={onPress}
       accessibilityLabel={`${notification.title}. ${notification.body}`}
+      accessibilityRole="button"
     >
       <View style={[styles.notifIcon, !notification.isRead && styles.notifIconUnread]}>
         <Ionicons name={icon} size={20} color={notification.isRead ? colors.textTertiary : colors.primary} />
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
   listContent: { paddingBottom: spacing.xxxl },
   notifRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.md },
   notifRowUnread: { backgroundColor: colors.surfaceSecondary },
-  notifIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surfaceSecondary, alignItems: 'center', justifyContent: 'center' },
+  notifIcon: { width: 36, height: 36, borderRadius: spacing.lg, backgroundColor: colors.surfaceSecondary, alignItems: 'center', justifyContent: 'center' },
   notifIconUnread: { backgroundColor: colors.successLightest },
-  notifContent: { flex: 1, gap: 2 },
+  notifContent: { flex: 1, gap: spacing.xxs },
 });
