@@ -30,7 +30,7 @@ export class MessagingService {
   }
 
   async getConversations(userId: string) {
-    return this.prisma.conversation.findMany({
+    const conversations = await this.prisma.conversation.findMany({
       where: { participants: { some: { userId } } },
       include: {
         participants: { include: { user: { select: { id: true, fullName: true, avatarUrl: true } } } },
@@ -38,6 +38,41 @@ export class MessagingService {
       },
       orderBy: { updatedAt: 'desc' },
     });
+
+    const conversationIds = conversations.map((c) => c.id);
+    const unreadCounts = await Promise.all(
+      conversationIds.map(async (id) => {
+        const participant = conversations
+          .find((c) => c.id === id)
+          ?.participants.find((p) => p.userId === userId);
+        const lastReadAt = participant?.lastReadAt || new Date(0);
+        const count = await this.prisma.message.count({
+          where: {
+            conversationId: id,
+            senderId: { not: userId },
+            isRead: false,
+            createdAt: { gt: lastReadAt },
+          },
+        });
+        return { id, count };
+      }),
+    );
+
+    const unreadMap = new Map(unreadCounts.map((u) => [u.id, u.count]));
+
+    return conversations.map((c) => ({
+      id: c.id,
+      createdAt: c.createdAt,
+      participants: c.participants.map((p) => ({
+        id: p.user.id,
+        fullName: p.user.fullName,
+        avatarUrl: p.user.avatarUrl,
+      })),
+      lastMessage: c.messages[0]
+        ? { content: c.messages[0].content, createdAt: c.messages[0].createdAt }
+        : null,
+      unreadCount: unreadMap.get(c.id) || 0,
+    }));
   }
 
   async getMessages(conversationId: string, userId: string, page?: number, limit?: number) {

@@ -77,7 +77,7 @@ export class BookingsService {
     const booking = await this.prisma.booking.findUnique({
       where: { id },
       include: {
-        serviceRequest: { include: { service: true, client: { select: { id: true, fullName: true, avatarUrl: true, phone: true } } } },
+        serviceRequest: { include: { service: true, client: { select: { id: true, fullName: true, avatarUrl: true, phone: true } }, media: true } },
         quote: true,
         professional: { include: { user: { select: { id: true, fullName: true, avatarUrl: true, phone: true } } } },
         address: true,
@@ -114,7 +114,7 @@ export class BookingsService {
         take: limit,
         orderBy: { scheduledDate: 'desc' },
         include: {
-          serviceRequest: { include: { service: true, client: { select: { fullName: true, avatarUrl: true } } } },
+          serviceRequest: { include: { service: true, client: { select: { fullName: true, avatarUrl: true } }, media: true } },
           address: true,
         },
       }),
