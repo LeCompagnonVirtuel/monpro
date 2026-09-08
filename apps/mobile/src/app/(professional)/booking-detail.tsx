@@ -59,7 +59,7 @@ export default function ProfessionalBookingDetailScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <Header />
       <ScrollView contentContainerStyle={styles.content}>
         {/* Status Banner */}
@@ -149,7 +149,7 @@ export default function ProfessionalBookingDetailScreen() {
 function Header() {
   return (
     <View style={styles.header}>
-      <Pressable onPress={() => router.back()} accessibilityLabel="Retour" style={styles.backBtn}>
+      <Pressable onPress={() => router.back()} accessibilityLabel="Retour" accessibilityRole="button" style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
       <Text variant="h3" style={styles.headerTitle}>Réservation</Text>

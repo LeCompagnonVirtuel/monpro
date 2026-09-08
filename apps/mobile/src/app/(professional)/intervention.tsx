@@ -158,7 +158,7 @@ export default function ProfessionalInterventionScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <Header />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.timeline}>
@@ -294,7 +294,7 @@ export default function ProfessionalInterventionScreen() {
 function Header() {
   return (
     <View style={styles.header}>
-      <Pressable onPress={() => router.back()} accessibilityLabel="Retour" style={styles.backBtn}>
+      <Pressable onPress={() => router.back()} accessibilityLabel="Retour" accessibilityRole="button" style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
       <Text variant="h3" style={styles.headerTitle}>Intervention</Text>

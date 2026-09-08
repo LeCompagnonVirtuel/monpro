@@ -1,4 +1,4 @@
-import { StyleSheet, View, FlatList, Pressable } from 'react-native';
+import { StyleSheet, View, FlatList, Pressable, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,6 +7,7 @@ import { spacing } from '@/theme/spacing';
 import { Text, Skeleton } from '@/components/ui';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
+import { useState, useCallback } from 'react';
 import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from '@/hooks/use-notifications';
 import { Notification } from '@/api/notifications';
 import { formatRelativeDate } from '@/lib/format';
@@ -39,6 +40,13 @@ export default function ProfessionalNotificationsScreen() {
   const { data, isLoading, error, refetch } = useNotifications({ limit: 50 });
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
 
   const notifications = data?.notifications || [];
   const hasUnread = notifications.some((n) => !n.isRead);
@@ -92,6 +100,9 @@ export default function ProfessionalNotificationsScreen() {
           <NotificationRow notification={item} onPress={() => handlePress(item)} />
         )}
         contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+        }
       />
     </SafeAreaView>
   );
@@ -100,7 +111,7 @@ export default function ProfessionalNotificationsScreen() {
 function Header({ hasUnread, onMarkAllRead }: { hasUnread: boolean; onMarkAllRead: () => void }) {
   return (
     <View style={styles.header}>
-      <Pressable onPress={() => router.back()} accessibilityLabel="Retour" style={styles.backBtn}>
+      <Pressable onPress={() => router.back()} accessibilityLabel="Retour" accessibilityRole="button" style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
       <Text variant="h3" style={styles.headerTitle}>Notifications</Text>

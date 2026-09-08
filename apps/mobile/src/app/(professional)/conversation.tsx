@@ -131,7 +131,7 @@ export default function ProfessionalConversationScreen() {
     }
   };
 
-  const handleScroll = useCallback((event: any) => {
+  const handleScroll = useCallback((event: { nativeEvent: { layoutMeasurement: { height: number }; contentOffset: { y: number }; contentSize: { height: number } } }) => {
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
     const paddingToBottom = 100;
     const atBottom = contentSize.height - layoutMeasurement.height - contentOffset.y < paddingToBottom;
