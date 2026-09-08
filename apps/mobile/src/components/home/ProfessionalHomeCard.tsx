@@ -15,7 +15,6 @@ interface ProfessionalHomeCardProps {
 
 export function ProfessionalHomeCard({ professional }: ProfessionalHomeCardProps) {
   const name = professional.user?.fullName || professional.businessName || 'Professionnel';
-  const shortName = name.split(' ').map((w, i) => i === 0 ? w : `${w[0]}.`).join(' ');
   const profession = professional.services?.[0]?.service?.name || 'Professionnel';
   const zone = professional.zones?.[0]?.name || '';
   const { data: isFav } = useIsFavorite(professional.id);
@@ -37,31 +36,36 @@ export function ProfessionalHomeCard({ professional }: ProfessionalHomeCardProps
       accessibilityLabel={`${name}, ${profession}${professional.isVerified ? ', vérifié' : ''}`}
       accessibilityRole="button"
     >
-      <View style={styles.imageArea}>
-        <Avatar uri={professional.user?.avatarUrl} name={name} size={64} />
+      <View style={styles.topSection}>
+        <Avatar uri={professional.user?.avatarUrl} name={name} size={72} />
+
         <Pressable
-          style={styles.favBtn}
+          style={[styles.favBtn, isFav && styles.favBtnActive]}
           onPress={toggleFavorite}
           accessibilityLabel={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
           accessibilityRole="button"
         >
           <Ionicons
             name={isFav ? 'heart' : 'heart-outline'}
-            size={16}
+            size={18}
             color={isFav ? colors.error : colors.textTertiary}
           />
         </Pressable>
+
+        {professional.isVerified && (
+          <View style={styles.verifiedPill}>
+            <Ionicons name="shield-checkmark" size={10} color={colors.textInverse} />
+            <Text variant="caption" color={colors.textInverse} style={styles.verifiedLabel}>
+              Vérifié
+            </Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.info}>
-        <View style={styles.nameRow}>
-          <Text variant="bodyMedium" numberOfLines={1} style={styles.name}>
-            {shortName}
-          </Text>
-          {professional.isVerified && (
-            <Ionicons name="checkmark-circle" size={13} color={colors.info} />
-          )}
-        </View>
+        <Text variant="bodyMedium" numberOfLines={1} style={styles.name}>
+          {name}
+        </Text>
 
         <Text variant="caption" color={colors.textSecondary} numberOfLines={1}>
           {profession}
@@ -69,13 +73,13 @@ export function ProfessionalHomeCard({ professional }: ProfessionalHomeCardProps
 
         {professional.averageRating != null && professional.averageRating > 0 && (
           <View style={styles.ratingRow}>
-            <Ionicons name="star" size={11} color={colors.secondary} />
-            <Text variant="caption" style={styles.ratingText}>
+            <Ionicons name="star" size={12} color={colors.secondary} />
+            <Text variant="caption" style={styles.ratingValue}>
               {professional.averageRating.toFixed(1)}
             </Text>
             {professional.totalReviews != null && professional.totalReviews > 0 && (
               <Text variant="caption" color={colors.textTertiary}>
-                ({professional.totalReviews})
+                ({professional.totalReviews} avis)
               </Text>
             )}
           </View>
@@ -83,21 +87,12 @@ export function ProfessionalHomeCard({ professional }: ProfessionalHomeCardProps
 
         {zone ? (
           <View style={styles.locationRow}>
-            <Ionicons name="location-outline" size={10} color={colors.textTertiary} />
+            <Ionicons name="location-outline" size={11} color={colors.textTertiary} />
             <Text variant="caption" color={colors.textTertiary} numberOfLines={1}>
               {zone}
             </Text>
           </View>
         ) : null}
-
-        {professional.isVerified && (
-          <View style={styles.verifiedBadge}>
-            <Ionicons name="shield-checkmark" size={10} color={colors.info} />
-            <Text variant="caption" color={colors.info} style={styles.verifiedText}>
-              Vérifié
-            </Text>
-          </View>
-        )}
       </View>
     </Pressable>
   );
@@ -106,42 +101,61 @@ export function ProfessionalHomeCard({ professional }: ProfessionalHomeCardProps
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    width: 160,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    width: 170,
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing.md,
     borderWidth: 1,
     borderColor: colors.borderLight,
-    ...shadows.sm,
+    ...shadows.md,
   },
-  imageArea: {
+  topSection: {
+    alignItems: 'center',
     position: 'relative',
+    width: '100%',
   },
   favBtn: {
     position: 'absolute',
     top: -spacing.xs,
     right: -spacing.xs,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     ...shadows.sm,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  favBtnActive: {
+    backgroundColor: colors.errorLight,
+    borderColor: colors.error,
+  },
+  verifiedPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xxs,
+    backgroundColor: colors.info,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xxs + 1,
+    borderRadius: radius.full,
+    marginTop: spacing.sm,
+  },
+  verifiedLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   info: {
     alignItems: 'center',
     gap: spacing.xxs,
     width: '100%',
   },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xxs,
-  },
   name: {
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: -0.2,
   },
   ratingRow: {
     flexDirection: 'row',
@@ -149,28 +163,15 @@ const styles = StyleSheet.create({
     gap: spacing.xxs,
     marginTop: spacing.xxs,
   },
-  ratingText: {
-    fontWeight: '600',
-    fontSize: 12,
+  ratingValue: {
+    fontWeight: '700',
+    fontSize: 13,
+    color: colors.text,
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xxs,
     marginTop: spacing.xxs,
-  },
-  verifiedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xxs,
-    marginTop: spacing.xxs,
-    backgroundColor: colors.infoLight,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xxs,
-    borderRadius: radius.full,
-  },
-  verifiedText: {
-    fontSize: 10,
-    fontWeight: '600',
   },
 });

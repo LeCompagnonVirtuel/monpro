@@ -15,7 +15,8 @@ interface CategoryCircleProps {
 export function CategoryCircle({ name, isFirst, onPress }: CategoryCircleProps) {
   const key = name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const iconName = CATEGORY_ICONS[key] || 'grid';
-  const iconColor = isFirst ? colors.primary : (CATEGORY_COLORS[key] || colors.primary);
+  const iconColor = isFirst ? colors.textInverse : (CATEGORY_COLORS[key] || colors.primary);
+  const bgColor = isFirst ? colors.primary : colors.surface;
 
   return (
     <Pressable
@@ -24,12 +25,8 @@ export function CategoryCircle({ name, isFirst, onPress }: CategoryCircleProps) 
       accessibilityLabel={name}
       accessibilityRole="button"
     >
-      <View style={[styles.circle, isFirst ? styles.circleActive : styles.circleDefault]}>
-        <Ionicons
-          name={iconName}
-          size={22}
-          color={isFirst ? colors.textInverse : iconColor}
-        />
+      <View style={[styles.circle, { backgroundColor: bgColor }, isFirst && styles.circleShadow]}>
+        <Ionicons name={iconName} size={22} color={iconColor} />
       </View>
       <Text
         variant="caption"
@@ -47,27 +44,24 @@ export function CategoryCircle({ name, isFirst, onPress }: CategoryCircleProps) 
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    width: 68,
-    gap: spacing.xs,
+    width: 70,
+    gap: spacing.sm,
   },
   circle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  circleActive: {
-    backgroundColor: colors.primary,
-    ...shadows.md,
-  },
-  circleDefault: {
-    backgroundColor: colors.surface,
-    ...shadows.sm,
     borderWidth: 1,
     borderColor: colors.borderLight,
   },
+  circleShadow: {
+    borderWidth: 0,
+    ...shadows.md,
+  },
   label: {
     fontSize: 11,
+    fontWeight: '500',
   },
 });

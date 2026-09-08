@@ -9,36 +9,50 @@ import { Text } from '@/components/ui';
 
 export function VerifiedBanner() {
   return (
-    <View style={styles.container}>
+    <View style={styles.wrapper}>
       <View style={styles.card}>
-        <View style={styles.textSide}>
-          <View style={styles.iconBadge}>
-            <Ionicons name="shield-checkmark" size={18} color={colors.primary} />
+        <Image
+          source={require('../../../assets/images/hero-technicians.png')}
+          style={styles.bgImage}
+          contentFit="cover"
+          accessibilityLabel="Technicien MONPRO vérifié"
+        />
+        <View style={styles.overlay} />
+
+        <View style={styles.content}>
+          <View style={styles.shieldRow}>
+            <View style={styles.shieldBadge}>
+              <Ionicons name="shield-checkmark" size={20} color={colors.secondary} />
+            </View>
+            <Text variant="caption" color={colors.secondary} style={styles.badgeLabel}>
+              VÉRIFIÉ &amp; CERTIFIÉ
+            </Text>
           </View>
-          <Text variant="bodyMedium" color={colors.primary} style={styles.title}>
-            Des professionnels
+
+          <Text variant="h2" color={colors.textInverse} style={styles.headline}>
+            Des professionnels{'\n'}vérifiés pour votre{'\n'}sécurité
           </Text>
-          <Text variant="bodyMedium" color={colors.primary} style={styles.title}>
-            vérifiés pour votre sécurité
-          </Text>
-          <Text variant="caption" color={colors.textSecondary} style={styles.subtitle}>
+
+          <Text variant="bodySmall" color={colors.textInverseSoft} style={styles.subline}>
             Des services de qualité, en toute confiance.
           </Text>
-        </View>
 
-        <View style={styles.imageSide}>
-          <Image
-            source={require('../../../assets/images/hero-technicians.png')}
-            style={styles.image}
-            contentFit="cover"
-            accessibilityLabel="Technicien MONPRO vérifié"
-          />
+          <View style={styles.trustRow}>
+            <View style={styles.trustItem}>
+              <Ionicons name="checkmark-circle" size={14} color={colors.secondary} />
+              <Text variant="caption" color={colors.textInverseMuted}>Identité vérifiée</Text>
+            </View>
+            <View style={styles.trustItem}>
+              <Ionicons name="checkmark-circle" size={14} color={colors.secondary} />
+              <Text variant="caption" color={colors.textInverseMuted}>Compétences validées</Text>
+            </View>
+          </View>
         </View>
       </View>
 
-      <View style={styles.trustRow}>
-        <Ionicons name="checkmark-circle" size={14} color={colors.success} />
-        <Text variant="caption" color={colors.textSecondary} style={styles.trustText}>
+      <View style={styles.bottomTag}>
+        <Ionicons name="heart" size={12} color={colors.error} />
+        <Text variant="caption" color={colors.textSecondary} style={styles.bottomTagText}>
           Votre confiance, notre priorité.
         </Text>
       </View>
@@ -47,58 +61,76 @@ export function VerifiedBanner() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: spacing.xl,
-    marginTop: spacing.md,
+  wrapper: {
+    marginTop: spacing.xl,
   },
   card: {
-    flexDirection: 'row',
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
+    marginHorizontal: spacing.xl,
+    borderRadius: radius.xxl,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    ...shadows.md,
+    height: 240,
+    ...shadows.lg,
   },
-  textSide: {
-    flex: 1,
-    padding: spacing.lg,
-    gap: spacing.xs,
-    justifyContent: 'center',
-  },
-  iconBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: radius.sm,
-    backgroundColor: colors.secondaryMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.xs,
-  },
-  title: {
-    fontWeight: '600',
-    lineHeight: 20,
-  },
-  subtitle: {
-    marginTop: spacing.xxs,
-    lineHeight: 18,
-  },
-  imageSide: {
-    width: 110,
-    backgroundColor: colors.surfaceSecondary,
-  },
-  image: {
+  bgImage: {
+    ...StyleSheet.absoluteFillObject,
     width: '100%',
     height: '100%',
   },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(7,31,73,0.75)',
+  },
+  content: {
+    flex: 1,
+    padding: spacing.xl,
+    justifyContent: 'center',
+    gap: spacing.md,
+    zIndex: 1,
+  },
+  shieldRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  shieldBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.sm,
+    backgroundColor: 'rgba(255,184,0,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+  headline: {
+    lineHeight: 28,
+    letterSpacing: -0.3,
+  },
+  subline: {
+    opacity: 0.8,
+    lineHeight: 20,
+  },
   trustRow: {
+    flexDirection: 'row',
+    gap: spacing.lg,
+    marginTop: spacing.xs,
+  },
+  trustItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    marginTop: spacing.sm,
-    paddingHorizontal: spacing.xs,
   },
-  trustText: {
+  bottomTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+  },
+  bottomTagText: {
     fontStyle: 'italic',
   },
 });

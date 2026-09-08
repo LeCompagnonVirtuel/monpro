@@ -8,9 +8,7 @@ import { radius } from '@/theme/radius';
 import { Skeleton } from '@/components/ui';
 import { Text } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
-import { EmptyState } from '@/components/feedback/EmptyState';
 import { HomeHeader } from '@/components/home/HomeHeader';
-import { HomeSearchBar } from '@/components/home/HomeSearchBar';
 import { SectionHeader } from '@/components/home/SectionHeader';
 import { CategoryCircle } from '@/components/home/CategoryCircle';
 import { VerifiedBanner } from '@/components/home/VerifiedBanner';
@@ -47,10 +45,10 @@ export default function HomeScreen() {
   if (isLoadingUser) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.loadingContainer}>
-          <Skeleton width={120} height={32} />
-          <Skeleton width={180} height={20} />
-          <Skeleton width={140} height={16} />
+        <View style={styles.loadingWrap}>
+          <Skeleton width={140} height={28} borderRadius={radius.md} />
+          <Skeleton width={200} height={18} borderRadius={radius.sm} />
+          <Skeleton width={160} height={14} borderRadius={radius.sm} />
         </View>
       </SafeAreaView>
     );
@@ -75,13 +73,11 @@ export default function HomeScreen() {
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
             tintColor={colors.primary}
-            progressViewOffset={80}
+            progressViewOffset={100}
           />
         }
       >
         <HomeHeader firstName={firstName} avatarUrl={user?.avatarUrl} />
-
-        <HomeSearchBar />
 
         {/* ── Catégories ── */}
         <View style={styles.section}>
@@ -90,18 +86,18 @@ export default function HomeScreen() {
             onSeeAll={() => router.push('/(client)/(tabs)/search')}
           />
           {categories.isLoading ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScroll}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
               {Array.from({ length: 6 }).map((_, i) => (
-                <View key={i} style={styles.categorySkeleton}>
-                  <Skeleton width={56} height={56} borderRadius={28} />
-                  <Skeleton width={48} height={10} />
+                <View key={i} style={styles.skelCat}>
+                  <Skeleton width={58} height={58} borderRadius={29} />
+                  <Skeleton width={48} height={10} borderRadius={5} />
                 </View>
               ))}
             </ScrollView>
           ) : categories.error ? (
             <ErrorState message="Erreur de chargement" onRetry={() => categories.refetch()} />
           ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScroll}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
               {categories.data?.filter((c) => c.isActive).slice(0, 6).map((cat, idx) => (
                 <CategoryCircle
                   key={cat.id}
@@ -124,15 +120,15 @@ export default function HomeScreen() {
             onSeeAll={() => router.push('/(client)/(tabs)/search')}
           />
           {nearbyPros.isLoading ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.proScroll}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
               {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} width={160} height={200} borderRadius={radius.lg} />
+                <Skeleton key={i} width={170} height={220} borderRadius={radius.xl} />
               ))}
             </ScrollView>
           ) : nearbyPros.error ? (
             <ErrorState message="Impossible de charger les professionnels" onRetry={() => nearbyPros.refetch()} />
           ) : (nearbyPros.data?.professionals || []).length === 0 ? (
-            <View style={styles.emptyBlock}>
+            <View style={styles.emptyPad}>
               <Text variant="bodySmall" color={colors.textTertiary} align="center">
                 Aucun professionnel recommandé pour le moment.
               </Text>
@@ -143,7 +139,7 @@ export default function HomeScreen() {
               data={nearbyPros.data?.professionals || []}
               keyExtractor={(item) => item.id}
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.proScroll}
+              contentContainerStyle={styles.hScroll}
               renderItem={({ item }) => <ProfessionalHomeCard professional={item} />}
             />
           )}
@@ -156,21 +152,21 @@ export default function HomeScreen() {
             onSeeAll={() => router.push('/(client)/(tabs)/requests')}
           />
           {recentRequests.isLoading ? (
-            <View style={styles.requestsLoading}>
+            <View style={styles.reqLoading}>
               {Array.from({ length: 2 }).map((_, i) => (
-                <Skeleton key={i} width="100%" height={64} borderRadius={radius.md} />
+                <Skeleton key={i} width="100%" height={68} borderRadius={radius.lg} />
               ))}
             </View>
           ) : recentRequests.error ? (
             <ErrorState message="Impossible de charger vos demandes" onRetry={() => recentRequests.refetch()} />
           ) : (recentRequests.data?.requests || []).length === 0 ? (
-            <View style={styles.emptyBlock}>
+            <View style={styles.emptyPad}>
               <Text variant="bodySmall" color={colors.textTertiary} align="center">
-                Aucune demande pour le moment. Publiez votre première demande !
+                Aucune demande pour le moment.{'\n'}Publiez votre première demande !
               </Text>
             </View>
           ) : (
-            <View style={styles.requestsList}>
+            <View style={styles.reqList}>
               {(recentRequests.data?.requests || []).map((req) => (
                 <RecentRequestCard key={req.id} request={req} />
               ))}
@@ -192,7 +188,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  loadingContainer: {
+  loadingWrap: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -202,35 +198,31 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: spacing.xxl,
+    paddingBottom: spacing.xxxl,
   },
   section: {
     marginTop: spacing.xl,
     gap: spacing.md,
   },
-  categoryScroll: {
+  hScroll: {
     paddingHorizontal: spacing.xl,
     gap: spacing.md,
   },
-  categorySkeleton: {
+  skelCat: {
     alignItems: 'center',
-    gap: spacing.xs,
-    width: 68,
+    gap: spacing.sm,
+    width: 70,
   },
-  proScroll: {
-    paddingHorizontal: spacing.xl,
-    gap: spacing.md,
-  },
-  emptyBlock: {
+  emptyPad: {
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.xl,
   },
-  requestsLoading: {
+  reqLoading: {
     paddingHorizontal: spacing.xl,
     gap: spacing.sm,
   },
-  requestsList: {
+  reqList: {
     gap: spacing.sm,
   },
   bottomSpacer: {

@@ -6,7 +6,7 @@ import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
 import { Text } from '@/components/ui';
-import { ServiceRequest, ServiceRequestStatus } from '@/api/requests';
+import { ServiceRequest } from '@/api/requests';
 import { formatRelativeDate } from '@/lib/format';
 
 const STATUS_CONFIG: Record<string, { color: string; bg: string; label: string }> = {
@@ -29,7 +29,6 @@ interface RecentRequestCardProps {
 export function RecentRequestCard({ request }: RecentRequestCardProps) {
   const config = STATUS_CONFIG[request.status] || STATUS_CONFIG.SUBMITTED;
   const locationLabel = request.address?.fullAddress || '';
-  const serviceName = request.service?.name || '';
 
   return (
     <Pressable
@@ -38,37 +37,35 @@ export function RecentRequestCard({ request }: RecentRequestCardProps) {
       accessibilityLabel={`${request.title}, ${config.label}`}
       accessibilityRole="button"
     >
-      <View style={[styles.iconCircle, { backgroundColor: config.bg }]}>
-        <Ionicons name="document-text-outline" size={20} color={config.color} />
+      <View style={[styles.iconWrap, { backgroundColor: config.bg }]}>
+        <Ionicons name="document-text-outline" size={18} color={config.color} />
       </View>
 
-      <View style={styles.content}>
+      <View style={styles.body}>
         <Text variant="bodyMedium" numberOfLines={1} style={styles.title}>
           {request.title}
         </Text>
-
-        <View style={styles.metaRow}>
+        <View style={styles.meta}>
           {locationLabel ? (
-            <Text variant="caption" color={colors.textTertiary} numberOfLines={1}>
+            <Text variant="caption" color={colors.textTertiary} numberOfLines={1} style={styles.metaText}>
               {locationLabel}
             </Text>
           ) : null}
-          {locationLabel && (
-            <Text variant="caption" color={colors.textTertiary}> · </Text>
-          )}
-          <Text variant="caption" color={colors.textTertiary}>
+          {locationLabel ? <Text variant="caption" color={colors.textTertiary}> · </Text> : null}
+          <Text variant="caption" color={colors.textTertiary} style={styles.metaText}>
             {formatRelativeDate(request.createdAt)}
           </Text>
         </View>
       </View>
 
-      <View style={[styles.statusBadge, { backgroundColor: config.bg }]}>
-        <Text variant="caption" color={config.color} style={styles.statusText}>
-          {config.label}
-        </Text>
+      <View style={styles.end}>
+        <View style={[styles.pill, { backgroundColor: config.bg }]}>
+          <Text variant="caption" color={config.color} style={styles.pillText}>
+            {config.label}
+          </Text>
+        </View>
+        <Ionicons name="chevron-forward" size={14} color={colors.textTertiary} />
       </View>
-
-      <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
     </Pressable>
   );
 }
@@ -78,7 +75,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     padding: spacing.md,
     marginHorizontal: spacing.xl,
     gap: spacing.md,
@@ -86,31 +83,39 @@ const styles = StyleSheet.create({
     borderColor: colors.borderLight,
     ...shadows.sm,
   },
-  iconCircle: {
-    width: 40,
-    height: 40,
+  iconWrap: {
+    width: 42,
+    height: 42,
     borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  content: {
+  body: {
     flex: 1,
     gap: spacing.xxs,
   },
   title: {
     fontWeight: '600',
+    letterSpacing: -0.1,
   },
-  metaRow: {
+  meta: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  statusBadge: {
+  metaText: {
+    flexShrink: 1,
+  },
+  end: {
+    alignItems: 'flex-end',
+    gap: spacing.xs,
+  },
+  pill: {
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xxs,
     borderRadius: radius.full,
   },
-  statusText: {
+  pillText: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });
