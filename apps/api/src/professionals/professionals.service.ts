@@ -143,7 +143,7 @@ export class ProfessionalsService {
     description?: string;
     experienceYears?: number;
     serviceIds?: string[];
-    zones?: { name: string; latitude?: number; longitude?: number; radiusKm?: number }[];
+    zones?: { name: string; latitude?: number | null; longitude?: number | null; radiusKm?: number }[];
   }) {
     const professional = await this.prisma.professional.create({
       data: {
@@ -180,28 +180,45 @@ export class ProfessionalsService {
     description?: string;
     experienceYears?: number;
     isAvailable?: boolean;
-    zones?: { name: string; latitude?: number; longitude?: number; radiusKm?: number }[];
+    serviceIds?: string[];
+    zones?: { name: string; latitude?: number | null; longitude?: number | null; radiusKm?: number }[];
   }) {
-    const { zones, ...profileData } = data;
+    const { zones, serviceIds, ...profileData } = data;
 
     const updateData: Record<string, unknown> = { ...profileData };
 
-    if (zones) {
-      await this.prisma.professionalZone.deleteMany({ where: { professionalId: id } });
-      if (zones.length > 0) {
-        await this.prisma.professionalZone.createMany({
-          data: zones.map((z) => ({
-            professionalId: id,
-            name: z.name,
-            latitude: z.latitude ?? null,
-            longitude: z.longitude ?? null,
-            radiusKm: z.radiusKm ?? null,
-          })),
-        });
-      }
-    }
+    await this.prisma.$transaction(async (tx) => {
+      await tx.professional.update({ where: { id }, data: updateData });
 
-    return this.prisma.professional.update({ where: { id }, data: updateData });
+      if (serviceIds !== undefined) {
+        await tx.professionalService.deleteMany({ where: { professionalId: id } });
+        if (serviceIds.length > 0) {
+          await tx.professionalService.createMany({
+            data: serviceIds.map((serviceId) => ({
+              professionalId: id,
+              serviceId,
+            })),
+          });
+        }
+      }
+
+      if (zones !== undefined) {
+        await tx.professionalZone.deleteMany({ where: { professionalId: id } });
+        if (zones.length > 0) {
+          await tx.professionalZone.createMany({
+            data: zones.map((z) => ({
+              professionalId: id,
+              name: z.name,
+              latitude: z.latitude ?? null,
+              longitude: z.longitude ?? null,
+              radiusKm: z.radiusKm ?? null,
+            })),
+          });
+        }
+      }
+    });
+
+    return this.findOne(id);
   }
 
   async verify(id: string, adminId: string, status: VerificationStatus) {

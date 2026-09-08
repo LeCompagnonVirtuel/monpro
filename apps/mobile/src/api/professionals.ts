@@ -3,8 +3,8 @@ import { apiClient } from './client';
 export interface ProfessionalZone {
   id?: string;
   name: string;
-  latitude?: number;
-  longitude?: number;
+  latitude?: number | null;
+  longitude?: number | null;
   radiusKm?: number;
 }
 
@@ -95,7 +95,7 @@ export const professionalsApi = {
     return apiClient.post<{ success: boolean; data: Professional }>('/professionals', payload);
   },
 
-  update(id: string, payload: { businessName?: string; description?: string; experienceYears?: number; isAvailable?: boolean; zones?: ProfessionalZone[] }) {
+  update(id: string, payload: { businessName?: string; description?: string; experienceYears?: number; isAvailable?: boolean; serviceIds?: string[]; zones?: ProfessionalZone[] }) {
     return apiClient.patch<{ success: boolean; data: Professional }>(`/professionals/${id}`, payload);
   },
 

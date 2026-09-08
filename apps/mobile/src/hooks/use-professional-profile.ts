@@ -27,7 +27,7 @@ export function useCreateProfessionalProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (payload: { businessName?: string; description?: string; experienceYears?: number; serviceIds?: string[]; zones?: { name: string; latitude?: number; longitude?: number; radiusKm?: number }[] }) => {
+    mutationFn: async (payload: { businessName?: string; description?: string; experienceYears?: number; serviceIds?: string[]; zones?: { name: string; latitude?: number | null; longitude?: number | null; radiusKm?: number }[] }) => {
       const { data } = await professionalsApi.create(payload);
       return data.data;
     },
@@ -41,7 +41,7 @@ export function useUpdateProfessionalProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...payload }: { id: string; businessName?: string; description?: string; experienceYears?: number; isAvailable?: boolean; zones?: { name: string; latitude?: number; longitude?: number; radiusKm?: number }[] }) => {
+    mutationFn: async ({ id, ...payload }: { id: string; businessName?: string; description?: string; experienceYears?: number; isAvailable?: boolean; serviceIds?: string[]; zones?: { name: string; latitude?: number | null; longitude?: number | null; radiusKm?: number }[] }) => {
       const { data } = await professionalsApi.update(id, payload);
       return data.data;
     },

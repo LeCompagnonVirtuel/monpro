@@ -165,6 +165,7 @@ export default function OnboardingScreen() {
           businessName: businessName.trim(),
           description: description.trim(),
           experienceYears: expYears,
+          serviceIds: selectedServices,
           zones,
         });
       } else {
@@ -177,8 +178,19 @@ export default function OnboardingScreen() {
         });
       }
       router.replace('/(professional)/(tabs)/dashboard');
-    } catch {
-      Alert.alert('Erreur', "Impossible d'enregistrer votre profil professionnel. Veuillez réessayer.");
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { status?: number }; isAxiosError?: boolean };
+      let msg = "Impossible d'enregistrer votre profil professionnel. Veuillez réessayer.";
+      if (axiosErr?.isAxiosError && !axiosErr?.response) {
+        msg = 'Vérifiez votre connexion et réessayez.';
+      } else if (axiosErr?.response?.status === 401) {
+        msg = 'Votre session a expiré. Veuillez vous reconnecter.';
+      } else if (axiosErr?.response?.status === 403) {
+        msg = "Vous n'avez pas les droits pour modifier ce profil.";
+      } else if (axiosErr?.response?.status && axiosErr.response.status >= 500) {
+        msg = 'Le service est temporairement indisponible. Réessayez dans quelques instants.';
+      }
+      Alert.alert('Erreur', msg);
     }
   }, [isLastStep, step, businessName, description, experienceYears, selectedServices, zoneName, zoneLatitude, zoneLongitude, zoneRadiusKm, profile, updateProfile, createProfile, animateTransition]);
 
