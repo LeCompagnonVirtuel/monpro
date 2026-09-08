@@ -5,7 +5,7 @@ import { IStorageProvider, STORAGE_PROVIDER } from './providers/storage.interfac
 
 const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'];
 const MAX_SIZE = 5 * 1024 * 1024;
-const ALLOWED_FOLDERS = ['avatars', 'services', 'kyc', 'messages', 'reviews', 'categories', 'service-requests'];
+const ALLOWED_FOLDERS = ['avatars', 'services', 'kyc', 'messages', 'reviews', 'categories', 'service-requests', 'interventions'];
 const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.heic'];
 
 @Injectable()
