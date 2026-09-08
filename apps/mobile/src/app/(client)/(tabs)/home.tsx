@@ -80,11 +80,7 @@ export default function HomeScreen() {
         <HomeHeader firstName={firstName} avatarUrl={user?.avatarUrl} />
 
         {/* ── Catégories ── */}
-        <View style={styles.section}>
-          <SectionHeader
-            title="Catégories"
-            onSeeAll={() => router.push('/(client)/(tabs)/search')}
-          />
+        <View style={styles.categoriesSection}>
           {categories.isLoading ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
               {Array.from({ length: 6 }).map((_, i) => (
@@ -98,7 +94,7 @@ export default function HomeScreen() {
             <ErrorState message="Erreur de chargement" onRetry={() => categories.refetch()} />
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
-              {categories.data?.filter((c) => c.isActive).slice(0, 6).map((cat, idx) => (
+              {categories.data?.filter((c) => c.isActive).slice(0, 5).map((cat, idx) => (
                 <CategoryCircle
                   key={cat.id}
                   name={cat.name}
@@ -106,6 +102,12 @@ export default function HomeScreen() {
                   onPress={() => router.push({ pathname: '/(client)/category', params: { id: cat.id, name: cat.name } })}
                 />
               ))}
+              <CategoryCircle
+                key="see-more"
+                name="Voir plus"
+                icon="ellipsis-horizontal"
+                onPress={() => router.push('/(client)/(tabs)/search')}
+              />
             </ScrollView>
           )}
         </View>
@@ -122,7 +124,7 @@ export default function HomeScreen() {
           {nearbyPros.isLoading ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
               {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} width={170} height={220} borderRadius={radius.xl} />
+                <Skeleton key={i} width={165} height={260} borderRadius={radius.xl} />
               ))}
             </ScrollView>
           ) : nearbyPros.error ? (
@@ -199,6 +201,10 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: spacing.xxxl,
+  },
+  categoriesSection: {
+    marginTop: spacing.lg,
+    gap: spacing.md,
   },
   section: {
     marginTop: spacing.xl,

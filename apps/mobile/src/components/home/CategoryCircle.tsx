@@ -9,12 +9,13 @@ import { CATEGORY_ICONS, CATEGORY_COLORS } from '@/constants/category-maps';
 interface CategoryCircleProps {
   name: string;
   isFirst?: boolean;
+  icon?: keyof typeof Ionicons.glyphMap;
   onPress: () => void;
 }
 
-export function CategoryCircle({ name, isFirst, onPress }: CategoryCircleProps) {
+export function CategoryCircle({ name, isFirst, icon, onPress }: CategoryCircleProps) {
   const key = name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-  const iconName = CATEGORY_ICONS[key] || 'grid';
+  const iconName = icon || CATEGORY_ICONS[key] || 'grid';
   const iconColor = isFirst ? colors.textInverse : (CATEGORY_COLORS[key] || colors.primary);
   const bgColor = isFirst ? colors.primary : colors.surface;
 
