@@ -33,6 +33,7 @@ export interface Booking {
   };
   startedAt?: string;
   completedAt?: string;
+  review?: { id: string; overallRating: number };
 }
 
 export interface CreateBookingPayload {

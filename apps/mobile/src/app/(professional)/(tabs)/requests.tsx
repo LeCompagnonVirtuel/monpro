@@ -86,8 +86,7 @@ export default function ProfessionalRequestsScreen() {
 
   const statusParam = useMemo((): ServiceRequestStatus | undefined => {
     if (filter === 'new') return 'SUBMITTED';
-    if (filter === 'active') return 'MATCHING';
-    if (filter === 'done') return 'COMPLETED';
+    // active and done use multi-status client-side filtering
     return undefined;
   }, [filter]);
 
@@ -100,6 +99,14 @@ export default function ProfessionalRequestsScreen() {
 
   const displayRequests = useMemo(() => {
     let list = allRequests;
+
+    // Client-side multi-status filtering for active/done tabs
+    if (filter === 'active') {
+      list = list.filter((r) => ['MATCHING', 'QUOTED', 'ACCEPTED', 'SCHEDULED', 'IN_PROGRESS'].includes(r.status));
+    } else if (filter === 'done') {
+      list = list.filter((r) => ['COMPLETED', 'CANCELLED', 'DISPUTED'].includes(r.status));
+    }
+
     if (urgencyFilter) {
       list = list.filter((r) => r.urgency === urgencyFilter);
     }
@@ -113,7 +120,7 @@ export default function ProfessionalRequestsScreen() {
       );
     }
     return list;
-  }, [allRequests, urgencyFilter, searchQuery]);
+  }, [allRequests, filter, urgencyFilter, searchQuery]);
 
   const newCount = useMemo(() => {
     if (filter === 'new') return allRequests.length;

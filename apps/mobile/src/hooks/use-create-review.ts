@@ -1,12 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { reviewsApi, CreateReviewPayload } from '@/api/reviews';
+import { bookingsApi } from '@/api/bookings';
 
 export function useHasReviewed(bookingId: string | undefined) {
   return useQuery({
     queryKey: ['review-submitted', bookingId],
-    queryFn: () => false,
+    queryFn: async () => {
+      if (!bookingId) return false;
+      try {
+        const { data } = await bookingsApi.getById(bookingId);
+        return !!(data.data as any)?.review;
+      } catch {
+        return false;
+      }
+    },
     enabled: !!bookingId,
-    staleTime: Infinity,
+    staleTime: 5 * 60 * 1000,
   });
 }
 

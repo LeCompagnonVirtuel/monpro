@@ -11,21 +11,60 @@ import { Avatar } from '@/components/ui/Avatar';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useMe } from '@/hooks/use-me';
 import { useMyProfessionalProfile, useUpdateProfessionalProfile } from '@/hooks/use-professional-profile';
+import { useUpdateProfile } from '@/hooks/use-update-profile';
 import { useProfessionalWallet } from '@/hooks/use-professional-revenue';
 import { useProfessionalBookings } from '@/hooks/use-professional-bookings';
 import { useUnreadNotificationCount } from '@/hooks/use-notifications';
 import { useAuthStore } from '@/stores/auth.store';
+import { uploadsApi } from '@/api/uploads';
 import { formatCurrency } from '@/lib/format';
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function ProfessionalProfileScreen() {
   const logout = useAuthStore((s) => s.logout);
   const { data: user, isLoading: userLoading, isError: userError, refetch: refetchUser, isRefetching: userRefetching } = useMe();
   const { data: profile, isLoading: profileLoading, isError: profileError, refetch: refetchProfile, isRefetching: profileRefetching } = useMyProfessionalProfile();
   const updateProfile = useUpdateProfessionalProfile();
+  const updateUserProfile = useUpdateProfile();
   const { data: wallet } = useProfessionalWallet();
   const { data: bookingsData } = useProfessionalBookings(profile?.id);
   const { data: unreadNotifCount } = useUnreadNotificationCount();
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  const handleAvatarPress = useCallback(async () => {
+    if (isUploadingAvatar) return;
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission requise', 'Veuillez autoriser l\'accès à la galerie pour modifier votre photo.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (result.canceled || !result.assets[0]) return;
+
+    const asset = result.assets[0];
+    const uri = asset.uri;
+    const name = uri.split('/').pop() || 'avatar.jpg';
+    const type = asset.mimeType || 'image/jpeg';
+
+    setIsUploadingAvatar(true);
+    try {
+      const { data: uploadResponse } = await uploadsApi.uploadImage({ uri, name, type }, 'avatars');
+      await updateUserProfile.mutateAsync({ avatarUrl: uploadResponse.data.url });
+    } catch {
+      Alert.alert('Erreur', 'Impossible de mettre à jour votre photo. Veuillez réessayer.');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  }, [isUploadingAvatar, updateUserProfile]);
 
   const isLoading = userLoading || profileLoading;
   const isError = userError || profileError;
@@ -141,7 +180,12 @@ export default function ProfessionalProfileScreen() {
         {/* Profile Card */}
         <View style={styles.profileCard}>
           <View style={styles.profileTop}>
-            <Avatar uri={user?.avatarUrl} name={user?.fullName || ''} size={80} />
+            <Pressable onPress={handleAvatarPress} accessibilityLabel="Changer la photo de profil" accessibilityRole="button">
+              <Avatar uri={user?.avatarUrl} name={user?.fullName || ''} size={80} />
+              <View style={styles.avatarEditBadge}>
+                <Ionicons name="camera" size={12} color={colors.textInverse} />
+              </View>
+            </Pressable>
             <View style={styles.profileInfo}>
               <Text variant="h3">{user?.fullName || ''}</Text>
               {profile && <VerificationStatus status={profile.verificationStatus} />}
@@ -476,6 +520,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.lg,
+  },
+  avatarEditBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.surface,
   },
   profileInfo: { flex: 1, gap: spacing.xxs },
   ratingRow: {

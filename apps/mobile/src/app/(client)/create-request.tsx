@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -266,6 +266,7 @@ export default function CreateRequestScreen() {
       let mediaUrls: string[] = [];
 
       if (photos.length > 0) {
+        let failedCount = 0;
         for (let i = 0; i < photos.length; i++) {
           setUploadProgress(`Upload photo ${i + 1}/${photos.length}...`);
           try {
@@ -273,7 +274,17 @@ export default function CreateRequestScreen() {
             mediaUrls.push(uploadResult.data.data.url);
           } catch (uploadErr) {
             console.warn(`Failed to upload photo ${i + 1}:`, uploadErr);
+            failedCount++;
           }
+        }
+        if (failedCount > 0 && mediaUrls.length === 0) {
+          Alert.alert('Erreur d\'upload', `${failedCount} photo(s) n\'ont pas pu être envoyées. Vérifiez votre connexion et réessayez.`);
+          setIsSubmitting(false);
+          setUploadProgress(null);
+          return;
+        }
+        if (failedCount > 0) {
+          Alert.alert('Upload partiel', `${failedCount} photo(s) sur ${photos.length} n\'ont pas pu être envoyées. La demande sera créée avec les photos restantes.`);
         }
         setUploadProgress(null);
       }
@@ -294,8 +305,6 @@ export default function CreateRequestScreen() {
           resolvedLatitude = selectedAddr.latitude ?? undefined;
           resolvedLongitude = selectedAddr.longitude ?? undefined;
         }
-      } else if (selectedDistrictId || selectedCityId) {
-        resolvedAddressId = selectedDistrictId || selectedCityId;
       } else if (_location) {
         resolvedLatitude = _location.latitude;
         resolvedLongitude = _location.longitude;

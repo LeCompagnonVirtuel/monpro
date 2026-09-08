@@ -48,7 +48,8 @@ export default function OnboardingScreen() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>();
   const [initialized, setInitialized] = useState(false);
 
-  // Zone/location state
+  // Zone/location state — support multiple zones
+  const [zones, setZones] = useState<{ name: string; latitude?: number | null; longitude?: number | null; radiusKm?: number }[]>([]);
   const [zoneName, setZoneName] = useState('');
   const [zoneLatitude, setZoneLatitude] = useState<number | null>(null);
   const [zoneLongitude, setZoneLongitude] = useState<number | null>(null);
@@ -73,11 +74,18 @@ export default function OnboardingScreen() {
       setExperienceYears(String(profile.experienceYears ?? 0));
       setSelectedServices(profile.services?.map((s) => s.service?.id).filter((id): id is string => !!id) || []);
       if (profile.zones && profile.zones.length > 0) {
-        const zone = profile.zones[0];
-        setZoneName(zone.name || '');
-        setZoneLatitude(zone.latitude ?? null);
-        setZoneLongitude(zone.longitude ?? null);
-        setZoneRadiusKm(String(zone.radiusKm ?? 15));
+        setZones(profile.zones.map((z) => ({
+          name: z.name || '',
+          latitude: z.latitude ?? null,
+          longitude: z.longitude ?? null,
+          radiusKm: z.radiusKm ?? 15,
+        })));
+        // Pre-fill first zone form fields for editing
+        const firstZone = profile.zones[0];
+        setZoneName(firstZone.name || '');
+        setZoneLatitude(firstZone.latitude ?? null);
+        setZoneLongitude(firstZone.longitude ?? null);
+        setZoneRadiusKm(String(firstZone.radiusKm ?? 15));
       }
       setInitialized(true);
     }
@@ -126,7 +134,7 @@ export default function OnboardingScreen() {
       case 0: return businessName.trim().length >= 2;
       case 1: return description.trim().length >= 10;
       case 2: return experienceYears.trim().length > 0 && !isNaN(Number(experienceYears)) && Number(experienceYears) >= 0;
-      case 3: return zoneName.trim().length > 0;
+      case 3: return zoneName.trim().length > 0 || zones.length > 0;
       case 4: return selectedServices.length > 0;
       case 5: return true;
       default: return false;
@@ -151,12 +159,25 @@ export default function OnboardingScreen() {
 
     const expYears = Math.max(0, Math.floor(Number(experienceYears) || 0));
 
-    const zones = zoneName.trim() ? [{
+    // Build final zones: use existing zones array, add current form zone if valid and not duplicate
+    const currentZone = zoneName.trim() ? {
       name: zoneName.trim(),
       latitude: zoneLatitude ?? undefined,
       longitude: zoneLongitude ?? undefined,
       radiusKm: Number(zoneRadiusKm) || 15,
-    }] : [];
+    } : null;
+
+    let finalZones = [...zones];
+    if (currentZone) {
+      // Replace first zone or add if new
+      if (finalZones.length > 0) {
+        finalZones[0] = currentZone;
+      } else {
+        finalZones = [currentZone];
+      }
+    } else if (finalZones.length === 0) {
+      finalZones = [];
+    }
 
     try {
       if (profile) {
@@ -166,7 +187,7 @@ export default function OnboardingScreen() {
           description: description.trim(),
           experienceYears: expYears,
           serviceIds: selectedServices,
-          zones,
+          zones: finalZones,
         });
       } else {
         await createProfile.mutateAsync({
@@ -174,7 +195,7 @@ export default function OnboardingScreen() {
           description: description.trim(),
           experienceYears: expYears,
           serviceIds: selectedServices,
-          zones,
+          zones: finalZones,
         });
       }
       router.replace('/(professional)/(tabs)/dashboard');
@@ -192,7 +213,7 @@ export default function OnboardingScreen() {
       }
       Alert.alert('Erreur', msg);
     }
-  }, [isLastStep, step, businessName, description, experienceYears, selectedServices, zoneName, zoneLatitude, zoneLongitude, zoneRadiusKm, profile, updateProfile, createProfile, animateTransition]);
+  }, [isLastStep, step, businessName, description, experienceYears, selectedServices, zoneName, zoneLatitude, zoneLongitude, zoneRadiusKm, zones, profile, updateProfile, createProfile, animateTransition]);
 
   const handleBack = useCallback(() => {
     if (step > 0) {
