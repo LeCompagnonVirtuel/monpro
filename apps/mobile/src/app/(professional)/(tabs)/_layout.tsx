@@ -3,14 +3,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { useConversations } from '@/hooks/use-conversations';
 import { useUnreadNotificationCount } from '@/hooks/use-notifications';
+import { useProfessionalRequests } from '@/hooks/use-professional-requests';
 
 export default function ProfessionalTabsLayout() {
   const { data: conversations } = useConversations();
   const { data: unreadNotifCount } = useUnreadNotificationCount();
+  const { data: requestsData } = useProfessionalRequests({ limit: 1 });
 
   const unreadMsgCount = Array.isArray(conversations)
     ? conversations.reduce((sum, c) => sum + (c.unreadCount ?? 0), 0)
     : 0;
+
+  const requestCount = requestsData?.total ?? 0;
 
   return (
     <Tabs
@@ -26,7 +30,7 @@ export default function ProfessionalTabsLayout() {
         options={{
           title: 'Accueil',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="grid-outline" size={size} color={color} />
+            <Ionicons name="home-outline" size={size} color={color} />
           ),
         }}
       />
@@ -34,6 +38,8 @@ export default function ProfessionalTabsLayout() {
         name="requests"
         options={{
           title: 'Demandes',
+          tabBarBadge: requestCount > 0 ? requestCount : undefined,
+          tabBarBadgeStyle: { backgroundColor: colors.primary, fontSize: 10 },
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="document-text-outline" size={size} color={color} />
           ),
@@ -44,7 +50,7 @@ export default function ProfessionalTabsLayout() {
         options={{
           title: 'Interventions',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="construct-outline" size={size} color={color} />
+            <Ionicons name="calendar-outline" size={size} color={color} />
           ),
         }}
       />
