@@ -4,6 +4,7 @@ import { BookingsService } from '../bookings.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { RealtimeService } from '../../realtime/realtime.service';
+import { LedgerService } from '../../ledger/ledger.service';
 import { BookingStatus, QuoteStatus, ServiceRequestStatus } from '@prisma/client';
 
 describe('BookingsService — IDOR & Authorization', () => {
@@ -21,6 +22,7 @@ describe('BookingsService — IDOR & Authorization', () => {
     },
     professional: { findUnique: jest.fn().mockResolvedValue({ id: 'pro-1', userId: 'user-pro-1' }) },
     serviceRequest: { update: jest.fn() },
+    payment: { findUnique: jest.fn().mockResolvedValue(null) },
     $transaction: jest.fn().mockImplementation((promises) => Promise.all(promises)),
   };
 
@@ -34,6 +36,12 @@ describe('BookingsService — IDOR & Authorization', () => {
     emitToUsers: jest.fn(),
   };
 
+  const mockLedgerService = {
+    recordEscrow: jest.fn().mockResolvedValue({ id: 'escrow-1' }),
+    recordRelease: jest.fn().mockResolvedValue(undefined),
+    recordRefund: jest.fn().mockResolvedValue(undefined),
+  };
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
@@ -41,6 +49,7 @@ describe('BookingsService — IDOR & Authorization', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: NotificationsService, useValue: mockNotifications },
         { provide: RealtimeService, useValue: mockRealtimeService },
+        { provide: LedgerService, useValue: mockLedgerService },
       ],
     }).compile();
 
