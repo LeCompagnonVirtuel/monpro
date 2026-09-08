@@ -20,7 +20,7 @@ export function CategoryCircle({ name, isFirst, onPress }: CategoryCircleProps) 
 
   return (
     <Pressable
-      style={styles.container}
+      style={({ pressed }) => [styles.container, pressed && { opacity: 0.7 }]}
       onPress={onPress}
       accessibilityLabel={name}
       accessibilityRole="button"

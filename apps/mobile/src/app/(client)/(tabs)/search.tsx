@@ -174,6 +174,7 @@ export default function SearchScreen() {
             <EmptyState
               title="Erreur de chargement"
               description="Impossible de charger les résultats. Veuillez réessayer."
+              action={{ label: 'Réessayer', onPress: () => professionals.refetch() }}
             />
           </View>
         </ScrollView>

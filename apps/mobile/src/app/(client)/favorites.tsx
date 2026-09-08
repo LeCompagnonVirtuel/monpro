@@ -11,7 +11,7 @@ import { useFavorites, useRemoveFavorite } from '@/hooks/use-favorites';
 import { Professional } from '@/api/professionals';
 
 export default function FavoritesScreen() {
-  const { data: favorites, isLoading, error, refetch } = useFavorites();
+  const { data: favorites, isLoading, error, refetch, isRefetching } = useFavorites();
   const removeFavorite = useRemoveFavorite();
 
   if (isLoading) {
@@ -58,7 +58,7 @@ export default function FavoritesScreen() {
         )}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={false} onRefresh={refetch} tintColor={colors.primary} />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />
         }
       />
     </SafeAreaView>

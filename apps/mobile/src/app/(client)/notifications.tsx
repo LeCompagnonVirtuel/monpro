@@ -36,7 +36,7 @@ function getDeepLink(notification: Notification): string | null {
 }
 
 export default function NotificationsScreen() {
-  const { data, isLoading, error, refetch } = useNotifications({ limit: 50 });
+  const { data, isLoading, error, refetch, isRefetching } = useNotifications({ limit: 50 });
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
 
@@ -93,7 +93,7 @@ export default function NotificationsScreen() {
         )}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={false} onRefresh={refetch} tintColor={colors.primary} />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />
         }
       />
     </SafeAreaView>

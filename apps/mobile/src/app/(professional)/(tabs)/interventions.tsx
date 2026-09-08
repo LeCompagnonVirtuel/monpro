@@ -361,6 +361,7 @@ function FilterTabBtn({ label, count, active, onPress }: {
     <Pressable
       style={[styles.tab, active && styles.tabActive]}
       onPress={onPress}
+      accessibilityLabel={`${label} ${count}`}
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
     >

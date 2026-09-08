@@ -118,6 +118,7 @@ function RequestCard({ request }: { request: ServiceRequest }) {
     <Pressable
       onPress={() => router.push({ pathname: '/(client)/request-detail', params: { id: request.id } })}
       accessibilityLabel={request.title}
+      style={({ pressed }) => pressed && { opacity: 0.85 }}
     >
       <Card style={styles.requestCard}>
         <View style={styles.requestHeader}>

@@ -31,7 +31,7 @@ export function ProfessionalHomeCard({ professional }: ProfessionalHomeCardProps
 
   return (
     <Pressable
-      style={styles.card}
+      style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]}
       onPress={() => router.push({ pathname: '/(client)/professional', params: { id: professional.id } })}
       accessibilityLabel={`${name}, ${profession}${professional.isVerified ? ', vérifié' : ''}`}
       accessibilityRole="button"
