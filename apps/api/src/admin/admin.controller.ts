@@ -5,10 +5,11 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { UserRole, BookingStatus, PaymentStatus } from '@prisma/client';
+import { UserRole, BookingStatus, PaymentStatus, KycStatus } from '@prisma/client';
 import { VerifyProfessionalDto } from './dto/verify-professional.dto';
 import { CreateCommissionDto } from './dto/create-commission.dto';
 import { UpdateCommissionDto } from './dto/update-commission.dto';
+import { RejectKycDto } from './dto/reject-kyc.dto';
 
 @ApiTags('Admin')
 @Controller('admin')
@@ -62,6 +63,24 @@ export class AdminController {
   @ApiOperation({ summary: 'Modifier une commission' })
   updateCommission(@Param('id') id: string, @Body() body: UpdateCommissionDto) {
     return this.adminService.updateCommission(id, body.rate);
+  }
+
+  @Get('kyc')
+  @ApiOperation({ summary: 'Dossiers KYC' })
+  getKycSubmissions(@Query('status') status?: KycStatus, @Query('page') page?: number, @Query('limit') limit?: number) {
+    return this.adminService.getKycSubmissions({ status, page, limit });
+  }
+
+  @Patch('kyc/:id/approve')
+  @ApiOperation({ summary: 'Approuver un dossier KYC' })
+  approveKyc(@Param('id') id: string, @CurrentUser('id') adminId: string) {
+    return this.adminService.approveKyc(id, adminId);
+  }
+
+  @Patch('kyc/:id/reject')
+  @ApiOperation({ summary: 'Rejeter un dossier KYC' })
+  rejectKyc(@Param('id') id: string, @CurrentUser('id') adminId: string, @Body() body: RejectKycDto) {
+    return this.adminService.rejectKyc(id, adminId, body.reason);
   }
 
   @Get('bookings')

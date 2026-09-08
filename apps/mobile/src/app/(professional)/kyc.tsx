@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, ScrollView, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -9,11 +9,12 @@ import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
-import { Text, Button, Input } from '@/components/ui';
+import { Text, Button, Input, Skeleton } from '@/components/ui';
+import { ErrorState } from '@/components/feedback/ErrorState';
 import { uploadsApi } from '@/api/uploads';
-import { kycApi, KycDocumentType } from '@/api/kyc';
+import { kycApi, KycDocumentType, KycDocument, KycStatus } from '@/api/kyc';
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
 
 interface DocumentOption {
   type: KycDocumentType;
@@ -29,7 +30,17 @@ const DOCUMENT_OPTIONS: DocumentOption[] = [
   { type: 'BUSINESS_REGISTRATION', label: 'Registre du commerce', icon: 'business-outline', needsBack: false },
 ];
 
+const STATUS_CONFIG: Record<KycStatus, { color: string; label: string; icon: keyof typeof Ionicons.glyphMap }> = {
+  PENDING: { color: colors.warning, label: 'En cours de vérification', icon: 'hourglass-outline' },
+  APPROVED: { color: colors.success, label: 'Profil vérifié', icon: 'checkmark-circle-outline' },
+  REJECTED: { color: colors.error, label: 'Vérification refusée', icon: 'close-circle-outline' },
+};
+
 export default function KycScreen() {
+  const [existingKyc, setExistingKyc] = useState<KycDocument | null>(null);
+  const [loadingKyc, setLoadingKyc] = useState(true);
+  const [kycError, setKycError] = useState<string | null>(null);
+
   const [step, setStep] = useState(0);
   const [documentType, setDocumentType] = useState<KycDocumentType | null>(null);
   const [documentNumber, setDocumentNumber] = useState('');
@@ -39,51 +50,54 @@ export default function KycScreen() {
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    kycApi.getMyKyc()
+      .then((res) => { setExistingKyc(res.data.data); })
+      .catch(() => { setExistingKyc(null); })
+      .finally(() => { setLoadingKyc(false); });
+  }, []);
+
   const selectedOption = DOCUMENT_OPTIONS.find((o) => o.type === documentType);
   const needsBack = selectedOption?.needsBack ?? true;
 
-  const pickImage = async (onResult: (uri: string) => void) => {
+  const pickImage = useCallback(async (onResult: (uri: string) => void) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission requise', 'Autorisez l\'accès à vos photos pour continuer.');
+      Alert.alert('Permission requise', 'L\'accès à vos photos est nécessaire pour sélectionner un document.');
       return;
     }
-
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       quality: 0.8,
       allowsEditing: true,
     });
-
     if (!result.canceled && result.assets[0]) {
       onResult(result.assets[0].uri);
     }
-  };
+  }, []);
 
-  const takePhoto = async (onResult: (uri: string) => void) => {
+  const takePhoto = useCallback(async (onResult: (uri: string) => void) => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission requise', 'Autorisez l\'accès à l\'appareil photo pour continuer.');
+      Alert.alert('Permission requise', 'L\'accès à la caméra est nécessaire pour prendre une photo.');
       return;
     }
-
     const result = await ImagePicker.launchCameraAsync({
       quality: 0.8,
       allowsEditing: true,
     });
-
     if (!result.canceled && result.assets[0]) {
       onResult(result.assets[0].uri);
     }
-  };
+  }, []);
 
-  const showImageOptions = (onResult: (uri: string) => void) => {
+  const showImageOptions = useCallback((onResult: (uri: string) => void) => {
     Alert.alert('Choisir une photo', 'Sélectionnez une source', [
       { text: 'Appareil photo', onPress: () => takePhoto(onResult) },
       { text: 'Galerie', onPress: () => pickImage(onResult) },
       { text: 'Annuler', style: 'cancel' },
     ]);
-  };
+  }, [takePhoto, pickImage]);
 
   const canProceed = (() => {
     switch (step) {
@@ -92,20 +106,20 @@ export default function KycScreen() {
       case 2: return frontUri !== null;
       case 3: return needsBack ? backUri !== null : true;
       case 4: return selfieUri !== null;
+      case 5: return true;
       default: return true;
     }
   })();
 
-  const handleNext = async () => {
+  const handleNext = useCallback(async () => {
     if (step < TOTAL_STEPS - 1) {
       setStep(step + 1);
       return;
     }
-
     await handleSubmit();
-  };
+  }, [step]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!documentType || !documentNumber || !frontUri || !selfieUri) return;
 
     setSubmitting(true);
@@ -136,6 +150,16 @@ export default function KycScreen() {
         selfieUrl,
       });
 
+      setExistingKyc({
+        id: 'temp',
+        documentType,
+        documentNumber: documentNumber.trim(),
+        frontUrl,
+        backUrl,
+        selfieUrl,
+        status: 'PENDING',
+        submittedAt: new Date().toISOString(),
+      });
       setStep(TOTAL_STEPS - 1);
     } catch {
       Alert.alert('Erreur', 'Impossible de soumettre vos documents. Veuillez réessayer.');
@@ -143,15 +167,25 @@ export default function KycScreen() {
       setUploading(false);
       setSubmitting(false);
     }
-  };
+  }, [documentType, documentNumber, frontUri, backUri, selfieUri]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (step > 0 && step < TOTAL_STEPS - 1) {
       setStep(step - 1);
     } else {
       router.back();
     }
-  };
+  }, [step]);
+
+  const handleResubmit = useCallback(() => {
+    setExistingKyc(null);
+    setStep(0);
+    setDocumentType(null);
+    setDocumentNumber('');
+    setFrontUri(null);
+    setBackUri(null);
+    setSelfieUri(null);
+  }, []);
 
   const renderImagePicker = (uri: string | null, onPick: () => void) => (
     <Pressable
@@ -173,15 +207,117 @@ export default function KycScreen() {
     </Pressable>
   );
 
+  if (loadingKyc) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} accessibilityLabel="Retour" accessibilityRole="button" style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
+          </Pressable>
+          <Text variant="bodySmall" color={colors.textSecondary}>KYC</Text>
+          <View style={styles.backBtn} />
+        </View>
+        <View style={styles.skeletonContent}>
+          <Skeleton width="100%" height={120} />
+          <Skeleton width="100%" height={60} />
+          <Skeleton width="100%" height={60} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (kycError) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <ErrorState message={kycError} onRetry={() => { setKycError(null); setLoadingKyc(true); }} />
+      </SafeAreaView>
+    );
+  }
+
+  if (existingKyc) {
+    const statusConf = STATUS_CONFIG[existingKyc.status] || STATUS_CONFIG.PENDING;
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} accessibilityLabel="Retour" accessibilityRole="button" style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
+          </Pressable>
+          <Text variant="bodySmall" color={colors.textSecondary}>KYC</Text>
+          <View style={styles.backBtn} />
+        </View>
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={[styles.statusBanner, { backgroundColor: statusConf.color + '15' }]}>
+            <Ionicons name={statusConf.icon} size={24} color={statusConf.color} />
+            <View style={styles.statusText}>
+              <Text variant="bodyMedium" color={statusConf.color}>{statusConf.label}</Text>
+              {existingKyc.status === 'PENDING' && (
+                <Text variant="caption" color={colors.textSecondary}>
+                  Votre dossier est en cours d{"'"}examen par notre équipe.
+                </Text>
+              )}
+              {existingKyc.status === 'APPROVED' && (
+                <Text variant="caption" color={colors.textSecondary}>
+                  Votre identité a été vérifiée avec succès.
+                </Text>
+              )}
+              {existingKyc.status === 'REJECTED' && existingKyc.rejectionReason && (
+                <Text variant="caption" color={colors.textSecondary}>
+                  Motif : {existingKyc.rejectionReason}
+                </Text>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.infoCard}>
+            <Text variant="caption" color={colors.textSecondary}>TYPE DE DOCUMENT</Text>
+            <Text variant="bodyMedium">{DOCUMENT_OPTIONS.find((o) => o.type === existingKyc.documentType)?.label || existingKyc.documentType}</Text>
+          </View>
+
+          <View style={styles.infoCard}>
+            <Text variant="caption" color={colors.textSecondary}>NUMÉRO</Text>
+            <Text variant="bodyMedium">{existingKyc.documentNumber}</Text>
+          </View>
+
+          <View style={styles.infoCard}>
+            <Text variant="caption" color={colors.textSecondary}>SOUMIS LE</Text>
+            <Text variant="bodyMedium">{new Date(existingKyc.submittedAt).toLocaleDateString('fr-FR')}</Text>
+          </View>
+
+          {existingKyc.status === 'REJECTED' && (
+            <View style={styles.infoCard}>
+              <Text variant="caption" color={colors.textSecondary}>DOCUMENTS SOUMIS</Text>
+              <View style={styles.docPreviewRow}>
+                <Image source={{ uri: existingKyc.frontUrl }} style={styles.docPreview} contentFit="cover" />
+                {existingKyc.backUrl && (
+                  <Image source={{ uri: existingKyc.backUrl }} style={styles.docPreview} contentFit="cover" />
+                )}
+                {existingKyc.selfieUrl && (
+                  <Image source={{ uri: existingKyc.selfieUrl }} style={styles.docPreview} contentFit="cover" />
+                )}
+              </View>
+            </View>
+          )}
+        </ScrollView>
+
+        <View style={styles.footer}>
+          {existingKyc.status === 'REJECTED' && (
+            <Button title="Soumettre un nouveau dossier" onPress={handleResubmit} />
+          )}
+          {existingKyc.status === 'PENDING' && (
+            <Button title="Retour au profil" onPress={() => router.back()} variant="outline" />
+          )}
+          {existingKyc.status === 'APPROVED' && (
+            <Button title="Retour au profil" onPress={() => router.back()} />
+          )}
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Pressable
-          onPress={handleBack}
-          accessibilityLabel="Retour"
-          accessibilityRole="button"
-          style={styles.backBtn}
-        >
+        <Pressable onPress={handleBack} accessibilityLabel="Retour" accessibilityRole="button" style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </Pressable>
         <Text
@@ -191,17 +327,16 @@ export default function KycScreen() {
         >
           {step + 1} / {TOTAL_STEPS}
         </Text>
+        <View style={styles.backBtn} />
       </View>
 
-      {step < TOTAL_STEPS - 1 && (
-        <View
-          style={styles.progressBar}
-          accessibilityLabel={`Progression : étape ${step + 1} sur ${TOTAL_STEPS}`}
-          accessibilityRole="progressbar"
-        >
-          <View style={[styles.progressFill, { width: `${((step + 1) / TOTAL_STEPS) * 100}%` }]} />
-        </View>
-      )}
+      <View
+        style={styles.progressBar}
+        accessibilityLabel={`Progression : étape ${step + 1} sur ${TOTAL_STEPS}`}
+        accessibilityRole="progressbar"
+      >
+        <View style={[styles.progressFill, { width: `${((step + 1) / TOTAL_STEPS) * 100}%` }]} />
+      </View>
 
       <ScrollView
         contentContainerStyle={styles.content}
@@ -229,30 +364,16 @@ export default function KycScreen() {
               {DOCUMENT_OPTIONS.map((option) => (
                 <Pressable
                   key={option.type}
-                  style={[
-                    styles.optionCard,
-                    documentType === option.type && styles.optionCardActive,
-                  ]}
+                  style={[styles.optionCard, documentType === option.type && styles.optionCardActive]}
                   onPress={() => setDocumentType(option.type)}
                   accessibilityLabel={option.label}
                   accessibilityRole="button"
                   accessibilityState={{ selected: documentType === option.type }}
                 >
-                  <View style={[
-                    styles.optionIconContainer,
-                    documentType === option.type && styles.optionIconActive,
-                  ]}>
-                    <Ionicons
-                      name={option.icon}
-                      size={28}
-                      color={documentType === option.type ? colors.textInverse : colors.primary}
-                    />
+                  <View style={[styles.optionIconContainer, documentType === option.type && styles.optionIconActive]}>
+                    <Ionicons name={option.icon} size={28} color={documentType === option.type ? colors.textInverse : colors.primary} />
                   </View>
-                  <Text
-                    variant="bodySmall"
-                    color={documentType === option.type ? colors.primary : colors.text}
-                    style={styles.optionLabel}
-                  >
+                  <Text variant="bodySmall" color={documentType === option.type ? colors.primary : colors.text} style={styles.optionLabel}>
                     {option.label}
                   </Text>
                 </Pressable>
@@ -285,14 +406,8 @@ export default function KycScreen() {
             </Text>
             {renderImagePicker(frontUri, () => showImageOptions(setFrontUri))}
             {frontUri && (
-              <Pressable
-                onPress={() => showImageOptions(setFrontUri)}
-                accessibilityLabel="Changer la photo"
-                accessibilityRole="button"
-              >
-                <Text variant="bodySmall" color={colors.primary} align="center">
-                  Changer la photo
-                </Text>
+              <Pressable onPress={() => showImageOptions(setFrontUri)} accessibilityLabel="Changer la photo" accessibilityRole="button">
+                <Text variant="bodySmall" color={colors.primary} align="center">Changer la photo</Text>
               </Pressable>
             )}
           </View>
@@ -306,14 +421,8 @@ export default function KycScreen() {
             </Text>
             {renderImagePicker(backUri, () => showImageOptions(setBackUri))}
             {backUri && (
-              <Pressable
-                onPress={() => showImageOptions(setBackUri)}
-                accessibilityLabel="Changer la photo"
-                accessibilityRole="button"
-              >
-                <Text variant="bodySmall" color={colors.primary} align="center">
-                  Changer la photo
-                </Text>
+              <Pressable onPress={() => showImageOptions(setBackUri)} accessibilityLabel="Changer la photo" accessibilityRole="button">
+                <Text variant="bodySmall" color={colors.primary} align="center">Changer la photo</Text>
               </Pressable>
             )}
           </View>
@@ -327,16 +436,42 @@ export default function KycScreen() {
             </Text>
             {renderImagePicker(selfieUri, () => showImageOptions(setSelfieUri))}
             {selfieUri && (
-              <Pressable
-                onPress={() => showImageOptions(setSelfieUri)}
-                accessibilityLabel="Changer la photo"
-                accessibilityRole="button"
-              >
-                <Text variant="bodySmall" color={colors.primary} align="center">
-                  Changer la photo
-                </Text>
+              <Pressable onPress={() => showImageOptions(setSelfieUri)} accessibilityLabel="Changer la photo" accessibilityRole="button">
+                <Text variant="bodySmall" color={colors.primary} align="center">Changer la photo</Text>
               </Pressable>
             )}
+          </View>
+        )}
+
+        {step === 5 && (
+          <View style={styles.stepContent}>
+            <Text variant="h2">Vérification</Text>
+            <Text variant="bodySmall" color={colors.textSecondary}>
+              Vérifiez les informations avant de soumettre votre dossier
+            </Text>
+
+            <View style={styles.infoCard}>
+              <Text variant="caption" color={colors.textSecondary}>TYPE DE DOCUMENT</Text>
+              <Text variant="bodyMedium">{selectedOption?.label || ''}</Text>
+            </View>
+
+            <View style={styles.infoCard}>
+              <Text variant="caption" color={colors.textSecondary}>NUMÉRO</Text>
+              <Text variant="bodyMedium">{documentNumber}</Text>
+            </View>
+
+            <View style={styles.infoCard}>
+              <Text variant="caption" color={colors.textSecondary}>DOCUMENT FOURNI</Text>
+              <View style={styles.docPreviewRow}>
+                <Image source={{ uri: frontUri || '' }} style={styles.docPreview} contentFit="cover" />
+                {backUri && <Image source={{ uri: backUri }} style={styles.docPreview} contentFit="cover" />}
+              </View>
+            </View>
+
+            <View style={styles.infoCard}>
+              <Text variant="caption" color={colors.textSecondary}>SELFIE FOURNI</Text>
+              <Image source={{ uri: selfieUri || '' }} style={styles.selfiePreview} contentFit="cover" />
+            </View>
           </View>
         )}
 
@@ -346,12 +481,12 @@ export default function KycScreen() {
               <View style={styles.successIcon}>
                 <Ionicons name="checkmark-circle" size={80} color={colors.success} />
               </View>
-              <Text variant="h2" align="center">Documents soumis</Text>
+              <Text variant="h2" align="center">Dossier envoyé</Text>
               <Text variant="body" color={colors.textSecondary} align="center">
-                Votre demande de vérification est en cours de traitement.
+                Votre dossier est maintenant en cours de vérification par notre équipe.
               </Text>
               <Text variant="caption" color={colors.textTertiary} align="center">
-                Vous recevrez une notification une fois la vérification terminée.
+                Statut : En cours de vérification
               </Text>
             </View>
           </View>
@@ -361,7 +496,7 @@ export default function KycScreen() {
       {step < TOTAL_STEPS - 1 && (
         <View style={styles.footer}>
           <Button
-            title={step === 4 ? 'Soumettre' : 'Continuer'}
+            title={step === 5 ? 'Soumettre mon dossier' : 'Continuer'}
             onPress={handleNext}
             disabled={!canProceed || submitting}
             loading={submitting}
@@ -371,10 +506,7 @@ export default function KycScreen() {
 
       {step === TOTAL_STEPS - 1 && (
         <View style={styles.footer}>
-          <Button
-            title="Retour au profil"
-            onPress={() => router.back()}
-          />
+          <Button title="Retour au profil" onPress={() => router.back()} />
         </View>
       )}
 
@@ -419,4 +551,11 @@ const styles = StyleSheet.create({
   loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.overlay, alignItems: 'center', justifyContent: 'center' },
   loadingCard: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.xl, alignItems: 'center', gap: spacing.md, ...shadows.md },
   loadingText: { marginTop: spacing.sm },
+  skeletonContent: { padding: spacing.lg, gap: spacing.md },
+  statusBanner: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.lg, borderRadius: radius.md },
+  statusText: { flex: 1, gap: 2 },
+  infoCard: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, gap: spacing.xs, ...shadows.sm },
+  docPreviewRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
+  docPreview: { width: 80, height: 60, borderRadius: radius.sm, backgroundColor: colors.surfaceSecondary },
+  selfiePreview: { width: 80, height: 80, borderRadius: radius.sm, backgroundColor: colors.surfaceSecondary, marginTop: spacing.xs },
 });

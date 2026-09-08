@@ -105,6 +105,8 @@ enum NotificationType {
   NEW_MESSAGE
   NEW_PAYMENT
   NEW_REVIEW
+  KYC_APPROVED
+  KYC_REJECTED
 }
 
 // ─── GEOGRAPHY ──────────────────────────────────────────────────────────────────

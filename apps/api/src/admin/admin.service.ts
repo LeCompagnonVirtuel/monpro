@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { VerificationStatus, ServiceRequestStatus, BookingStatus, PaymentStatus } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
+import { VerificationStatus, ServiceRequestStatus, BookingStatus, PaymentStatus, KycStatus, NotificationType } from '@prisma/client';
 import { paginate } from '../common/utils/pagination';
 
 @Injectable()
 export class AdminService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   async getDashboardStats() {
     const [
@@ -80,24 +84,50 @@ export class AdminService {
   }
 
   async verifyProfessional(id: string, adminId: string, status: VerificationStatus, reason?: string) {
-    const updated = await this.prisma.professional.update({
+    const kycStatus = status === VerificationStatus.VERIFIED ? KycStatus.APPROVED : KycStatus.REJECTED;
+
+    const professional = await this.prisma.professional.findUnique({
       where: { id },
-      data: {
-        verificationStatus: status,
-        verifiedAt: status === VerificationStatus.VERIFIED ? new Date() : null,
-        verifiedBy: adminId,
-      },
+      select: { userId: true },
     });
 
-    await this.prisma.auditLog.create({
-      data: {
-        userId: adminId,
-        action: `VERIFY_PROFESSIONAL_${status}`,
-        entity: 'professional',
-        entityId: id,
-        metadata: { reason },
-      },
-    });
+    const [updated] = await this.prisma.$transaction([
+      this.prisma.professional.update({
+        where: { id },
+        data: {
+          verificationStatus: status,
+          verifiedAt: status === VerificationStatus.VERIFIED ? new Date() : null,
+          verifiedBy: adminId,
+        },
+      }),
+      this.prisma.kycDocument.updateMany({
+        where: { professionalId: id, status: KycStatus.PENDING },
+        data: {
+          status: kycStatus,
+          reviewedAt: new Date(),
+          reviewedBy: adminId,
+          rejectionReason: status === VerificationStatus.REJECTED ? reason : null,
+        },
+      }),
+      this.prisma.auditLog.create({
+        data: {
+          userId: adminId,
+          action: `VERIFY_PROFESSIONAL_${status}`,
+          entity: 'professional',
+          entityId: id,
+          metadata: { reason, kycStatus },
+        },
+      }),
+    ]);
+
+    if (professional?.userId) {
+      const notifType = status === VerificationStatus.VERIFIED ? NotificationType.KYC_APPROVED : NotificationType.KYC_REJECTED;
+      const title = status === VerificationStatus.VERIFIED ? 'Profil vérifié' : 'Vérification refusée';
+      const body = status === VerificationStatus.VERIFIED
+        ? 'Votre identité a été vérifiée avec succès. Votre profil est maintenant visible par les clients.'
+        : `Votre dossier de vérification a été refusé.${reason ? ` Motif : ${reason}` : ''} Vous pouvez soumettre un nouveau dossier.`;
+      await this.notificationsService.create(professional.userId, notifType, title, body);
+    }
 
     return updated;
   }
@@ -148,6 +178,103 @@ export class AdminService {
     ]);
 
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  async getKycSubmissions(filters?: { status?: KycStatus; page?: number; limit?: number }) {
+    const { page: p, limit: l, skip } = paginate(filters?.page, filters?.limit);
+    const where: any = {};
+    if (filters?.status) where.status = filters.status;
+
+    const [data, total] = await Promise.all([
+      this.prisma.kycDocument.findMany({
+        where,
+        skip,
+        take: l,
+        orderBy: { submittedAt: 'desc' },
+        include: {
+          professional: {
+            include: {
+              user: { select: { id: true, fullName: true, email: true, phone: true, avatarUrl: true } },
+            },
+          },
+        },
+      }),
+      this.prisma.kycDocument.count({ where }),
+    ]);
+
+    return { data, total, page: p, limit: l, totalPages: Math.ceil(total / l) };
+  }
+
+  async approveKyc(kycId: string, adminId: string) {
+    const kyc = await this.prisma.kycDocument.findUnique({ where: { id: kycId } });
+    if (!kyc) throw new Error('Document KYC non trouvé');
+    if (kyc.status === KycStatus.APPROVED) throw new Error('Document KYC déjà approuvé');
+
+    const professional = await this.prisma.professional.findUnique({
+      where: { id: kyc.professionalId },
+      select: { userId: true },
+    });
+
+    const [updated] = await this.prisma.$transaction([
+      this.prisma.kycDocument.update({
+        where: { id: kycId },
+        data: { status: KycStatus.APPROVED, reviewedAt: new Date(), reviewedBy: adminId },
+      }),
+      this.prisma.professional.update({
+        where: { id: kyc.professionalId },
+        data: { verificationStatus: VerificationStatus.VERIFIED, verifiedAt: new Date(), verifiedBy: adminId },
+      }),
+      this.prisma.auditLog.create({
+        data: { userId: adminId, action: 'KYC_APPROVED', entity: 'kycDocument', entityId: kycId },
+      }),
+    ]);
+
+    if (professional?.userId) {
+      await this.notificationsService.create(
+        professional.userId,
+        NotificationType.KYC_APPROVED,
+        'Profil vérifié',
+        'Votre identité a été vérifiée avec succès. Votre profil est maintenant visible par les clients.',
+      );
+    }
+
+    return updated;
+  }
+
+  async rejectKyc(kycId: string, adminId: string, reason: string) {
+    const kyc = await this.prisma.kycDocument.findUnique({ where: { id: kycId } });
+    if (!kyc) throw new Error('Document KYC non trouvé');
+    if (kyc.status === KycStatus.REJECTED) throw new Error('Document KYC déjà rejeté');
+
+    const professional = await this.prisma.professional.findUnique({
+      where: { id: kyc.professionalId },
+      select: { userId: true },
+    });
+
+    const [updated] = await this.prisma.$transaction([
+      this.prisma.kycDocument.update({
+        where: { id: kycId },
+        data: { status: KycStatus.REJECTED, reviewedAt: new Date(), reviewedBy: adminId, rejectionReason: reason },
+      }),
+      this.prisma.professional.update({
+        where: { id: kyc.professionalId },
+        data: { verificationStatus: VerificationStatus.REJECTED },
+      }),
+      this.prisma.auditLog.create({
+        data: { userId: adminId, action: 'KYC_REJECTED', entity: 'kycDocument', entityId: kycId, metadata: { reason } },
+      }),
+    ]);
+
+    if (professional?.userId) {
+      await this.notificationsService.create(
+        professional.userId,
+        NotificationType.KYC_REJECTED,
+        'Vérification refusée',
+        `Votre dossier de vérification a été refusé. Motif : ${reason}. Vous pouvez soumettre un nouveau dossier.`,
+      );
+    }
+
+    return updated;
   }
 
   async getAllPayments(filters?: { status?: PaymentStatus; page?: number; limit?: number }) {
