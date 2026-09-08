@@ -12,6 +12,7 @@ import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useMyProfessionalProfile } from '@/hooks/use-professional-profile';
 import { useProfessionalReviews, useRespondToReview } from '@/hooks/use-professional-reviews';
+import { getErrorMessage } from '@/lib/api-errors';
 import { Review } from '@/api/reviews';
 import { formatRelativeDate } from '@/lib/format';
 
@@ -35,7 +36,7 @@ export default function ReviewsScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message="Impossible de charger les avis" onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, 'Impossible de charger les avis')} onRetry={refetch} />
       </SafeAreaView>
     );
   }

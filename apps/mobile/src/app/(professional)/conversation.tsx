@@ -11,6 +11,7 @@ import { radius } from '@/theme/radius';
 import { Text, Skeleton } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useMessages, useSendMessage } from '@/hooks/use-messages';
+import { getErrorMessage } from '@/lib/api-errors';
 import { useConversations, useMarkConversationRead } from '@/hooks/use-conversations';
 import { useAuthStore } from '@/stores/auth.store';
 import { socketService } from '@/lib/socket';
@@ -153,7 +154,7 @@ export default function ProfessionalConversationScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header name={other?.fullName} />
-        <ErrorState message="Impossible de charger les messages" onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, 'Impossible de charger les messages')} onRetry={refetch} />
       </SafeAreaView>
     );
   }

@@ -8,6 +8,7 @@ import { shadows } from '@/theme/shadows';
 import { Text, Skeleton } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { MessagesHeader } from '@/components/messages/MessagesHeader';
+import { getErrorMessage } from '@/lib/api-errors';
 import { SecurityBanner } from '@/components/messages/SecurityBanner';
 import { ConversationRow } from '@/components/messages/ConversationRow';
 import { ProfessionalSuggestionCard } from '@/components/messages/ProfessionalSuggestionCard';
@@ -141,7 +142,7 @@ export default function MessagesScreen() {
     return (
       <View style={styles.container}>
         <MessagesHeader />
-        <ErrorState message="Impossible de charger vos conversations" onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, 'Impossible de charger vos conversations')} onRetry={refetch} />
       </View>
     );
   }

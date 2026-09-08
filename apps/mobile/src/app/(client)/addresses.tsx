@@ -11,6 +11,7 @@ import { shadows } from '@/theme/shadows';
 import { Text, Button, Skeleton } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useAddresses, useCreateAddress, useDeleteAddress, useSetDefaultAddress } from '@/hooks/use-addresses';
+import { getErrorMessage } from '@/lib/api-errors';
 
 const QUICK_LABELS = ['Maison', 'Travail', 'Bureau'];
 
@@ -130,7 +131,7 @@ export default function AddressesScreen() {
     return (
       <View style={styles.container}>
         <Header onAdd={() => setShowForm(!showForm)} />
-        <ErrorState message="Impossible de charger les adresses" onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, 'Impossible de charger les adresses')} onRetry={refetch} />
       </View>
     );
   }

@@ -11,12 +11,13 @@ import { Text, Skeleton } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useAuthStore } from '@/stores/auth.store';
 import { useMyProfessionalProfile, useUpdateProfessionalProfile } from '@/hooks/use-professional-profile';
+import { getErrorMessage } from '@/lib/api-errors';
 
 const APP_VERSION = Constants.expoConfig?.version || '1.0.0';
 
 export default function SettingsScreen() {
   const logout = useAuthStore((s) => s.logout);
-  const { data: profile, isLoading, isError, refetch } = useMyProfessionalProfile();
+  const { data: profile, isLoading, error, isError, refetch } = useMyProfessionalProfile();
   const updateProfile = useUpdateProfessionalProfile();
 
   const handleToggleAvailability = () => {
@@ -66,7 +67,7 @@ export default function SettingsScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
         <ErrorState
-          message="Impossible de charger vos paramètres."
+          message={getErrorMessage(error, 'Impossible de charger vos paramètres.')}
           onRetry={() => refetch()}
         />
       </SafeAreaView>

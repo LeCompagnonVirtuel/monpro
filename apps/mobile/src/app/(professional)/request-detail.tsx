@@ -9,6 +9,7 @@ import { shadows } from '@/theme/shadows';
 import { Text, Skeleton, Button } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useProfessionalRequest } from '@/hooks/use-professional-requests';
+import { getErrorMessage } from '@/lib/api-errors';
 import { formatDate, formatRelativeDate } from '@/lib/format';
 
 const URGENCY_CONFIG: Record<string, { color: string; label: string; icon: keyof typeof Ionicons.glyphMap }> = {
@@ -52,7 +53,7 @@ export default function ProfessionalRequestDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message="Impossible de charger la demande" onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, 'Impossible de charger la demande')} onRetry={refetch} />
       </SafeAreaView>
     );
   }

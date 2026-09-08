@@ -9,6 +9,7 @@ import { Text, Badge, Skeleton, Avatar } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { useQuotesForRequest } from '@/hooks/use-quotes';
+import { getErrorMessage } from '@/lib/api-errors';
 import { Quote } from '@/api/quotes';
 import { formatCurrency, formatDate } from '@/lib/format';
 
@@ -31,7 +32,7 @@ export default function QuotesScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message="Impossible de charger les devis" onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, 'Impossible de charger les devis')} onRetry={refetch} />
       </SafeAreaView>
     );
   }

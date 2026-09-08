@@ -10,6 +10,7 @@ import { Text, Skeleton } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useMe } from '@/hooks/use-me';
+import { getErrorMessage } from '@/lib/api-errors';
 import { useMyProfessionalProfile, useUpdateProfessionalProfile } from '@/hooks/use-professional-profile';
 import { useUpdateProfile } from '@/hooks/use-update-profile';
 import { useProfessionalWallet } from '@/hooks/use-professional-revenue';
@@ -139,7 +140,7 @@ export default function ProfessionalProfileScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <ErrorState
-          message="Impossible de charger votre profil."
+          message={getErrorMessage(isError ? new Error() : undefined, 'Impossible de charger votre profil.')}
           onRetry={() => { refetchUser(); refetchProfile(); }}
         />
       </SafeAreaView>

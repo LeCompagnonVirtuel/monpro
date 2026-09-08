@@ -10,6 +10,7 @@ import { Text, Card, Badge, Skeleton } from '@/components/ui';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useServiceRequests } from '@/hooks/use-service-requests';
+import { getErrorMessage } from '@/lib/api-errors';
 import { ServiceRequest, ServiceRequestStatus } from '@/api/requests';
 import { formatDate } from '@/lib/format';
 
@@ -90,7 +91,7 @@ export default function RequestsScreen() {
           ))}
         </View>
       ) : error ? (
-        <ErrorState message="Impossible de charger vos demandes" onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, 'Impossible de charger vos demandes')} onRetry={refetch} />
       ) : filteredRequests.length === 0 ? (
         <EmptyState
           title="Aucune demande"

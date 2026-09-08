@@ -9,6 +9,7 @@ import { shadows } from '@/theme/shadows';
 import { Text, Skeleton } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useQuotesForRequest } from '@/hooks/use-quotes';
+import { getErrorMessage } from '@/lib/api-errors';
 import { formatCurrency, formatDate, formatRelativeDate } from '@/lib/format';
 
 const STATUS_CONFIG: Record<string, { color: string; label: string; icon: keyof typeof Ionicons.glyphMap; description: string }> = {
@@ -39,7 +40,7 @@ export default function QuoteDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message="Impossible de charger le devis" onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, 'Impossible de charger le devis')} onRetry={refetch} />
       </SafeAreaView>
     );
   }

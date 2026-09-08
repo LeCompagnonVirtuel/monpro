@@ -10,6 +10,7 @@ import { Text, Button, Skeleton, Divider } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { useIntervention, useConfirmIntervention } from '@/hooks/use-interventions';
+import { getErrorMessage } from '@/lib/api-errors';
 import { useBooking } from '@/hooks/use-bookings';
 import { formatDateTime } from '@/lib/format';
 
@@ -51,7 +52,7 @@ export default function InterventionScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message="Impossible de charger l'intervention" onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, "Impossible de charger l'intervention")} onRetry={refetch} />
       </SafeAreaView>
     );
   }

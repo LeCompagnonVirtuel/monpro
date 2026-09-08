@@ -8,6 +8,7 @@ import { Text, Skeleton } from '@/components/ui';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from '@/hooks/use-notifications';
+import { getErrorMessage } from '@/lib/api-errors';
 import { Notification } from '@/api/notifications';
 import { formatRelativeDate } from '@/lib/format';
 
@@ -58,7 +59,7 @@ export default function NotificationsScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header hasUnread={false} onMarkAllRead={() => {}} />
-        <ErrorState message="Impossible de charger les notifications" onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, 'Impossible de charger les notifications')} onRetry={refetch} />
       </SafeAreaView>
     );
   }

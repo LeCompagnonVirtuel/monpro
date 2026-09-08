@@ -10,6 +10,7 @@ import { Text, Skeleton } from '@/components/ui';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useProfessionalWallet } from '@/hooks/use-professional-revenue';
+import { getErrorMessage } from '@/lib/api-errors';
 import { formatCurrency } from '@/lib/format';
 
 export default function RevenueScreen() {
@@ -31,7 +32,7 @@ export default function RevenueScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message="Impossible de charger vos revenus" onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, 'Impossible de charger vos revenus')} onRetry={refetch} />
       </SafeAreaView>
     );
   }

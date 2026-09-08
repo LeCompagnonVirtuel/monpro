@@ -15,6 +15,7 @@ import { Text, Button, Skeleton } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { useCategories } from '@/hooks/use-categories';
+import { getErrorMessage } from '@/lib/api-errors';
 import { useServices } from '@/hooks/use-services';
 import { useCreateProfessionalProfile, useMyProfessionalProfile, useUpdateProfessionalProfile } from '@/hooks/use-professional-profile';
 import { useMe } from '@/hooks/use-me';
@@ -265,7 +266,7 @@ export default function OnboardingScreen() {
           </Pressable>
           <View />
         </View>
-        <ErrorState message="Impossible de charger les informations nécessaires." onRetry={() => { refetchUser(); refetchProfile(); }} />
+        <ErrorState message={getErrorMessage(userError || profileError ? new Error() : undefined, 'Impossible de charger les informations nécessaires.')} onRetry={() => { refetchUser(); refetchProfile(); }} />
       </SafeAreaView>
     );
   }

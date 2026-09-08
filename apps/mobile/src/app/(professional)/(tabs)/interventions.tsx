@@ -16,21 +16,9 @@ import { useMyProfessionalProfile } from '@/hooks/use-professional-profile';
 import { useProfessionalBookings } from '@/hooks/use-professional-bookings';
 import { Booking, BookingStatus } from '@/api/bookings';
 import { formatCurrency, formatRelativeDate } from '@/lib/format';
+import { getErrorMessage } from '@/lib/api-errors';
 
 type FilterTab = 'all' | 'upcoming' | 'active' | 'done';
-
-function getErrorMessage(error: unknown): string {
-  const err = error as { response?: { status?: number }; isAxiosError?: boolean; message?: string };
-  if (err?.isAxiosError && !err?.response) {
-    return 'Vérifiez votre connexion et réessayez.';
-  }
-  const status = err?.response?.status;
-  if (status === 401) return 'Votre session a expiré. Veuillez vous reconnecter.';
-  if (status === 403) return "Vous n'avez pas accès à ces interventions.";
-  if (status === 404) return 'Aucune intervention trouvée.';
-  if (status && status >= 500) return 'Le service est temporairement indisponible. Réessayez dans quelques instants.';
-  return 'Impossible de charger vos interventions.';
-}
 
 const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
   PENDING: { color: colors.textTertiary, label: 'En attente' },
@@ -256,7 +244,7 @@ export default function InterventionsScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <ErrorState
-          message={getErrorMessage(error)}
+          message={getErrorMessage(error, 'Impossible de charger vos interventions.')}
           onRetry={refetch}
         />
       </SafeAreaView>

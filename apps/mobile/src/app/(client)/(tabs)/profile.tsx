@@ -7,6 +7,7 @@ import { spacing } from '@/theme/spacing';
 import { Skeleton } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
+import { getErrorMessage } from '@/lib/api-errors';
 import { ProfileIdentity } from '@/components/profile/ProfileIdentity';
 import { PremiumBanner } from '@/components/profile/PremiumBanner';
 import { ProfileStats } from '@/components/profile/ProfileStats';
@@ -90,7 +91,7 @@ export default function ProfileScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <ProfileHeader />
-        <ErrorState message="Impossible de charger votre profil" onRetry={() => me.refetch()} />
+        <ErrorState message={getErrorMessage(me.error, 'Impossible de charger votre profil')} onRetry={() => me.refetch()} />
       </SafeAreaView>
     );
   }

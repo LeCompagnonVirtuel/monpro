@@ -11,6 +11,7 @@ import { Text, Button, Skeleton } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useMyProfessionalProfile } from '@/hooks/use-professional-profile';
 import { useProfessionalAvailability, useSetAvailability, AvailabilitySlot } from '@/hooks/use-professional-availability';
+import { getErrorMessage } from '@/lib/api-errors';
 
 const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
@@ -34,7 +35,7 @@ interface TimePickerState {
 
 export default function AvailabilityScreen() {
   const { data: profile, isLoading: profileLoading } = useMyProfessionalProfile();
-  const { data: slots, isLoading: slotsLoading, isError, refetch } = useProfessionalAvailability(profile?.id);
+  const { data: slots, isLoading: slotsLoading, error: slotsError, isError, refetch } = useProfessionalAvailability(profile?.id);
   const setAvailability = useSetAvailability();
 
   const [localSlots, setLocalSlots] = useState<AvailabilitySlot[]>(DEFAULT_SLOTS);
@@ -126,7 +127,7 @@ export default function AvailabilityScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
         <ErrorState
-          message="Impossible de charger vos disponibilités."
+          message={getErrorMessage(slotsError, 'Impossible de charger vos disponibilités.')}
           onRetry={() => refetch()}
         />
       </SafeAreaView>

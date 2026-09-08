@@ -9,6 +9,7 @@ import { shadows } from '@/theme/shadows';
 import { Text, Card, Skeleton } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
 import { ErrorState } from '@/components/feedback/ErrorState';
+import { getErrorMessage } from '@/lib/api-errors';
 
 import { useMe } from '@/hooks/use-me';
 import { useMyProfessionalProfile, useUpdateProfessionalProfile } from '@/hooks/use-professional-profile';
@@ -153,7 +154,7 @@ export default function DashboardScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <ErrorState
-          message="Impossible de charger votre tableau de bord."
+          message={getErrorMessage(profileError || userError ? new Error() : undefined, 'Impossible de charger votre tableau de bord.')}
           onRetry={() => {
             refetchProfile();
             refetchUser();

@@ -111,7 +111,7 @@ export class BookingsService {
       this.prisma.booking.findMany({
         where,
         skip,
-        take: limit,
+        take: l,
         orderBy: { scheduledDate: 'desc' },
         include: {
           serviceRequest: { include: { service: true, client: { select: { fullName: true, avatarUrl: true } }, media: true } },

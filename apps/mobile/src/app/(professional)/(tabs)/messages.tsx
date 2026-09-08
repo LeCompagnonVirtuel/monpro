@@ -16,21 +16,9 @@ import { useNotifications, useUnreadNotificationCount } from '@/hooks/use-notifi
 import { useAuthStore } from '@/stores/auth.store';
 import { Conversation } from '@/api/messaging';
 import { formatRelativeDate } from '@/lib/format';
+import { getErrorMessage } from '@/lib/api-errors';
 
 type FilterTab = 'all' | 'unread' | 'clients' | 'notifications';
-
-function getErrorMessage(error: unknown): string {
-  const err = error as { response?: { status?: number }; isAxiosError?: boolean; message?: string };
-  if (err?.isAxiosError && !err?.response) {
-    return 'Vérifiez votre connexion et réessayez.';
-  }
-  const status = err?.response?.status;
-  if (status === 401) return 'Votre session a expiré. Veuillez vous reconnecter.';
-  if (status === 403) return "Vous n'avez pas accès à ces conversations.";
-  if (status === 404) return 'Aucune conversation trouvée.';
-  if (status && status >= 500) return 'Le service est temporairement indisponible. Réessayez dans quelques instants.';
-  return 'Impossible de charger vos conversations.';
-}
 
 export default function ProfessionalMessagesScreen() {
   const { data: conversations, isLoading, error, refetch, isRefetching } = useConversations();
@@ -134,7 +122,7 @@ export default function ProfessionalMessagesScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <ErrorState
-          message={getErrorMessage(error)}
+          message={getErrorMessage(error, 'Impossible de charger vos conversations.')}
           onRetry={refetch}
         />
       </SafeAreaView>

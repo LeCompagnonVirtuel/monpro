@@ -8,6 +8,7 @@ import { Text, Avatar, Skeleton } from '@/components/ui';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useFavorites, useRemoveFavorite } from '@/hooks/use-favorites';
+import { getErrorMessage } from '@/lib/api-errors';
 import { Professional } from '@/api/professionals';
 
 export default function FavoritesScreen() {
@@ -29,7 +30,7 @@ export default function FavoritesScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message="Impossible de charger vos favoris" onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, 'Impossible de charger vos favoris')} onRetry={refetch} />
       </SafeAreaView>
     );
   }

@@ -11,6 +11,7 @@ import { radius } from '@/theme/radius';
 import { Text, Skeleton, Button } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useProfessionalIntervention, useMarkArrived, useStartIntervention, useCompleteIntervention } from '@/hooks/use-professional-interventions';
+import { getErrorMessage } from '@/lib/api-errors';
 import { uploadsApi } from '@/api/uploads';
 import { formatDate } from '@/lib/format';
 
@@ -94,7 +95,7 @@ export default function ProfessionalInterventionScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message="Impossible de charger l'intervention" onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, "Impossible de charger l'intervention")} onRetry={refetch} />
       </SafeAreaView>
     );
   }

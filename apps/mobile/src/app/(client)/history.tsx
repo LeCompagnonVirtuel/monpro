@@ -11,6 +11,7 @@ import { Text, Skeleton } from '@/components/ui';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useServiceRequests } from '@/hooks/use-service-requests';
+import { getErrorMessage } from '@/lib/api-errors';
 import { formatDate } from '@/lib/format';
 
 const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
@@ -84,7 +85,7 @@ export default function HistoryScreen() {
             <View style={styles.backBtn} />
           </View>
         </View>
-        <ErrorState message="Impossible de charger l'historique" onRetry={onRefresh} />
+        <ErrorState message={getErrorMessage(error, "Impossible de charger l'historique")} onRetry={onRefresh} />
       </View>
     );
   }

@@ -9,10 +9,11 @@ import { shadows } from '@/theme/shadows';
 import { Text, Skeleton } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useMyProfessionalProfile } from '@/hooks/use-professional-profile';
+import { getErrorMessage } from '@/lib/api-errors';
 import { useState, useCallback } from 'react';
 
 export default function ServicesScreen() {
-  const { data: profile, isLoading, isError, refetch } = useMyProfessionalProfile();
+  const { data: profile, isLoading, error, isError, refetch } = useMyProfessionalProfile();
   const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();
 
@@ -47,7 +48,7 @@ export default function ServicesScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
         <ErrorState
-          message="Impossible de charger vos services."
+          message={getErrorMessage(error, 'Impossible de charger vos services.')}
           onRetry={() => refetch()}
         />
       </SafeAreaView>

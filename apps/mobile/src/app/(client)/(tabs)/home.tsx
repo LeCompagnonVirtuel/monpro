@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui';
 import { Text } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { HomeHeader } from '@/components/home/HomeHeader';
+import { getErrorMessage } from '@/lib/api-errors';
 import { SectionHeader } from '@/components/home/SectionHeader';
 import { CategoryCircle } from '@/components/home/CategoryCircle';
 import { VerifiedBanner } from '@/components/home/VerifiedBanner';
@@ -57,7 +58,7 @@ export default function HomeScreen() {
   if (userError) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <ErrorState message="Impossible de charger votre profil" onRetry={() => refetchUser()} />
+        <ErrorState message={getErrorMessage(userError, 'Impossible de charger votre profil')} onRetry={() => refetchUser()} />
       </SafeAreaView>
     );
   }
@@ -91,7 +92,7 @@ export default function HomeScreen() {
               ))}
             </ScrollView>
           ) : categories.error ? (
-            <ErrorState message="Erreur de chargement" onRetry={() => categories.refetch()} />
+            <ErrorState message={getErrorMessage(categories.error, 'Erreur de chargement')} onRetry={() => categories.refetch()} />
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
               {categories.data?.filter((c) => c.isActive).slice(0, 5).map((cat, idx) => (
@@ -128,7 +129,7 @@ export default function HomeScreen() {
               ))}
             </ScrollView>
           ) : nearbyPros.error ? (
-            <ErrorState message="Impossible de charger les professionnels" onRetry={() => nearbyPros.refetch()} />
+            <ErrorState message={getErrorMessage(nearbyPros.error, 'Impossible de charger les professionnels')} onRetry={() => nearbyPros.refetch()} />
           ) : (nearbyPros.data?.professionals || []).length === 0 ? (
             <View style={styles.emptyPad}>
               <Text variant="bodySmall" color={colors.textTertiary} align="center">
@@ -160,7 +161,7 @@ export default function HomeScreen() {
               ))}
             </View>
           ) : recentRequests.error ? (
-            <ErrorState message="Impossible de charger vos demandes" onRetry={() => recentRequests.refetch()} />
+            <ErrorState message={getErrorMessage(recentRequests.error, 'Impossible de charger vos demandes')} onRetry={() => recentRequests.refetch()} />
           ) : (recentRequests.data?.requests || []).length === 0 ? (
             <View style={styles.emptyPad}>
               <Text variant="bodySmall" color={colors.textTertiary} align="center">

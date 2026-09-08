@@ -9,6 +9,7 @@ import { shadows } from '@/theme/shadows';
 import { Text, Skeleton, Button } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useProfessionalBooking } from '@/hooks/use-professional-bookings';
+import { getErrorMessage } from '@/lib/api-errors';
 import { useCreateIntervention } from '@/hooks/use-professional-interventions';
 import { formatDate, formatCurrency, formatRelativeDate } from '@/lib/format';
 
@@ -42,7 +43,7 @@ export default function ProfessionalBookingDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message="Impossible de charger la réservation" onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, 'Impossible de charger la réservation')} onRetry={refetch} />
       </SafeAreaView>
     );
   }

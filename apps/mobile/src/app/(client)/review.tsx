@@ -9,6 +9,7 @@ import { radius } from '@/theme/radius';
 import { Text, Button, Divider, Skeleton } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useBooking } from '@/hooks/use-bookings';
+import { getErrorMessage } from '@/lib/api-errors';
 import { useCreateReview, useHasReviewed } from '@/hooks/use-create-review';
 
 const RATING_LABELS = ['', 'Très mauvais', 'Mauvais', 'Correct', 'Bien', 'Excellent'];
@@ -93,7 +94,7 @@ export default function ReviewScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
         <ErrorState
-          message="Impossible de charger les informations de la réservation."
+          message={getErrorMessage(bookingError ? new Error() : undefined, 'Impossible de charger les informations de la réservation.')}
           onRetry={() => refetch()}
         />
       </SafeAreaView>

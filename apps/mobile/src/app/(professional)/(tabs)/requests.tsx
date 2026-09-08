@@ -13,6 +13,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useProfessionalRequests } from '@/hooks/use-professional-requests';
+import { getErrorMessage } from '@/lib/api-errors';
 import { useMyProfessionalProfile } from '@/hooks/use-professional-profile';
 import { ServiceRequest, ServiceRequestStatus, UrgencyLevel } from '@/api/requests';
 import { formatRelativeDate } from '@/lib/format';
@@ -122,20 +123,12 @@ export default function ProfessionalRequestsScreen() {
     return list;
   }, [allRequests, filter, urgencyFilter, searchQuery]);
 
-  const newCount = useMemo(() => {
-    if (filter === 'new') return allRequests.length;
-    return undefined;
-  }, [filter, allRequests.length]);
-
-  const activeCount = useMemo(() => {
-    if (filter === 'active') return allRequests.length;
-    return undefined;
-  }, [filter, allRequests.length]);
-
-  const doneCount = useMemo(() => {
-    if (filter === 'done') return allRequests.length;
-    return undefined;
-  }, [filter, allRequests.length]);
+  const tabCounts = useMemo(() => ({
+    all: data?.total ?? allRequests.length,
+    new: allRequests.filter(r => r.status === 'SUBMITTED').length,
+    active: allRequests.filter(r => ['MATCHING', 'QUOTED', 'ACCEPTED', 'SCHEDULED', 'IN_PROGRESS'].includes(r.status)).length,
+    done: allRequests.filter(r => ['COMPLETED', 'CANCELLED', 'DISPUTED'].includes(r.status)).length,
+  }), [allRequests, data?.total]);
 
   const showBanner = !hasServices || !hasZone || !isVerified;
 
@@ -202,7 +195,7 @@ export default function ProfessionalRequestsScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <ErrorState
-          message="Impossible de charger les demandes."
+          message={getErrorMessage(error, 'Impossible de charger les demandes.')}
           onRetry={refetch}
         />
       </SafeAreaView>
@@ -264,9 +257,9 @@ export default function ProfessionalRequestsScreen() {
       {/* Tabs */}
       <View style={styles.tabsRow}>
         <FilterTabBtn label="Toutes" count={data?.total} active={filter === 'all'} onPress={() => setFilter('all')} />
-        <FilterTabBtn label="Nouvelles" count={newCount} active={filter === 'new'} onPress={() => setFilter('new')} />
-        <FilterTabBtn label="En cours" count={activeCount} active={filter === 'active'} onPress={() => setFilter('active')} />
-        <FilterTabBtn label="Traitées" count={doneCount} active={filter === 'done'} onPress={() => setFilter('done')} />
+        <FilterTabBtn label="Nouvelles" count={tabCounts.new} active={filter === 'new'} onPress={() => setFilter('new')} />
+        <FilterTabBtn label="En cours" count={tabCounts.active} active={filter === 'active'} onPress={() => setFilter('active')} />
+        <FilterTabBtn label="Traitées" count={tabCounts.done} active={filter === 'done'} onPress={() => setFilter('done')} />
       </View>
 
       {/* Profile completeness banner */}
