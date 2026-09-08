@@ -20,7 +20,7 @@ export function HomeSearchBar() {
           <Ionicons name="search" size={18} color={colors.textTertiary} />
         </View>
         <Text variant="body" color={colors.textTertiary} style={styles.placeholder}>
-          Rechercher un service ou un pro...
+          Quel service recherchez-vous ?
         </Text>
         <View style={styles.filterButton}>
           <Ionicons name="options-outline" size={16} color={colors.primary} />

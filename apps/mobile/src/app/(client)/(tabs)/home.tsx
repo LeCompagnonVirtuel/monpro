@@ -4,20 +4,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
+import { radius } from '@/theme/radius';
 import { Skeleton } from '@/components/ui';
+import { Text } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
+import { EmptyState } from '@/components/feedback/EmptyState';
 import { HomeHeader } from '@/components/home/HomeHeader';
 import { HomeSearchBar } from '@/components/home/HomeSearchBar';
 import { SectionHeader } from '@/components/home/SectionHeader';
 import { CategoryCircle } from '@/components/home/CategoryCircle';
-import { HeroCard } from '@/components/home/HeroCard';
+import { VerifiedBanner } from '@/components/home/VerifiedBanner';
 import { ProfessionalHomeCard } from '@/components/home/ProfessionalHomeCard';
-import { TrendingServiceCard } from '@/components/home/TrendingServiceCard';
+import { RecentRequestCard } from '@/components/home/RecentRequestCard';
+import { PublishCTA } from '@/components/home/PublishCTA';
 import { useMe } from '@/hooks/use-me';
 import { useCategories } from '@/hooks/use-categories';
 import { useProfessionals } from '@/hooks/use-professionals';
 import { useLocation } from '@/hooks/use-location';
-import { useServices } from '@/hooks/use-services';
+import { useServiceRequests } from '@/hooks/use-service-requests';
 
 export default function HomeScreen() {
   const { data: user, isLoading: isLoadingUser, error: userError, refetch: refetchUser } = useMe();
@@ -25,21 +29,20 @@ export default function HomeScreen() {
   const categories = useCategories();
   const nearbyPros = useProfessionals(
     location
-      ? { latitude: location.latitude, longitude: location.longitude, radiusKm: 10, limit: 10 }
-      : { limit: 10 },
+      ? { latitude: location.latitude, longitude: location.longitude, radiusKm: 25, limit: 10, verified: true }
+      : { limit: 10, verified: true },
   );
-  const services = useServices();
+  const recentRequests = useServiceRequests({ limit: 3 });
 
-  const isRefreshing = categories.isRefetching || nearbyPros.isRefetching;
+  const isRefreshing = categories.isRefetching || nearbyPros.isRefetching || recentRequests.isRefetching;
 
   const handleRefresh = useCallback(() => {
     categories.refetch();
     nearbyPros.refetch();
-    services.refetch();
-  }, [categories, nearbyPros, services]);
+    recentRequests.refetch();
+  }, [categories, nearbyPros, recentRequests]);
 
   const firstName = user?.fullName?.split(' ')[0] || '';
-  const locationLabel = user?.city?.name || undefined;
 
   if (isLoadingUser) {
     return (
@@ -76,10 +79,11 @@ export default function HomeScreen() {
           />
         }
       >
-        <HomeHeader firstName={firstName} locationLabel={locationLabel} />
+        <HomeHeader firstName={firstName} avatarUrl={user?.avatarUrl} />
 
         <HomeSearchBar />
 
+        {/* ── Catégories ── */}
         <View style={styles.section}>
           <SectionHeader
             title="Catégories"
@@ -87,7 +91,7 @@ export default function HomeScreen() {
           />
           {categories.isLoading ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScroll}>
-              {Array.from({ length: 5 }).map((_, i) => (
+              {Array.from({ length: 6 }).map((_, i) => (
                 <View key={i} style={styles.categorySkeleton}>
                   <Skeleton width={56} height={56} borderRadius={28} />
                   <Skeleton width={48} height={10} />
@@ -110,21 +114,29 @@ export default function HomeScreen() {
           )}
         </View>
 
-        <HeroCard />
+        {/* ── Bandeau professionnels vérifiés ── */}
+        <VerifiedBanner />
 
+        {/* ── Professionnels recommandés ── */}
         <View style={styles.section}>
           <SectionHeader
-            title="Professionnels à proximité"
+            title="Professionnels recommandés"
             onSeeAll={() => router.push('/(client)/(tabs)/search')}
           />
           {nearbyPros.isLoading ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.proScroll}>
               {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} width={150} height={180} borderRadius={16} />
+                <Skeleton key={i} width={160} height={200} borderRadius={radius.lg} />
               ))}
             </ScrollView>
           ) : nearbyPros.error ? (
-            <ErrorState message="Erreur de chargement" onRetry={() => nearbyPros.refetch()} />
+            <ErrorState message="Impossible de charger les professionnels" onRetry={() => nearbyPros.refetch()} />
+          ) : (nearbyPros.data?.professionals || []).length === 0 ? (
+            <View style={styles.emptyBlock}>
+              <Text variant="bodySmall" color={colors.textTertiary} align="center">
+                Aucun professionnel recommandé pour le moment.
+              </Text>
+            </View>
           ) : (
             <FlatList
               horizontal
@@ -137,30 +149,37 @@ export default function HomeScreen() {
           )}
         </View>
 
+        {/* ── Vos demandes récentes ── */}
         <View style={styles.section}>
           <SectionHeader
-            title="Services tendance"
-            onSeeAll={() => router.push('/(client)/(tabs)/search')}
+            title="Vos demandes récentes"
+            onSeeAll={() => router.push('/(client)/(tabs)/requests')}
           />
-          {services.isLoading ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.serviceScroll}>
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} width={130} height={130} borderRadius={16} />
+          {recentRequests.isLoading ? (
+            <View style={styles.requestsLoading}>
+              {Array.from({ length: 2 }).map((_, i) => (
+                <Skeleton key={i} width="100%" height={64} borderRadius={radius.md} />
               ))}
-            </ScrollView>
-          ) : services.error ? (
-            <ErrorState message="Erreur de chargement" onRetry={() => services.refetch()} />
+            </View>
+          ) : recentRequests.error ? (
+            <ErrorState message="Impossible de charger vos demandes" onRetry={() => recentRequests.refetch()} />
+          ) : (recentRequests.data?.requests || []).length === 0 ? (
+            <View style={styles.emptyBlock}>
+              <Text variant="bodySmall" color={colors.textTertiary} align="center">
+                Aucune demande pour le moment. Publiez votre première demande !
+              </Text>
+            </View>
           ) : (
-            <FlatList
-              horizontal
-              data={(services.data || []).slice(0, 8)}
-              keyExtractor={(item) => item.id}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.serviceScroll}
-              renderItem={({ item }) => <TrendingServiceCard service={item} />}
-            />
+            <View style={styles.requestsList}>
+              {(recentRequests.data?.requests || []).map((req) => (
+                <RecentRequestCard key={req.id} request={req} />
+              ))}
+            </View>
           )}
         </View>
+
+        {/* ── CTA Publier ── */}
+        <PublishCTA />
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -202,9 +221,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     gap: spacing.md,
   },
-  serviceScroll: {
+  emptyBlock: {
+    alignItems: 'center',
     paddingHorizontal: spacing.xl,
-    gap: spacing.md,
+    paddingVertical: spacing.xl,
+  },
+  requestsLoading: {
+    paddingHorizontal: spacing.xl,
+    gap: spacing.sm,
+  },
+  requestsList: {
+    gap: spacing.sm,
   },
   bottomSpacer: {
     height: spacing.xxl,
