@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { StyleSheet, View, FlatList, Pressable, TextInput, Modal } from 'react-native';
+import { StyleSheet, View, FlatList, Pressable, TextInput, Modal, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,33 +9,18 @@ import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
 import { Text, Skeleton } from '@/components/ui';
-import { Avatar } from '@/components/ui/Avatar';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useProfessionalRequests } from '@/hooks/use-professional-requests';
-import { getErrorMessage } from '@/lib/api-errors';
 import { useMyProfessionalProfile } from '@/hooks/use-professional-profile';
 import { ServiceRequest, ServiceRequestStatus, UrgencyLevel } from '@/api/requests';
 import { formatRelativeDate } from '@/lib/format';
 
 type FilterTab = 'all' | 'new' | 'active' | 'done';
 
-const STATUS_LABELS: Record<string, { color: string; label: string }> = {
-  DRAFT: { color: colors.textTertiary, label: 'Brouillon' },
-  SUBMITTED: { color: colors.info, label: 'Nouvelle' },
-  MATCHING: { color: colors.warning, label: 'Recherche' },
-  QUOTED: { color: colors.secondary, label: 'Devis' },
-  ACCEPTED: { color: colors.success, label: 'Acceptée' },
-  SCHEDULED: { color: colors.primary, label: 'Planifiée' },
-  IN_PROGRESS: { color: colors.primary, label: 'En cours' },
-  COMPLETED: { color: colors.success, label: 'Terminée' },
-  CANCELLED: { color: colors.error, label: 'Annulée' },
-  DISPUTED: { color: colors.error, label: 'Litige' },
-};
-
 const URGENCY_CONFIG: Record<string, { color: string; label: string }> = {
   LOW: { color: colors.textTertiary, label: 'Basse' },
-  NORMAL: { color: colors.info, label: 'Normale' },
+  NORMAL: { color: colors.success, label: 'Normal' },
   HIGH: { color: colors.warning, label: 'Haute' },
   URGENT: { color: colors.error, label: 'Urgent' },
 };
@@ -50,25 +35,13 @@ function getLocationText(req: ServiceRequest): string | null {
 function getEmptyMessage(tab: FilterTab): { title: string; description: string } {
   switch (tab) {
     case 'new':
-      return {
-        title: 'Aucune nouvelle demande',
-        description: 'Les nouvelles demandes correspondant à vos services apparaîtront ici.',
-      };
+      return { title: 'Aucune nouvelle demande', description: 'Les nouvelles demandes correspondant à vos services apparaîtront ici.' };
     case 'active':
-      return {
-        title: 'Aucune demande en cours',
-        description: 'Les demandes en cours de traitement apparaîtront ici.',
-      };
+      return { title: 'Aucune demande en cours', description: 'Les demandes en cours de traitement apparaîtront ici.' };
     case 'done':
-      return {
-        title: 'Aucune demande traitée',
-        description: 'Les demandes terminées ou annulées apparaîtront ici.',
-      };
+      return { title: 'Aucune demande traitée', description: 'Les demandes terminées ou annulées apparaîtront ici.' };
     default:
-      return {
-        title: 'Aucune demande',
-        description: 'Les demandes correspondant à vos services apparaîtront ici.',
-      };
+      return { title: 'Aucune demande', description: 'Les demandes correspondant à vos services apparaîtront ici.' };
   }
 }
 
@@ -87,7 +60,6 @@ export default function ProfessionalRequestsScreen() {
 
   const statusParam = useMemo((): ServiceRequestStatus | undefined => {
     if (filter === 'new') return 'SUBMITTED';
-    // active and done use multi-status client-side filtering
     return undefined;
   }, [filter]);
 
@@ -100,14 +72,11 @@ export default function ProfessionalRequestsScreen() {
 
   const displayRequests = useMemo(() => {
     let list = allRequests;
-
-    // Client-side multi-status filtering for active/done tabs
     if (filter === 'active') {
       list = list.filter((r) => ['MATCHING', 'QUOTED', 'ACCEPTED', 'SCHEDULED', 'IN_PROGRESS'].includes(r.status));
     } else if (filter === 'done') {
       list = list.filter((r) => ['COMPLETED', 'CANCELLED', 'DISPUTED'].includes(r.status));
     }
-
     if (urgencyFilter) {
       list = list.filter((r) => r.urgency === urgencyFilter);
     }
@@ -138,7 +107,6 @@ export default function ProfessionalRequestsScreen() {
         icon: 'briefcase-outline' as const,
         title: 'Configurez vos services',
         description: 'Ajoutez vos services pour recevoir des demandes pertinentes.',
-        action: 'Gérer mes services',
         route: '/(professional)/services' as const,
       };
     }
@@ -147,7 +115,6 @@ export default function ProfessionalRequestsScreen() {
         icon: 'location-outline' as const,
         title: 'Définissez votre zone',
         description: 'Indiquez votre zone d\'intervention pour être trouvé par les clients proches.',
-        action: 'Ma zone d\'intervention',
         route: '/(professional)/onboarding' as const,
       };
     }
@@ -156,7 +123,6 @@ export default function ProfessionalRequestsScreen() {
         icon: 'shield-checkmark-outline' as const,
         title: 'Profil en vérification',
         description: 'Votre profil est en cours de vérification. Vous recevrez des demandes une fois approuvé.',
-        action: 'Voir mon profil',
         route: '/(professional)/(tabs)/profile' as const,
       };
     }
@@ -169,22 +135,62 @@ export default function ProfessionalRequestsScreen() {
 
   const keyExtractor = useCallback((item: ServiceRequest) => item.id, []);
 
+  const renderHeader = () => (
+    <>
+      {/* Banner */}
+      {showBanner && bannerConfig ? (
+        <Pressable
+          style={styles.banner}
+          onPress={() => router.push(bannerConfig.route)}
+          accessibilityLabel={bannerConfig.title}
+          accessibilityRole="button"
+        >
+          <View style={styles.bannerIconWrap}>
+            <Ionicons name={bannerConfig.icon} size={22} color={colors.primary} />
+          </View>
+          <View style={styles.bannerContent}>
+            <Text variant="bodyMedium" style={styles.bannerTitle}>{bannerConfig.title}</Text>
+            <Text variant="caption" color={colors.textSecondary}>{bannerConfig.description}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+        </Pressable>
+      ) : (
+        <Pressable
+          style={styles.banner}
+          onPress={() => router.push('/(professional)/(tabs)/profile')}
+          accessibilityLabel="Recevez des demandes pertinentes"
+          accessibilityRole="button"
+        >
+          <View style={styles.bannerIconWrap}>
+            <Ionicons name="radio-outline" size={22} color={colors.primary} />
+          </View>
+          <View style={styles.bannerContent}>
+            <Text variant="bodyMedium" style={styles.bannerTitle}>Recevez des demandes pertinentes</Text>
+            <Text variant="caption" color={colors.textSecondary}>
+              Complétez votre profil, vos services et votre zone d'intervention pour apparaître en priorité.
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+        </Pressable>
+      )}
+    </>
+  );
+
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
+        <View style={styles.headerWrap}>
           <Skeleton width="40%" height={26} />
-          <Skeleton width="60%" height={14} />
+          <Skeleton width="70%" height={14} />
         </View>
         <View style={styles.tabsRow}>
-          <Skeleton width="20%" height={32} borderRadius={radius.lg} />
-          <Skeleton width="25%" height={32} borderRadius={radius.lg} />
-          <Skeleton width="25%" height={32} borderRadius={radius.lg} />
-          <Skeleton width="25%" height={32} borderRadius={radius.lg} />
+          {[1, 2, 3, 4].map(i => (
+            <Skeleton key={i} width={75} height={36} borderRadius={radius.full} />
+          ))}
         </View>
         <View style={styles.listContent}>
           {[1, 2, 3].map((i) => (
-            <Skeleton key={i} width="100%" height={180} borderRadius={radius.md} />
+            <Skeleton key={i} width="100%" height={130} borderRadius={radius.lg} />
           ))}
         </View>
       </SafeAreaView>
@@ -194,10 +200,7 @@ export default function ProfessionalRequestsScreen() {
   if (error) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <ErrorState
-          message={getErrorMessage(error, 'Impossible de charger les demandes.')}
-          onRetry={refetch}
-        />
+        <ErrorState message="Impossible de charger les demandes." onRetry={refetch} />
       </SafeAreaView>
     );
   }
@@ -207,7 +210,7 @@ export default function ProfessionalRequestsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text variant="h2">Demandes</Text>
+          <Text variant="h1" style={styles.headerTitle}>Demandes</Text>
           <Text variant="bodySmall" color={colors.textSecondary}>
             Trouvez et répondez aux demandes de clients près de chez vous.
           </Text>
@@ -216,19 +219,23 @@ export default function ProfessionalRequestsScreen() {
           <Pressable
             style={styles.iconBtn}
             onPress={() => setSearchVisible(!searchVisible)}
-            accessibilityLabel="Rechercher des demandes"
+            accessibilityLabel="Rechercher"
             accessibilityRole="button"
           >
-            <Ionicons name={searchVisible ? 'close-outline' : 'search-outline'} size={20} color={colors.text} />
+            <Ionicons name={searchVisible ? 'close-outline' : 'search-outline'} size={22} color={colors.text} />
           </Pressable>
           <Pressable
             style={styles.iconBtn}
             onPress={() => setFilterModalVisible(true)}
-            accessibilityLabel="Filtrer les demandes"
+            accessibilityLabel="Filtrer"
             accessibilityRole="button"
           >
-            <Ionicons name="options-outline" size={20} color={colors.text} />
-            {urgencyFilter && <View style={styles.filterDot} />}
+            <Ionicons name="funnel-outline" size={20} color={colors.text} />
+            {urgencyFilter && (
+              <View style={styles.filterBadge}>
+                <Text variant="caption" color={colors.textInverse} style={styles.filterBadgeText}>1</Text>
+              </View>
+            )}
           </Pressable>
         </View>
       </View>
@@ -247,7 +254,7 @@ export default function ProfessionalRequestsScreen() {
             accessibilityLabel="Rechercher des demandes"
           />
           {searchQuery.length > 0 && (
-            <Pressable onPress={() => setSearchQuery('')} accessibilityLabel="Effacer la recherche">
+            <Pressable onPress={() => setSearchQuery('')} accessibilityLabel="Effacer">
               <Ionicons name="close-circle" size={16} color={colors.textTertiary} />
             </Pressable>
           )}
@@ -255,32 +262,12 @@ export default function ProfessionalRequestsScreen() {
       )}
 
       {/* Tabs */}
-      <View style={styles.tabsRow}>
-        <FilterTabBtn label="Toutes" count={data?.total} active={filter === 'all'} onPress={() => setFilter('all')} />
-        <FilterTabBtn label="Nouvelles" count={tabCounts.new} active={filter === 'new'} onPress={() => setFilter('new')} />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsRow}>
+        <FilterTabBtn label="Toutes" count={tabCounts.all} active={filter === 'all'} onPress={() => setFilter('all')} />
+        <FilterTabBtn label="Nouvelles" count={tabCounts.new} active={filter === 'new'} onPress={() => setFilter('new')} isNew />
         <FilterTabBtn label="En cours" count={tabCounts.active} active={filter === 'active'} onPress={() => setFilter('active')} />
         <FilterTabBtn label="Traitées" count={tabCounts.done} active={filter === 'done'} onPress={() => setFilter('done')} />
-      </View>
-
-      {/* Profile completeness banner */}
-      {showBanner && bannerConfig && (
-        <View style={styles.banner}>
-          <View style={styles.bannerIconWrap}>
-            <Ionicons name={bannerConfig.icon} size={22} color={colors.primary} />
-          </View>
-          <View style={styles.bannerContent}>
-            <Text variant="bodyMedium">{bannerConfig.title}</Text>
-            <Text variant="caption" color={colors.textSecondary}>{bannerConfig.description}</Text>
-            <Pressable
-              onPress={() => router.push(bannerConfig.route)}
-              accessibilityLabel={bannerConfig.action}
-              accessibilityRole="button"
-            >
-              <Text variant="bodySmall" color={colors.primary} style={styles.bannerLink}>{bannerConfig.action} →</Text>
-            </Pressable>
-          </View>
-        </View>
-      )}
+      </ScrollView>
 
       {/* Request list */}
       {displayRequests.length === 0 ? (
@@ -294,6 +281,7 @@ export default function ProfessionalRequestsScreen() {
           data={displayRequests}
           keyExtractor={keyExtractor}
           renderItem={renderRequestCard}
+          ListHeaderComponent={renderHeader}
           contentContainerStyle={styles.listContent}
           onRefresh={refetch}
           refreshing={isRefetching}
@@ -326,7 +314,7 @@ export default function ProfessionalRequestsScreen() {
             <Pressable
               style={styles.modalCloseBtn}
               onPress={() => setFilterModalVisible(false)}
-              accessibilityLabel="Fermer"
+              accessibilityLabel="Appliquer"
               accessibilityRole="button"
             >
               <Text variant="buttonSmall" color={colors.textInverse}>Appliquer</Text>
@@ -340,11 +328,12 @@ export default function ProfessionalRequestsScreen() {
 
 // ──────────── SUB COMPONENTS ────────────
 
-function FilterTabBtn({ label, count, active, onPress }: {
+function FilterTabBtn({ label, count, active, onPress, isNew }: {
   label: string;
   count?: number;
   active: boolean;
   onPress: () => void;
+  isNew?: boolean;
 }) {
   return (
     <Pressable
@@ -354,9 +343,25 @@ function FilterTabBtn({ label, count, active, onPress }: {
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
     >
-      <Text variant="caption" color={active ? colors.primary : colors.textSecondary}>
-        {label}{count !== undefined ? ` ${count}` : ''}
+      <Text
+        variant="bodySmall"
+        color={active ? colors.textInverse : colors.text}
+        style={styles.tabLabel}
+      >
+        {label}
       </Text>
+      {isNew && !active && (count ?? 0) > 0 && <View style={styles.newDot} />}
+      {count !== undefined && (
+        <View style={[styles.tabCountBadge, active && styles.tabCountBadgeActive]}>
+          <Text
+            variant="caption"
+            color={active ? colors.primary : colors.textSecondary}
+            style={styles.tabCountText}
+          >
+            {count}
+          </Text>
+        </View>
+      )}
     </Pressable>
   );
 }
@@ -383,107 +388,85 @@ function FilterOption({ label, active, onPress, color }: {
 
 function RequestCard({ request }: { request: ServiceRequest }) {
   const urgency = URGENCY_CONFIG[request.urgency] || URGENCY_CONFIG.NORMAL;
-  const status = STATUS_LABELS[request.status];
   const locationText = getLocationText(request);
   const canAct = ACTIONABLE_STATUSES.includes(request.status);
   const hasImage = request.media && request.media.length > 0;
 
-  const handleView = () => {
-    router.push({ pathname: '/(professional)/request-detail', params: { id: request.id } });
-  };
-
-  const handleQuote = () => {
-    router.push({
-      pathname: '/(professional)/create-quote',
-      params: { requestId: request.id, serviceName: request.service?.name || '' },
-    });
-  };
-
   return (
-    <View style={styles.card}>
-      {hasImage && (
-        <Image
-          source={{ uri: request.media![0].url }}
-          style={styles.cardImage}
-          contentFit="cover"
-          accessibilityLabel={`Image de la demande ${request.title}`}
-        />
-      )}
+    <Pressable
+      style={styles.card}
+      onPress={() => router.push({ pathname: '/(professional)/request-detail', params: { id: request.id } })}
+      accessibilityLabel={`Demande : ${request.title}`}
+      accessibilityRole="button"
+    >
+      {/* Thumbnail */}
+      <View style={styles.cardThumb}>
+        {hasImage ? (
+          <Image
+            source={{ uri: request.media![0].url }}
+            style={styles.cardThumbImg}
+            contentFit="cover"
+          />
+        ) : (
+          <View style={styles.cardThumbPlaceholder}>
+            <Ionicons name="image-outline" size={28} color={colors.textTertiary} />
+          </View>
+        )}
+      </View>
 
-      <View style={styles.cardBody}>
+      {/* Content */}
+      <View style={styles.cardContent}>
         {/* Title + urgency */}
         <View style={styles.cardTitleRow}>
           <Text variant="bodyMedium" numberOfLines={1} style={styles.cardTitle}>{request.title}</Text>
-          <View style={[styles.urgencyBadge, { backgroundColor: urgency.color + '15' }]}>
-            <Text variant="caption" color={urgency.color}>{urgency.label}</Text>
+          <View style={[styles.urgencyBadge, { backgroundColor: urgency.color + '18' }]}>
+            <Text variant="caption" color={urgency.color} style={styles.urgencyText}>{urgency.label}</Text>
           </View>
         </View>
 
-        {/* Service */}
-        {request.service && (
-          <Text variant="caption" color={colors.textSecondary}>{request.service.name}</Text>
-        )}
-
         {/* Description */}
         {request.description ? (
-          <Text variant="caption" color={colors.textTertiary} numberOfLines={2} style={styles.cardDescription}>
+          <Text variant="caption" color={colors.textSecondary} numberOfLines={2} style={styles.cardDescription}>
             {request.description}
           </Text>
         ) : null}
 
-        {/* Client */}
-        {request.client && (
-          <View style={styles.cardClient}>
-            <Avatar uri={request.client.avatarUrl} name={request.client.fullName} size={20} />
-            <Text variant="caption" color={colors.textSecondary}>{request.client.fullName}</Text>
-          </View>
-        )}
-
-        {/* Location + time */}
+        {/* Meta: location + time */}
         <View style={styles.cardMeta}>
-          {locationText ? (
+          {locationText && (
             <View style={styles.metaItem}>
-              <Ionicons name="location-outline" size={13} color={colors.textTertiary} />
-              <Text variant="caption" color={colors.textTertiary} numberOfLines={1}>{locationText}</Text>
+              <Ionicons name="location" size={11} color={colors.success} />
+              <Text variant="caption" color={colors.textTertiary} numberOfLines={1} style={styles.metaText}>{locationText}</Text>
             </View>
-          ) : null}
+          )}
           <View style={styles.metaItem}>
-            <Ionicons name="time-outline" size={13} color={colors.textTertiary} />
+            <Ionicons name="time-outline" size={11} color={colors.textTertiary} />
             <Text variant="caption" color={colors.textTertiary}>{formatRelativeDate(request.createdAt)}</Text>
           </View>
         </View>
 
-        {/* Status + action */}
-        <View style={styles.cardFooter}>
-          {status && (
-            <View style={[styles.statusBadge, { backgroundColor: status.color + '15' }]}>
-              <Text variant="caption" color={status.color}>{status.label}</Text>
-            </View>
-          )}
-          {canAct ? (
-            <Pressable
-              style={styles.viewBtn}
-              onPress={handleQuote}
-              accessibilityLabel="Créer un devis"
-              accessibilityRole="button"
-            >
-              <Text variant="buttonSmall" color={colors.textInverse}>Voir et répondre</Text>
-              <Ionicons name="arrow-forward" size={14} color={colors.textInverse} />
-            </Pressable>
-          ) : (
-            <Pressable
-              style={styles.detailBtn}
-              onPress={handleView}
-              accessibilityLabel="Voir les détails"
-              accessibilityRole="button"
-            >
-              <Text variant="bodySmall" color={colors.primary}>Détails</Text>
-              <Ionicons name="chevron-forward" size={14} color={colors.primary} />
-            </Pressable>
-          )}
-        </View>
+        {/* Action button */}
+        {canAct && (
+          <Pressable
+            style={styles.viewBtn}
+            onPress={() => router.push({
+              pathname: '/(professional)/create-quote',
+              params: { requestId: request.id, serviceName: request.service?.name || '' },
+            })}
+            accessibilityLabel="Voir et répondre"
+            accessibilityRole="button"
+          >
+            <Text variant="caption" color={colors.textInverse} style={styles.viewBtnText}>Voir et répondre</Text>
+            <Ionicons name="arrow-forward" size={12} color={colors.textInverse} />
+          </Pressable>
+        )}
       </View>
-    </View>
+
+      {/* Heart icon */}
+      <Pressable style={styles.heartBtn} accessibilityLabel="Sauvegarder" accessibilityRole="button">
+        <Ionicons name="heart-outline" size={20} color={colors.textTertiary} />
+      </Pressable>
+    </Pressable>
   );
 }
 
@@ -501,8 +484,15 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
   },
+  headerWrap: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+    gap: spacing.xs,
+  },
   headerLeft: { flex: 1, gap: spacing.xxs },
-  headerActions: { flexDirection: 'row', gap: spacing.sm },
+  headerTitle: { letterSpacing: -0.5 },
+  headerActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
   iconBtn: {
     width: 40,
     height: 40,
@@ -512,15 +502,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...shadows.sm,
   },
-  filterDot: {
+  filterBadge: {
     position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    top: -2,
+    right: -2,
     backgroundColor: colors.primary,
+    borderRadius: radius.full,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
   },
+  filterBadgeText: { fontSize: 9, fontWeight: '700' },
 
   // Search
   searchBar: {
@@ -530,7 +524,7 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.lg,
     marginBottom: spacing.sm,
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     paddingHorizontal: spacing.md,
     height: 44,
     ...shadows.sm,
@@ -550,120 +544,147 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   tab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.full,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
   },
   tabActive: {
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  tabLabel: { fontWeight: '600' },
+  tabCountBadge: {
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.full,
+    minWidth: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 5,
+  },
+  tabCountBadgeActive: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+  },
+  tabCountText: { fontSize: 11, fontWeight: '700' },
+  newDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.error,
   },
 
   // Banner
   banner: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.md,
-    marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
     backgroundColor: colors.infoLight,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     padding: spacing.lg,
   },
   bannerIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.sm,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   bannerContent: { flex: 1, gap: spacing.xxs },
-  bannerLink: { fontWeight: '600', marginTop: spacing.xs },
+  bannerTitle: { fontWeight: '600' },
 
   // List
   listContent: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxxl,
-    gap: spacing.sm,
+    gap: spacing.md,
   },
 
-  // Card
+  // Card — horizontal layout
   card: {
+    flexDirection: 'row',
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    overflow: 'hidden',
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    gap: spacing.md,
     ...shadows.sm,
   },
-  cardImage: {
-    width: '100%',
-    height: 160,
+  cardThumb: {
+    width: 105,
+    borderRadius: radius.md,
+    overflow: 'hidden',
     backgroundColor: colors.surfaceSecondary,
   },
-  cardBody: {
-    padding: spacing.lg,
-    gap: spacing.sm,
+  cardThumbImg: {
+    width: '100%',
+    height: '100%',
+  },
+  cardThumbPlaceholder: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 100,
+  },
+  cardContent: {
+    flex: 1,
+    gap: spacing.xs,
+    paddingRight: spacing.lg,
   },
   cardTitleRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: spacing.sm,
   },
-  cardTitle: { flex: 1, fontWeight: '600' },
+  cardTitle: { flex: 1, fontWeight: '700' },
   urgencyBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.sm,
-  },
-  cardDescription: { lineHeight: 18 },
-  cardClient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  cardMeta: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: spacing.xs,
-  },
-  statusBadge: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     borderRadius: radius.sm,
   },
+  urgencyText: { fontSize: 10, fontWeight: '700' },
+  cardDescription: { lineHeight: 18 },
+  cardMeta: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+    marginTop: spacing.xxs,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  metaText: { maxWidth: 120 },
   viewBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'flex-end',
     gap: spacing.xs,
     backgroundColor: colors.primary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: radius.md,
+    borderRadius: radius.full,
+    marginTop: spacing.xxs,
   },
-  detailBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xxs,
+  viewBtnText: { fontWeight: '700', fontSize: 11 },
+  heartBtn: {
+    position: 'absolute',
+    top: spacing.md,
+    right: spacing.md,
   },
 
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: colors.overlay,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
   },
   modalContent: {
