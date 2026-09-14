@@ -1,3 +1,4 @@
+import { useState, useCallback, useMemo } from 'react';
 import { StyleSheet, View, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,8 +10,6 @@ import { shadows } from '@/theme/shadows';
 import { Text, Card, Skeleton } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
 import { ErrorState } from '@/components/feedback/ErrorState';
-import { getErrorMessage } from '@/lib/api-errors';
-
 import { useMe } from '@/hooks/use-me';
 import { useMyProfessionalProfile, useUpdateProfessionalProfile } from '@/hooks/use-professional-profile';
 import { useProfessionalRequests } from '@/hooks/use-professional-requests';
@@ -18,16 +17,11 @@ import { useProfessionalBookings } from '@/hooks/use-professional-bookings';
 import { useProfessionalWallet } from '@/hooks/use-professional-revenue';
 import { useProfessionalAvailability } from '@/hooks/use-professional-availability';
 import { useUnreadNotificationCount } from '@/hooks/use-notifications';
-import { useConversations } from '@/hooks/use-conversations';
 import { formatCurrency, formatRelativeDate } from '@/lib/format';
-import { useState, useCallback, useMemo } from 'react';
 
 function getTodayString(): string {
   const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function getDayName(dayOfWeek: number): string {
@@ -41,6 +35,12 @@ function getGreeting(): string {
   return 'Bonsoir';
 }
 
+function compactCurrency(amount: number): string {
+  if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1).replace('.0', '')}M`;
+  if (amount >= 10_000) return `${Math.round(amount / 1000)}k`;
+  return formatCurrency(amount);
+}
+
 export default function DashboardScreen() {
   const { data: user, isError: userError, refetch: refetchUser } = useMe();
   const { data: profile, isLoading: profileLoading, isError: profileError, refetch: refetchProfile } = useMyProfessionalProfile();
@@ -49,23 +49,12 @@ export default function DashboardScreen() {
   const { data: bookingsData, isLoading: bookingsLoading, refetch: refetchBookings } = useProfessionalBookings(profile?.id);
   const { data: wallet, isLoading: walletLoading, refetch: refetchWallet } = useProfessionalWallet();
   const { data: unreadCount, refetch: refetchNotifications } = useUnreadNotificationCount();
-  const { data: conversations, refetch: refetchConversations } = useConversations();
-  const { data: availability, isLoading: availabilityLoading } = useProfessionalAvailability(profile?.id);
+  const { data: availability } = useProfessionalAvailability(profile?.id);
   const [refreshing, setRefreshing] = useState(false);
 
-  const firstName = user?.fullName?.split(' ')[0] || '';
-
   const primaryService = useMemo(() => {
-    if (profile?.services && profile.services.length > 0) {
-      return profile.services[0].service?.name || null;
-    }
-    return null;
+    return profile?.services?.[0]?.service?.name || null;
   }, [profile?.services]);
-
-  const unreadMessages = useMemo(() => {
-    if (!Array.isArray(conversations)) return 0;
-    return conversations.reduce((sum, c) => sum + (c.unreadCount > 0 ? 1 : 0), 0);
-  }, [conversations]);
 
   const todayBookings = useMemo(() => {
     if (!bookingsData?.bookings) return [];
@@ -74,12 +63,9 @@ export default function DashboardScreen() {
   }, [bookingsData?.bookings]);
 
   const locationText = useMemo(() => {
-    if (!profile?.zones || profile.zones.length === 0) return null;
+    if (!profile?.zones?.length) return null;
     const zone = profile.zones[0];
-    return {
-      name: zone.name || null,
-      radiusKm: zone.radiusKm || null,
-    };
+    return { name: zone.name || null, radiusKm: zone.radiusKm || null };
   }, [profile?.zones]);
 
   const todayDayOfWeek = new Date().getDay();
@@ -91,80 +77,61 @@ export default function DashboardScreen() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await Promise.allSettled([
-      refetchUser(),
-      refetchProfile(),
-      refetchRequests(),
-      refetchBookings(),
-      refetchWallet(),
-      refetchNotifications(),
-      refetchConversations(),
+      refetchUser(), refetchProfile(), refetchRequests(),
+      refetchBookings(), refetchWallet(), refetchNotifications(),
     ]);
     setRefreshing(false);
-  }, [refetchUser, refetchProfile, refetchRequests, refetchBookings, refetchWallet, refetchNotifications, refetchConversations]);
+  }, [refetchUser, refetchProfile, refetchRequests, refetchBookings, refetchWallet, refetchNotifications]);
 
   const handleToggleAvailability = useCallback(() => {
     if (!profile) return;
     updateProfile.mutate({ id: profile.id, isAvailable: !profile.isAvailable });
   }, [profile, updateProfile]);
 
-  // --- Loading state ---
   if (profileLoading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.content}>
-          {/* Skeleton header */}
           <View style={styles.header}>
+            <Skeleton width={56} height={56} borderRadius={28} />
             <View style={styles.headerLeft}>
-              <Skeleton width="40%" height={14} />
-              <Skeleton width="65%" height={28} />
-              <Skeleton width="50%" height={14} />
+              <Skeleton width={80} height={12} />
+              <Skeleton width={160} height={22} />
+              <Skeleton width={140} height={12} />
             </View>
-            <Skeleton width={44} height={44} style={{ borderRadius: 22 }} />
+            <Skeleton width={42} height={42} borderRadius={21} />
           </View>
-
-          {/* Skeleton status + location */}
-          <Skeleton width="100%" height={44} borderRadius={radius.md} />
-          <Skeleton width="100%" height={44} borderRadius={radius.md} />
-
-          {/* Skeleton banner */}
-          <Skeleton width="100%" height={80} borderRadius={radius.lg} />
-
-          {/* Skeleton stats */}
+          <View style={styles.statusLocationRow}>
+            <Skeleton width={110} height={36} borderRadius={radius.full} />
+            <Skeleton width={160} height={16} />
+          </View>
+          <Skeleton width="100%" height={72} borderRadius={radius.xl} />
           <View style={styles.statsRow}>
-            <Skeleton width="23%" height={88} borderRadius={radius.md} />
-            <Skeleton width="23%" height={88} borderRadius={radius.md} />
-            <Skeleton width="23%" height={88} borderRadius={radius.md} />
-            <Skeleton width="23%" height={88} borderRadius={radius.md} />
+            {[1, 2, 3, 4].map(i => (
+              <Skeleton key={i} width="23%" height={110} borderRadius={radius.lg} />
+            ))}
           </View>
-
-          {/* Skeleton quick actions */}
           <View style={styles.quickGrid}>
-            <Skeleton width="48%" height={64} borderRadius={radius.md} />
-            <Skeleton width="48%" height={64} borderRadius={radius.md} />
-            <Skeleton width="48%" height={64} borderRadius={radius.md} />
-            <Skeleton width="48%" height={64} borderRadius={radius.md} />
+            {[1, 2, 3, 4].map(i => (
+              <Skeleton key={i} width="48%" height={52} borderRadius={radius.lg} />
+            ))}
           </View>
         </View>
       </SafeAreaView>
     );
   }
 
-  // --- Error state ---
   if (profileError || userError) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <ErrorState
-          message={getErrorMessage(profileError || userError ? new Error() : undefined, 'Impossible de charger votre tableau de bord.')}
-          onRetry={() => {
-            refetchProfile();
-            refetchUser();
-          }}
+          message="Impossible de charger votre tableau de bord."
+          onRetry={() => { refetchProfile(); refetchUser(); }}
         />
       </SafeAreaView>
     );
   }
 
-  // --- No profile (onboarding) ---
   if (!profile) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -173,13 +140,12 @@ export default function DashboardScreen() {
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
         >
-          <View style={styles.header}>
+          <View style={[styles.header, { justifyContent: 'flex-start' }]}>
             <View style={styles.headerLeft}>
               <Text variant="bodySmall" color={colors.textSecondary}>{getGreeting()},</Text>
               <Text variant="h1" style={styles.greeting}>{user?.fullName || ''}</Text>
             </View>
           </View>
-
           <Card style={styles.onboardingCard}>
             <View style={styles.onboardingIcon}>
               <Ionicons name="person-add-outline" size={28} color={colors.primary} />
@@ -204,6 +170,9 @@ export default function DashboardScreen() {
     );
   }
 
+  const isVerified = profile.verificationStatus === 'VERIFIED';
+  const newRequestCount = requestsData?.total ?? 0;
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
@@ -219,15 +188,14 @@ export default function DashboardScreen() {
           </View>
           <View style={styles.headerLeft}>
             <Text variant="bodySmall" color={colors.textSecondary}>{getGreeting()},</Text>
-            <Text variant="h2" style={styles.greeting}>{user?.fullName || ''}</Text>
-            <Text variant="bodySmall" color={colors.textSecondary}>
-              {primaryService ? `${primaryService} • ` : ''}
-              <VerificationLabel status={profile.verificationStatus} />
-              {profile.verificationStatus === 'VERIFIED' && ' '}
-              {profile.verificationStatus === 'VERIFIED' && (
-                <Ionicons name="checkmark-circle" size={14} color={colors.info} />
-              )}
-            </Text>
+            <Text variant="h2" style={styles.greeting} numberOfLines={1}>{user?.fullName || ''}</Text>
+            <View style={styles.verifiedRow}>
+              <Text variant="bodySmall" color={colors.textSecondary} numberOfLines={1}>
+                {primaryService ? `${primaryService} • ` : ''}
+                <VerificationLabel status={profile.verificationStatus} />
+              </Text>
+              {isVerified && <Ionicons name="checkmark-circle" size={14} color={colors.info} />}
+            </View>
           </View>
           <View style={styles.headerRight}>
             <Pressable
@@ -256,38 +224,41 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        {/* ──────────── STATUS + LOCATION ROW ──────────── */}
+        {/* ──────────── STATUS + LOCATION ──────────── */}
         <View style={styles.statusLocationRow}>
           <Pressable
-            style={[styles.statusPill, profile.isAvailable ? styles.statusPillOnline : styles.statusPillOffline]}
+            style={[styles.statusPill, profile.isAvailable ? styles.statusPillOn : styles.statusPillOff]}
             onPress={handleToggleAvailability}
             disabled={updateProfile.isPending}
             accessibilityLabel={`Disponibilité : ${profile.isAvailable ? 'activée' : 'désactivée'}`}
             accessibilityRole="switch"
           >
             <View style={[styles.statusDot, { backgroundColor: profile.isAvailable ? colors.success : colors.textTertiary }]} />
-            <Text variant="bodySmall" color={profile.isAvailable ? colors.success : colors.textTertiary} style={styles.statusPillText}>
+            <Text variant="bodySmall" color={profile.isAvailable ? colors.success : colors.textTertiary} style={styles.statusPillLabel}>
               {profile.isAvailable ? 'En ligne' : 'Hors ligne'}
             </Text>
             <Ionicons name="chevron-down" size={14} color={profile.isAvailable ? colors.success : colors.textTertiary} />
           </Pressable>
 
-          <Pressable
-            style={styles.locationPill}
-            onPress={() => router.push('/(professional)/onboarding')}
-            accessibilityLabel="Modifier ma zone d'intervention"
-            accessibilityRole="button"
-          >
-            <Ionicons name="location" size={16} color={colors.primary} />
-            {locationText ? (
-              <Text variant="bodySmall" color={colors.textSecondary}>
-                {locationText.name}{locationText.radiusKm ? `\nRayon : ${locationText.radiusKm} km` : ''}
+          {locationText?.name && (
+            <Pressable
+              style={styles.locationChip}
+              onPress={() => router.push('/(professional)/onboarding')}
+              accessibilityLabel="Modifier ma zone"
+              accessibilityRole="button"
+            >
+              <Ionicons name="location" size={14} color={colors.primary} />
+              <Text variant="caption" color={colors.textSecondary} numberOfLines={1}>
+                {locationText.name}
               </Text>
-            ) : (
-              <Text variant="bodySmall" color={colors.textTertiary}>Non définie</Text>
-            )}
-            <Ionicons name="chevron-forward" size={14} color={colors.textTertiary} />
-          </Pressable>
+              {locationText.radiusKm && (
+                <Text variant="caption" color={colors.textTertiary}>
+                  Rayon : {locationText.radiusKm} km
+                </Text>
+              )}
+              <Ionicons name="chevron-forward" size={12} color={colors.textTertiary} />
+            </Pressable>
+          )}
         </View>
 
         {/* ──────────── BANNER ──────────── */}
@@ -297,168 +268,76 @@ export default function DashboardScreen() {
           accessibilityLabel="Voir les nouvelles demandes"
           accessibilityRole="button"
         >
-          <View style={styles.bannerStarWrap}>
-            <Ionicons name="star" size={22} color={colors.secondary} />
+          <View style={styles.bannerStar}>
+            <Ionicons name="star" size={22} color="#fff" />
           </View>
           <View style={styles.bannerContent}>
             <Text variant="bodyMedium" color={colors.textInverse} style={styles.bannerTitle}>
               Continuez sur cette lancée !
             </Text>
-            <Text variant="caption" color={colors.textInverseMuted} style={styles.bannerSubtitle}>
+            <Text variant="caption" color={colors.textInverseMuted}>
               {requestsLoading
                 ? 'Chargement...'
-                : (requestsData?.total ?? 0) > 0
-                  ? `Vous avez ${requestsData!.total} nouvelle${requestsData!.total > 1 ? 's' : ''} demande${requestsData!.total > 1 ? 's' : ''} aujourd'hui.`
+                : newRequestCount > 0
+                  ? `Vous avez ${newRequestCount} nouvelle${newRequestCount > 1 ? 's' : ''} demande${newRequestCount > 1 ? 's' : ''} aujourd'hui.`
                   : 'Aucune nouvelle demande pour le moment.'}
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.textInverse} />
+          <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.6)" />
         </Pressable>
 
         {/* ──────────── STATS ──────────── */}
         <View style={styles.statsRow}>
-          <Pressable
-            style={styles.statCard}
+          <StatCard
+            icon="document-text-outline"
+            iconBg={colors.infoLight}
+            iconColor={colors.info}
+            value={requestsLoading ? null : String(newRequestCount)}
+            label={'Nouvelles\ndemandes'}
+            showDot={newRequestCount > 0}
             onPress={() => router.push('/(professional)/(tabs)/requests')}
-            accessibilityLabel={`Nouvelles demandes : ${requestsData?.total ?? 0}`}
-            accessibilityRole="button"
-          >
-            <View style={styles.statIconWrap}>
-              <View style={[styles.statIcon, { backgroundColor: colors.infoLight }]}>
-                <Ionicons name="document-text-outline" size={16} color={colors.info} />
-              </View>
-              {(requestsData?.total ?? 0) > 0 && <View style={styles.statDot} />}
-            </View>
-            {requestsLoading ? (
-              <Skeleton width={32} height={20} />
-            ) : (
-              <Text variant="h2" style={styles.statValue}>{requestsData?.total ?? 0}</Text>
-            )}
-            <Text variant="caption" color={colors.textSecondary}>Nouvelles{'\n'}demandes</Text>
-          </Pressable>
-
-          <Pressable
-            style={styles.statCard}
+          />
+          <StatCard
+            icon="calendar-outline"
+            iconBg={colors.successLight}
+            iconColor={colors.success}
+            value={bookingsLoading ? null : String(todayBookings.length)}
+            label={'Interventions\naujourd\'hui'}
             onPress={() => router.push('/(professional)/(tabs)/interventions')}
-            accessibilityLabel={`Interventions aujourd'hui : ${todayBookings.length}`}
-            accessibilityRole="button"
-          >
-            <View style={[styles.statIcon, { backgroundColor: colors.successLight }]}>
-              <Ionicons name="calendar-outline" size={16} color={colors.success} />
-            </View>
-            {bookingsLoading ? (
-              <Skeleton width={32} height={20} />
-            ) : (
-              <Text variant="h2" style={styles.statValue}>{todayBookings.length}</Text>
-            )}
-            <Text variant="caption" color={colors.textSecondary}>Interventions{'\n'}aujourd'hui</Text>
-          </Pressable>
-
-          <Pressable
-            style={styles.statCard}
+          />
+          <StatCard
+            icon="star"
+            iconBg={colors.warningLight}
+            iconColor={colors.warning}
+            value={profile.averageRating ? profile.averageRating.toFixed(1) : '-'}
+            label="Note moyenne"
+            subLabel={`(${profile.totalReviews || 0} avis)`}
             onPress={() => router.push('/(professional)/reviews')}
-            accessibilityLabel={`Note moyenne : ${profile.averageRating ? profile.averageRating.toFixed(1) : 'aucune'}`}
-            accessibilityRole="button"
-          >
-            <View style={[styles.statIcon, { backgroundColor: colors.warningLight }]}>
-              <Ionicons name="star" size={16} color={colors.warning} />
-            </View>
-            {profileLoading ? (
-              <Skeleton width={32} height={20} />
-            ) : (
-              <Text variant="h2" style={styles.statValue}>
-                {profile.averageRating ? profile.averageRating.toFixed(1) : '-'}
-              </Text>
-            )}
-            <Text variant="caption" color={colors.textSecondary}>Note moyenne</Text>
-            <Text variant="caption" color={colors.textTertiary} style={styles.statSubLabel}>
-              ({profile.totalReviews || 0} avis)
-            </Text>
-          </Pressable>
-
-          <Pressable
-            style={styles.statCard}
+          />
+          <StatCard
+            icon="wallet-outline"
+            iconBg={colors.secondaryMuted}
+            iconColor={colors.secondary}
+            value={walletLoading ? null : compactCurrency(wallet?.totalPaidOut ?? 0)}
+            valueColor={colors.primary}
+            label="Total ce mois"
             onPress={() => router.push('/(professional)/revenue')}
-            accessibilityLabel={`Revenus : ${formatCurrency(wallet?.availableBalance ?? 0)}`}
-            accessibilityRole="button"
-          >
-            <View style={[styles.statIcon, { backgroundColor: colors.secondaryMuted }]}>
-              <Ionicons name="wallet-outline" size={16} color={colors.secondary} />
-            </View>
-            {walletLoading ? (
-              <Skeleton width={32} height={20} />
-            ) : (
-              <Text variant="h2" color={colors.primary} style={styles.statValue}>
-                {formatCurrency(wallet?.totalPaidOut ?? 0)}
-              </Text>
-            )}
-            <Text variant="caption" color={colors.textSecondary}>Total ce mois</Text>
-          </Pressable>
+          />
         </View>
 
         {/* ──────────── QUICK ACTIONS ──────────── */}
         <View style={styles.quickGrid}>
-          <Pressable
-            style={styles.quickAction}
-            onPress={() => router.push('/(professional)/services')}
-            accessibilityLabel="Gérer mes services"
-            accessibilityRole="button"
-          >
-            <Ionicons name="document-text-outline" size={20} color={colors.textSecondary} />
-            <Text variant="bodySmall" style={styles.quickActionLabel} numberOfLines={1}>Gérer mes services</Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
-          </Pressable>
-
-          <Pressable
-            style={styles.quickAction}
-            onPress={() => router.push('/(professional)/availability')}
-            accessibilityLabel="Mes disponibilités"
-            accessibilityRole="button"
-          >
-            <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
-            <Text variant="bodySmall" style={styles.quickActionLabel} numberOfLines={1}>Mes disponibilités</Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
-          </Pressable>
-
-          <Pressable
-            style={styles.quickAction}
-            onPress={() => router.push('/(professional)/onboarding')}
-            accessibilityLabel="Ma zone d'intervention"
-            accessibilityRole="button"
-          >
-            <Ionicons name="location-outline" size={20} color={colors.textSecondary} />
-            <Text variant="bodySmall" style={styles.quickActionLabel} numberOfLines={1}>Ma zone d'intervention</Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
-          </Pressable>
-
-          <Pressable
-            style={styles.quickAction}
-            onPress={() => router.push('/(professional)/revenue')}
-            accessibilityLabel="Mes revenus"
-            accessibilityRole="button"
-          >
-            <Ionicons name="bar-chart-outline" size={20} color={colors.textSecondary} />
-            <Text variant="bodySmall" style={styles.quickActionLabel} numberOfLines={1}>Mes revenus</Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
-          </Pressable>
+          <QuickAction icon="document-text-outline" label="Gérer mes services" onPress={() => router.push('/(professional)/services')} />
+          <QuickAction icon="calendar-outline" label="Mes disponibilités" onPress={() => router.push('/(professional)/availability')} />
+          <QuickAction icon="location-outline" label="Ma zone d'intervention" onPress={() => router.push('/(professional)/onboarding')} />
+          <QuickAction icon="bar-chart-outline" label="Mes revenus" onPress={() => router.push('/(professional)/revenue')} />
         </View>
 
-        {/* ──────────── NEW REQUESTS ──────────── */}
+        {/* ──────────── NOUVELLES DEMANDES ──────────── */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text variant="h3" style={styles.sectionTitle}>Nouvelles demandes</Text>
-            <Pressable
-              onPress={() => router.push('/(professional)/(tabs)/requests')}
-              accessibilityLabel="Voir toutes les demandes"
-              accessibilityRole="button"
-              style={styles.seeAllBtn}
-            >
-              <Text variant="bodySmall" color={colors.primary} style={styles.seeAllText}>Voir toutes</Text>
-              <Ionicons name="chevron-forward" size={14} color={colors.primary} />
-            </Pressable>
-          </View>
+          <SectionHead title="Nouvelles demandes" actionLabel="Voir toutes" onAction={() => router.push('/(professional)/(tabs)/requests')} />
           {requestsLoading ? (
-            <View style={styles.requestSkeletons}>
+            <View style={styles.skeletonCol}>
               <Skeleton width="100%" height={80} borderRadius={radius.lg} />
               <Skeleton width="100%" height={80} borderRadius={radius.lg} />
             </View>
@@ -471,18 +350,18 @@ export default function DashboardScreen() {
                 accessibilityLabel={`Demande : ${req.title}`}
                 accessibilityRole="button"
               >
-                <View style={styles.requestIcon}>
+                <View style={styles.requestIconWrap}>
                   <Ionicons name="construct-outline" size={18} color={colors.primary} />
                 </View>
                 <View style={styles.requestInfo}>
-                  <Text variant="bodyMedium" numberOfLines={1} style={styles.requestTitle}>{req.title}</Text>
-                  <View style={styles.requestMeta}>
-                    <Ionicons name="location" size={12} color={colors.success} />
-                    <Text variant="caption" color={colors.textSecondary} numberOfLines={1}>
+                  <Text variant="bodyMedium" numberOfLines={1} style={styles.bold}>{req.title}</Text>
+                  <View style={styles.metaRow}>
+                    <Ionicons name="location" size={11} color={colors.success} />
+                    <Text variant="caption" color={colors.textSecondary} numberOfLines={1} style={styles.metaFlex}>
                       {req.address?.fullAddress || req.service?.name || 'Service'}
                     </Text>
                   </View>
-                  <View style={styles.requestBottom}>
+                  <View style={styles.metaRow}>
                     <Text variant="caption" color={colors.textTertiary}>{formatRelativeDate(req.createdAt)}</Text>
                     <UrgencyBadge urgency={req.urgency} />
                   </View>
@@ -494,71 +373,50 @@ export default function DashboardScreen() {
               </Pressable>
             ))
           ) : (
-            <View style={styles.emptyRequest}>
-              <Ionicons name="file-tray-outline" size={32} color={colors.textTertiary} />
-              <Text variant="bodySmall" color={colors.textTertiary}>Aucune nouvelle demande</Text>
-            </View>
+            <EmptyBlock icon="file-tray-outline" text="Aucune nouvelle demande" />
           )}
         </View>
 
-        {/* ──────────── TODAY'S PLANNING ──────────── */}
+        {/* ──────────── PLANNING ──────────── */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text variant="h3" style={styles.sectionTitle}>Mon planning aujourd'hui</Text>
-            <Pressable
-              onPress={() => router.push('/(professional)/(tabs)/interventions')}
-              accessibilityLabel="Voir tout le planning"
-              accessibilityRole="button"
-              style={styles.seeAllBtn}
-            >
-              <Text variant="bodySmall" color={colors.primary} style={styles.seeAllText}>Voir tout</Text>
-              <Ionicons name="chevron-forward" size={14} color={colors.primary} />
-            </Pressable>
-          </View>
+          <SectionHead title="Mon planning aujourd'hui" actionLabel="Voir tout" onAction={() => router.push('/(professional)/(tabs)/interventions')} />
           {bookingsLoading ? (
-            <View style={styles.requestSkeletons}>
-              <Skeleton width="100%" height={72} borderRadius={radius.lg} />
-            </View>
+            <Skeleton width="100%" height={68} borderRadius={radius.lg} />
           ) : todayBookings.length > 0 ? (
             todayBookings.slice(0, 3).map((booking) => (
               <Pressable
                 key={booking.id}
                 style={styles.planningCard}
                 onPress={() => router.push({ pathname: '/(professional)/booking-detail', params: { bookingId: booking.id } })}
-                accessibilityLabel={`Intervention du ${booking.scheduledDate}`}
+                accessibilityLabel={`Intervention : ${booking.serviceRequest?.title || ''}`}
                 accessibilityRole="button"
               >
                 <Text variant="caption" color={colors.textSecondary} style={styles.planningTime}>
                   {booking.scheduledTime || '—'}
                 </Text>
-                <View style={styles.planningCheck}>
-                  <Ionicons name="checkmark-circle" size={22} color={colors.success} />
-                </View>
+                <Ionicons name="checkmark-circle" size={22} color={colors.success} />
                 <View style={styles.planningInfo}>
-                  <Text variant="bodyMedium" numberOfLines={1}>
+                  <Text variant="bodyMedium" numberOfLines={1} style={styles.bold}>
                     {booking.serviceRequest?.title || booking.serviceRequest?.service?.name || 'Intervention'}
                   </Text>
-                  <View style={styles.requestMeta}>
-                    <Ionicons name="location" size={12} color={colors.primary} />
-                    <Text variant="caption" color={colors.textSecondary} numberOfLines={1}>
-                      {booking.address?.fullAddress || ''}
-                    </Text>
-                  </View>
+                  {booking.address?.fullAddress ? (
+                    <View style={styles.metaRow}>
+                      <Ionicons name="location" size={11} color={colors.primary} />
+                      <Text variant="caption" color={colors.textSecondary} numberOfLines={1}>{booking.address.fullAddress}</Text>
+                    </View>
+                  ) : null}
                 </View>
                 <BookingStatusBadge status={booking.status} />
               </Pressable>
             ))
           ) : (
-            <View style={styles.emptyRequest}>
-              <Ionicons name="calendar-outline" size={32} color={colors.textTertiary} />
-              <Text variant="bodySmall" color={colors.textTertiary}>Aucune intervention prévue aujourd'hui</Text>
-            </View>
+            <EmptyBlock icon="calendar-outline" text="Aucune intervention prévue aujourd'hui" />
           )}
         </View>
 
-        {/* ──────────── TODAY'S AVAILABILITY ──────────── */}
+        {/* ──────────── DISPONIBILITÉS ──────────── */}
         {todayAvailability && (
-          <View style={styles.availabilityInfo}>
+          <View style={styles.availRow}>
             <Ionicons name="time-outline" size={16} color={colors.success} />
             <Text variant="caption" color={colors.textSecondary}>
               Aujourd'hui ({getDayName(todayDayOfWeek)}) : {todayAvailability.startTime} — {todayAvailability.endTime}
@@ -570,7 +428,72 @@ export default function DashboardScreen() {
   );
 }
 
-// ──────────── SUB COMPONENTS ────────────
+// ──────────── EXTRACTED COMPONENTS ────────────
+
+function StatCard({ icon, iconBg, iconColor, value, valueColor, label, subLabel, showDot, onPress }: {
+  icon: keyof typeof Ionicons.glyphMap;
+  iconBg: string;
+  iconColor: string;
+  value: string | null;
+  valueColor?: string;
+  label: string;
+  subLabel?: string;
+  showDot?: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable style={styles.statCard} onPress={onPress} accessibilityRole="button">
+      <View style={styles.statIconWrap}>
+        <View style={[styles.statIcon, { backgroundColor: iconBg }]}>
+          <Ionicons name={icon} size={16} color={iconColor} />
+        </View>
+        {showDot && <View style={styles.statDot} />}
+      </View>
+      {value === null ? (
+        <Skeleton width={28} height={22} />
+      ) : (
+        <Text style={[styles.statValue, valueColor ? { color: valueColor } : undefined]} numberOfLines={1}>{value}</Text>
+      )}
+      <Text variant="caption" color={colors.textSecondary} align="center">{label}</Text>
+      {subLabel && <Text variant="caption" color={colors.textTertiary} style={styles.statSub}>{subLabel}</Text>}
+    </Pressable>
+  );
+}
+
+function QuickAction({ icon, label, onPress }: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable style={styles.quickAction} onPress={onPress} accessibilityLabel={label} accessibilityRole="button">
+      <Ionicons name={icon} size={20} color={colors.textSecondary} />
+      <Text variant="bodySmall" style={styles.quickLabel} numberOfLines={1}>{label}</Text>
+      <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+    </Pressable>
+  );
+}
+
+function SectionHead({ title, actionLabel, onAction }: { title: string; actionLabel: string; onAction: () => void }) {
+  return (
+    <View style={styles.sectionHead}>
+      <Text variant="h3" style={styles.sectionTitle}>{title}</Text>
+      <Pressable onPress={onAction} style={styles.seeAllBtn} accessibilityRole="button">
+        <Text variant="bodySmall" color={colors.primary} style={styles.seeAllText}>{actionLabel}</Text>
+        <Ionicons name="chevron-forward" size={14} color={colors.primary} />
+      </Pressable>
+    </View>
+  );
+}
+
+function EmptyBlock({ icon, text }: { icon: keyof typeof Ionicons.glyphMap; text: string }) {
+  return (
+    <View style={styles.emptyBlock}>
+      <Ionicons name={icon} size={32} color={colors.textTertiary} />
+      <Text variant="bodySmall" color={colors.textTertiary}>{text}</Text>
+    </View>
+  );
+}
 
 function VerificationLabel({ status }: { status: string }) {
   const labels: Record<string, string> = {
@@ -583,35 +506,34 @@ function VerificationLabel({ status }: { status: string }) {
 }
 
 function UrgencyBadge({ urgency }: { urgency: string }) {
-  const config: Record<string, { color: string; label: string }> = {
+  const cfg: Record<string, { color: string; label: string }> = {
     LOW: { color: colors.textTertiary, label: 'Basse' },
     NORMAL: { color: colors.info, label: 'Normale' },
     HIGH: { color: colors.warning, label: 'Haute' },
     URGENT: { color: colors.error, label: 'Urgent' },
   };
-  const c = config[urgency] || config.NORMAL;
-
+  const c = cfg[urgency] || cfg.NORMAL;
   return (
-    <View style={[styles.urgencyBadge, { backgroundColor: c.color + '12' }]}>
-      <Text variant="caption" color={c.color}>{c.label}</Text>
+    <View style={[styles.urgencyBadge, { backgroundColor: c.color + '14' }]}>
+      <Text variant="caption" color={c.color} style={styles.urgencyLabel}>{c.label}</Text>
     </View>
   );
 }
 
 function BookingStatusBadge({ status }: { status: string }) {
-  const config: Record<string, { color: string; label: string }> = {
-    PENDING: { color: colors.textTertiary, label: 'En attente' },
-    CONFIRMED: { color: colors.info, label: 'Confirmée' },
-    ARRIVING: { color: colors.warning, label: 'En route' },
-    IN_PROGRESS: { color: colors.primary, label: 'En cours' },
-    COMPLETED: { color: colors.success, label: 'Terminée' },
-    CANCELLED: { color: colors.error, label: 'Annulée' },
+  const cfg: Record<string, { color: string; bg: string; label: string }> = {
+    PENDING: { color: colors.textTertiary, bg: colors.surfaceSecondary, label: 'En attente' },
+    CONFIRMED: { color: colors.info, bg: colors.infoLight, label: 'Confirmée' },
+    ARRIVING: { color: colors.warning, bg: colors.warningLight, label: 'En route' },
+    IN_PROGRESS: { color: colors.primary, bg: colors.primaryLight, label: 'En cours' },
+    COMPLETED: { color: colors.success, bg: colors.successLight, label: 'Terminée' },
+    CANCELLED: { color: colors.error, bg: colors.errorLight, label: 'Annulée' },
   };
-  const c = config[status] || config.CONFIRMED;
-
+  const c = cfg[status] || cfg.CONFIRMED;
   return (
-    <View style={[styles.urgencyBadge, { backgroundColor: c.color + '12' }]}>
-      <Text variant="caption" color={c.color}>{c.label}</Text>
+    <View style={[styles.bookingBadge, { backgroundColor: c.bg }]}>
+      <Text variant="caption" color={c.color} style={styles.bookingBadgeText}>{c.label}</Text>
+      <Ionicons name="chevron-forward" size={10} color={c.color} />
     </View>
   );
 }
@@ -620,249 +542,167 @@ function BookingStatusBadge({ status }: { status: string }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxl },
+  content: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxxl },
 
   // Header
   header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   avatarWrap: { position: 'relative' },
   onlineDot: {
-    position: 'absolute',
-    bottom: 2,
-    left: 2,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
+    position: 'absolute', bottom: 2, left: 2,
+    width: 14, height: 14, borderRadius: 7,
     backgroundColor: colors.success,
-    borderWidth: 2,
-    borderColor: colors.background,
+    borderWidth: 2.5, borderColor: colors.background,
   },
   headerLeft: { flex: 1, gap: 1 },
   headerRight: { flexDirection: 'row', gap: spacing.sm },
   greeting: { letterSpacing: -0.3 },
+  verifiedRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   iconBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 42, height: 42, borderRadius: 21,
     backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center',
     ...shadows.sm,
   },
   notifBadge: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    backgroundColor: colors.error,
-    borderRadius: radius.full,
-    minWidth: 18,
-    height: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
+    position: 'absolute', top: -1, right: -1,
+    backgroundColor: colors.error, borderRadius: radius.full,
+    minWidth: 18, height: 18,
+    alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: 4, borderWidth: 2, borderColor: colors.surface,
   },
   notifBadgeText: { fontSize: 9, fontWeight: '700' },
 
-  // Status + location row
+  // Status + location
   statusLocationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.md,
+    flexDirection: 'row', alignItems: 'center',
+    justifyContent: 'space-between', gap: spacing.md,
   },
   statusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.full,
-    borderWidth: 1,
+    flexDirection: 'row', alignItems: 'center', gap: spacing.xs,
+    paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
+    borderRadius: radius.full, borderWidth: 1,
   },
-  statusPillOnline: {
-    backgroundColor: colors.successLight,
-    borderColor: colors.success + '40',
-  },
-  statusPillOffline: {
-    backgroundColor: colors.surfaceSecondary,
-    borderColor: colors.borderLight,
-  },
-  statusPillText: { fontWeight: '600' },
+  statusPillOn: { backgroundColor: colors.successLight, borderColor: colors.success + '40' },
+  statusPillOff: { backgroundColor: colors.surfaceSecondary, borderColor: colors.borderLight },
+  statusPillLabel: { fontWeight: '600' },
   statusDot: { width: 8, height: 8, borderRadius: 4 },
-  locationPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    flex: 1,
-    justifyContent: 'flex-end',
+  locationChip: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.xs,
+    flex: 1, justifyContent: 'flex-end',
   },
 
   // Banner
   banner: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.xl,
-    padding: spacing.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    ...shadows.md,
+    backgroundColor: colors.primary, borderRadius: radius.xl,
+    padding: spacing.lg, flexDirection: 'row', alignItems: 'center',
+    gap: spacing.md, ...shadows.md,
   },
-  bannerStarWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  bannerStar: {
+    width: 44, height: 44, borderRadius: 22,
     backgroundColor: colors.secondary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center',
   },
-  bannerContent: { flex: 1, gap: spacing.xxs },
+  bannerContent: { flex: 1, gap: 2 },
   bannerTitle: { fontWeight: '700' },
-  bannerSubtitle: { lineHeight: 18 },
 
-  // Stats row
+  // Stats
   statsRow: { flexDirection: 'row', gap: spacing.sm },
   statCard: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    alignItems: 'center',
-    gap: spacing.xs,
-    ...shadows.sm,
+    flex: 1, backgroundColor: colors.surface, borderRadius: radius.lg,
+    paddingVertical: spacing.md, paddingHorizontal: spacing.xs,
+    alignItems: 'center', gap: spacing.xs, ...shadows.sm,
   },
   statIconWrap: { position: 'relative' },
   statDot: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.error,
+    position: 'absolute', top: -2, right: -2,
+    width: 8, height: 8, borderRadius: 4, backgroundColor: colors.error,
   },
   statIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 36, height: 36, borderRadius: radius.md,
+    alignItems: 'center', justifyContent: 'center',
   },
-  statValue: { letterSpacing: -0.3, textAlign: 'center', fontSize: 22, fontWeight: '700' },
-  statSubLabel: { fontSize: 10, marginTop: -2 },
+  statValue: {
+    fontSize: 22, fontWeight: '700', letterSpacing: -0.5,
+    textAlign: 'center', color: colors.text,
+  },
+  statSub: { fontSize: 10, marginTop: -4 },
+
+  // Quick actions
+  quickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  quickAction: {
+    width: '48%', flexDirection: 'row', alignItems: 'center',
+    gap: spacing.md, backgroundColor: colors.surface,
+    borderRadius: radius.lg, padding: spacing.md, ...shadows.sm,
+  },
+  quickLabel: { flex: 1 },
 
   // Sections
   section: { gap: spacing.sm },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sectionTitle: { letterSpacing: -0.2 },
-  seeAllBtn: { flexDirection: 'row', alignItems: 'center', gap: spacing.xxs },
+  seeAllBtn: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   seeAllText: { fontWeight: '600' },
-
-  // Quick actions
-  quickGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  quickAction: {
-    width: '48%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    ...shadows.sm,
-  },
-  quickActionLabel: { flex: 1 },
+  skeletonCol: { gap: spacing.sm },
 
   // Request cards
   requestCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.md,
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    gap: spacing.md,
-    ...shadows.sm,
+    flexDirection: 'row', alignItems: 'center', padding: spacing.md,
+    backgroundColor: colors.surface, borderRadius: radius.lg,
+    gap: spacing.md, ...shadows.sm,
   },
-  requestIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.md,
+  requestIconWrap: {
+    width: 40, height: 40, borderRadius: radius.md,
     backgroundColor: colors.surfaceSecondary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center',
   },
   requestInfo: { flex: 1, gap: 3 },
-  requestTitle: { fontWeight: '600' },
-  requestMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.xxs },
-  requestBottom: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  bold: { fontWeight: '600' },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xxs },
+  metaFlex: { flex: 1 },
   voirBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xxs,
+    flexDirection: 'row', alignItems: 'center', gap: 2,
     backgroundColor: colors.primary,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
     borderRadius: radius.full,
   },
   voirBtnText: { fontWeight: '700', fontSize: 12 },
-  urgencyBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: radius.sm,
-  },
-  requestSkeletons: { gap: spacing.sm },
+  urgencyBadge: { paddingHorizontal: spacing.sm, paddingVertical: 1, borderRadius: radius.sm, marginLeft: spacing.xs },
+  urgencyLabel: { fontSize: 10, fontWeight: '600' },
 
-  // Planning cards
+  // Planning
   planningCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.md,
-    backgroundColor: colors.successLight,
-    borderRadius: radius.lg,
-    gap: spacing.sm,
+    flexDirection: 'row', alignItems: 'center', padding: spacing.md,
+    backgroundColor: colors.successLight, borderRadius: radius.lg, gap: spacing.sm,
   },
-  planningTime: { fontWeight: '600', fontSize: 12 },
-  planningCheck: {},
+  planningTime: { fontWeight: '700', fontSize: 11, minWidth: 50, textAlign: 'center' },
   planningInfo: { flex: 1, gap: 2 },
+  bookingBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 2,
+    paddingHorizontal: spacing.sm, paddingVertical: spacing.xs,
+    borderRadius: radius.full,
+  },
+  bookingBadgeText: { fontSize: 10, fontWeight: '600' },
 
-  // Empty state
-  emptyRequest: {
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.xl,
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+  // Empty
+  emptyBlock: {
+    alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xl,
+    backgroundColor: colors.surface, borderRadius: radius.lg,
   },
 
-  // Availability info
-  availabilityInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.sm,
-  },
+  // Availability
+  availRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
 
   // Onboarding
-  onboardingCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.lg,
-  },
+  onboardingCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.lg },
   onboardingIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: radius.md,
+    width: 48, height: 48, borderRadius: radius.md,
     backgroundColor: colors.secondaryMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center',
   },
   onboardingText: { flex: 1, gap: spacing.xxs },
   ctaBtn: {
     backgroundColor: colors.primary,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg, paddingVertical: spacing.sm,
     borderRadius: radius.md,
   },
 });
