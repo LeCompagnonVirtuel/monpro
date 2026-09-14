@@ -145,32 +145,44 @@ export class ProfessionalsService {
     serviceIds?: string[];
     zones?: { name: string; latitude?: number | null; longitude?: number | null; radiusKm?: number }[];
   }) {
-    const professional = await this.prisma.professional.create({
-      data: {
-        userId,
-        businessName: data.businessName,
-        description: data.description,
-        experienceYears: data.experienceYears,
-      },
+    const existing = await this.prisma.professional.findUnique({ where: { userId } });
+    if (existing) {
+      return this.updateProfile(existing.id, data);
+    }
+
+    const professional = await this.prisma.$transaction(async (tx) => {
+      const pro = await tx.professional.create({
+        data: {
+          userId,
+          businessName: data.businessName,
+          description: data.description,
+          experienceYears: data.experienceYears,
+        },
+      });
+
+      if (data.serviceIds?.length) {
+        await tx.professionalService.createMany({
+          data: data.serviceIds.map((serviceId) => ({
+            professionalId: pro.id,
+            serviceId,
+          })),
+        });
+      }
+
+      if (data.zones?.length) {
+        await tx.professionalZone.createMany({
+          data: data.zones.map((z) => ({
+            professionalId: pro.id,
+            name: z.name,
+            latitude: z.latitude ?? null,
+            longitude: z.longitude ?? null,
+            radiusKm: z.radiusKm ?? null,
+          })),
+        });
+      }
+
+      return pro;
     });
-
-    if (data.serviceIds?.length) {
-      await this.prisma.professionalService.createMany({
-        data: data.serviceIds.map((serviceId) => ({
-          professionalId: professional.id,
-          serviceId,
-        })),
-      });
-    }
-
-    if (data.zones?.length) {
-      await this.prisma.professionalZone.createMany({
-        data: data.zones.map((zone) => ({
-          professionalId: professional.id,
-          ...zone,
-        })),
-      });
-    }
 
     return this.findOne(professional.id);
   }
