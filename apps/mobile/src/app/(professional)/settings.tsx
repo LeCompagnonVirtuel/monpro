@@ -8,6 +8,7 @@ import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
 import { Text, Skeleton } from '@/components/ui';
+import { ScreenHeader } from '@/components/navigation/ScreenHeader';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useAuthStore } from '@/stores/auth.store';
 import { useMyProfessionalProfile, useUpdateProfessionalProfile } from '@/hooks/use-professional-profile';
@@ -35,7 +36,7 @@ export default function SettingsScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <Header />
+        <ScreenHeader title="Paramètres" />
         <View style={styles.skeletonContent}>
           <Skeleton width="30%" height={16} />
           <View style={styles.skeletonCard}>
@@ -65,7 +66,7 @@ export default function SettingsScreen() {
   if (isError) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <Header />
+        <ScreenHeader title="Paramètres" />
         <ErrorState
           message={getErrorMessage(error, 'Impossible de charger vos paramètres.')}
           onRetry={() => refetch()}
@@ -76,7 +77,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Header />
+      <ScreenHeader title="Paramètres" />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {profile && (
           <View style={styles.section}>
@@ -204,28 +205,8 @@ function MenuItem({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphM
   );
 }
 
-function Header() {
-  return (
-    <View style={styles.header}>
-      <Pressable
-        onPress={() => router.back()}
-        accessibilityLabel="Retour"
-        accessibilityRole="button"
-        style={styles.backBtn}
-      >
-        <Ionicons name="arrow-back" size={24} color={colors.text} />
-      </Pressable>
-      <Text variant="h3" style={styles.headerTitle}>Paramètres</Text>
-      <View style={styles.backBtn} />
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
-  backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { flex: 1, textAlign: 'center' },
   content: { padding: spacing.lg, paddingBottom: spacing.xxxxl, gap: spacing.xl },
   section: { gap: spacing.sm },
   sectionTitle: { paddingHorizontal: spacing.xs, letterSpacing: 0.5 },

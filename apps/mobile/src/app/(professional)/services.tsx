@@ -7,6 +7,7 @@ import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
 import { Text, Skeleton } from '@/components/ui';
+import { ScreenHeader } from '@/components/navigation/ScreenHeader';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useMyProfessionalProfile } from '@/hooks/use-professional-profile';
 import { getErrorMessage } from '@/lib/api-errors';
@@ -26,7 +27,7 @@ export default function ServicesScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <Header />
+        <ScreenHeader title="Mes services" />
         <View style={styles.skeletonContent}>
           <Skeleton width="40%" height={16} />
           {[1, 2, 3, 4].map((i) => (
@@ -46,7 +47,7 @@ export default function ServicesScreen() {
   if (isError) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <Header />
+        <ScreenHeader title="Mes services" />
         <ErrorState
           message={getErrorMessage(error, 'Impossible de charger vos services.')}
           onRetry={() => refetch()}
@@ -60,7 +61,7 @@ export default function ServicesScreen() {
   if (services.length === 0) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <Header />
+        <ScreenHeader title="Mes services" />
         <ScrollView contentContainerStyle={styles.emptyScroll} showsVerticalScrollIndicator={false}>
           <View style={styles.emptyBlock}>
             <Ionicons name="list-outline" size={56} color={colors.textTertiary} />
@@ -89,7 +90,7 @@ export default function ServicesScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Header />
+      <ScreenHeader title="Mes services" />
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
@@ -150,28 +151,8 @@ export default function ServicesScreen() {
   );
 }
 
-function Header() {
-  return (
-    <View style={styles.header}>
-      <Pressable
-        onPress={() => router.back()}
-        accessibilityLabel="Retour"
-        accessibilityRole="button"
-        style={styles.backBtn}
-      >
-        <Ionicons name="arrow-back" size={24} color={colors.text} />
-      </Pressable>
-      <Text variant="h3" style={styles.headerTitle}>Mes services</Text>
-      <View style={styles.backBtn} />
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
-  backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { flex: 1, textAlign: 'center' },
   content: { padding: spacing.lg, gap: spacing.sm },
   countLabel: { marginBottom: spacing.xs },
   serviceCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, gap: spacing.md, minHeight: 56, ...shadows.sm },

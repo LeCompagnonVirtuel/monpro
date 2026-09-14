@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
+import { CustomTabBar, DEFAULT_PRO_TABS } from '@/components/navigation/CustomTabBar';
 import { useConversations } from '@/hooks/use-conversations';
 import { useUnreadNotificationCount } from '@/hooks/use-notifications';
 import { useProfessionalRequests } from '@/hooks/use-professional-requests';
@@ -16,66 +16,27 @@ export default function ProfessionalTabsLayout() {
 
   const requestCount = requestsData?.total ?? 0;
 
+  const proTabs = DEFAULT_PRO_TABS.map((tab) => {
+    if (tab.key === 'requests') return { ...tab, badge: requestCount };
+    if (tab.key === 'messages') return { ...tab, badge: unreadMsgCount };
+    if (tab.key === 'profile') return { ...tab, badge: unreadNotifCount ?? 0 };
+    return tab;
+  });
+
   return (
     <Tabs
+      tabBar={(props) => <CustomTabBar {...props} tabConfigs={proTabs} />}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textTertiary,
-        tabBarStyle: { borderTopColor: colors.borderLight },
       }}
     >
-      <Tabs.Screen
-        name="dashboard"
-        options={{
-          title: 'Accueil',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="requests"
-        options={{
-          title: 'Demandes',
-          tabBarBadge: requestCount > 0 ? requestCount : undefined,
-          tabBarBadgeStyle: { backgroundColor: colors.primary, fontSize: 10 },
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="document-text-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="interventions"
-        options={{
-          title: 'Interventions',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="messages"
-        options={{
-          title: 'Messages',
-          tabBarBadge: unreadMsgCount > 0 ? unreadMsgCount : undefined,
-          tabBarBadgeStyle: { backgroundColor: colors.primary, fontSize: 10 },
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubbles-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profil',
-          tabBarBadge: unreadNotifCount ? unreadNotifCount : undefined,
-          tabBarBadgeStyle: { backgroundColor: colors.error, fontSize: 10 },
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
-          ),
-        }}
-      />
+      <Tabs.Screen name="dashboard" options={{ title: 'Accueil' }} />
+      <Tabs.Screen name="requests" options={{ title: 'Demandes' }} />
+      <Tabs.Screen name="interventions" options={{ title: 'Interventions' }} />
+      <Tabs.Screen name="messages" options={{ title: 'Messages' }} />
+      <Tabs.Screen name="profile" options={{ title: 'Profil' }} />
     </Tabs>
   );
 }

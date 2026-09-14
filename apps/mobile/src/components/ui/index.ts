@@ -8,3 +8,8 @@ export { Divider } from './Divider';
 export { Spinner } from './Spinner';
 export { Skeleton } from './Skeleton';
 export { Logo } from './Logo';
+export { FilterTabs } from './FilterTabs';
+export type { FilterTab } from './FilterTabs';
+export { SearchBar } from './SearchBar';
+export { StatusBadge, UrgencyBadge, REQUEST_STATUS_CONFIG, BOOKING_STATUS_CONFIG, URGENCY_CONFIG } from './StatusBadge';
+export type { RequestStatus, BookingStatus, UrgencyLevel } from './StatusBadge';

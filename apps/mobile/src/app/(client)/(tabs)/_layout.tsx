@@ -1,11 +1,21 @@
 import { Tabs } from 'expo-router';
+import { router } from 'expo-router';
 import { colors } from '@/theme/colors';
 import { CustomTabBar } from '@/components/navigation/CustomTabBar';
 
 export default function ClientTabsLayout() {
   return (
     <Tabs
-      tabBar={(props) => <CustomTabBar {...props} />}
+      tabBar={(props) => (
+        <CustomTabBar
+          {...props}
+          centerAction={{
+            icon: 'add',
+            onPress: () => router.push('/(client)/create-request'),
+            label: 'Publier',
+          }}
+        />
+      )}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
