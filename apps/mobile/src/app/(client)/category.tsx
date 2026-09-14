@@ -1,4 +1,4 @@
-import { StyleSheet, View, SectionList, Pressable } from 'react-native';
+import { StyleSheet, View, SectionList, Pressable, RefreshControl } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,7 +20,7 @@ interface ServiceItem {
 
 export default function CategoryScreen() {
   const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
-  const { data: category, isLoading, error, refetch } = useCategory(id);
+  const { data: category, isLoading, error, refetch, isRefetching } = useCategory(id);
 
   const sections = (category?.subcategories || [])
     .filter((sub) => sub.services && sub.services.length > 0)
@@ -56,6 +56,7 @@ export default function CategoryScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           stickySectionHeadersEnabled={false}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
           renderSectionHeader={({ section }) => (
             <View style={styles.sectionHeader}>
               <View style={styles.sectionDot} />

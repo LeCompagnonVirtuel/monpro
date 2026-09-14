@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, Alert, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, Alert, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,7 +17,7 @@ const QUICK_LABELS = ['Maison', 'Travail', 'Bureau'];
 
 export default function AddressesScreen() {
   const insets = useSafeAreaInsets();
-  const { data: addresses, isLoading, error, refetch } = useAddresses();
+  const { data: addresses, isLoading, error, refetch, isRefetching } = useAddresses();
   const createAddress = useCreateAddress();
   const deleteAddress = useDeleteAddress();
   const setDefault = useSetDefaultAddress();
@@ -230,7 +230,7 @@ export default function AddressesScreen() {
         </View>
       )}
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.scrollContent} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
         {!addresses || addresses.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIconWrap}>

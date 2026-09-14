@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { StyleSheet, View, FlatList, TextInput, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, View, FlatList, TextInput, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,7 +24,7 @@ export default function ProfessionalConversationScreen() {
   const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
   const insets = useSafeAreaInsets();
   const userId = useAuthStore((s) => s.userId);
-  const { data: messages, isLoading, error, refetch, hasNextPage, fetchNextPage } = useMessages(conversationId);
+  const { data: messages, isLoading, error, refetch, hasNextPage, fetchNextPage, isRefetching } = useMessages(conversationId);
   const { data: conversations } = useConversations();
   const sendMessageMutation = useSendMessage();
   const markRead = useMarkConversationRead();
@@ -195,6 +195,7 @@ export default function ProfessionalConversationScreen() {
           }}
           onEndReached={() => { if (hasNextPage) fetchNextPage(); }}
           onEndReachedThreshold={0.3}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
         />
 
         {typingUserId && (

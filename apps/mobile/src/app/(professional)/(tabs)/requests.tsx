@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { StyleSheet, View, FlatList, Pressable, TextInput, Modal, ScrollView } from 'react-native';
+import { StyleSheet, View, FlatList, Pressable, TextInput, Modal, ScrollView, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -265,9 +265,8 @@ export default function ProfessionalRequestsScreen() {
           keyExtractor={keyExtractor}
           renderItem={renderRequestCard}
           contentContainerStyle={styles.listContent}
-          onRefresh={refetch}
-          refreshing={isRefetching}
           showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
         />
       )}
 

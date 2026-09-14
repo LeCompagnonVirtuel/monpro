@@ -1,4 +1,4 @@
-import { StyleSheet, View, ScrollView, Pressable, Alert } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, Alert, RefreshControl } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,7 +24,7 @@ const STATUS_CONFIG: Record<string, { color: string; label: string; icon: keyof 
 
 export default function ProfessionalBookingDetailScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
-  const { data: booking, isLoading, error, refetch } = useProfessionalBooking(bookingId);
+  const { data: booking, isLoading, error, refetch, isRefetching } = useProfessionalBooking(bookingId);
   const createIntervention = useCreateIntervention();
 
   if (isLoading) {
@@ -62,7 +62,7 @@ export default function ProfessionalBookingDetailScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Header />
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
         {/* Status Banner */}
         <View style={[styles.statusBanner, { backgroundColor: statusConfig.color + '10' }]}>
           <Ionicons name={statusConfig.icon} size={24} color={statusConfig.color} />

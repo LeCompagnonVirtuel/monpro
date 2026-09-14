@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { StyleSheet, View, FlatList, TextInput, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, View, FlatList, TextInput, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,7 +24,7 @@ import { formatRelativeDate } from '@/lib/format';
 export default function ConversationScreen() {
   const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
   const userId = useAuthStore((s) => s.userId);
-  const { data: messages, isLoading, error, refetch, hasNextPage, fetchNextPage } = useMessages(conversationId);
+  const { data: messages, isLoading, error, refetch, hasNextPage, fetchNextPage, isRefetching } = useMessages(conversationId);
   const { data: conversations } = useConversations();
   const sendMessageMutation = useSendMessage();
   const markRead = useMarkConversationRead();
@@ -212,6 +212,7 @@ export default function ConversationScreen() {
           onEndReached={() => { if (hasNextPage) fetchNextPage(); }}
           onEndReachedThreshold={0.3}
           inverted={false}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
         />
 
         {/* AI Diagnosis result */}

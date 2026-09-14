@@ -1,4 +1,4 @@
-import { StyleSheet, View, FlatList, Pressable } from 'react-native';
+import { StyleSheet, View, FlatList, Pressable, RefreshControl } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,7 +15,7 @@ import { formatCurrency, formatDate } from '@/lib/format';
 
 export default function QuotesScreen() {
   const { requestId } = useLocalSearchParams<{ requestId: string }>();
-  const { data: quotes, isLoading, error, refetch } = useQuotesForRequest(requestId);
+  const { data: quotes, isLoading, error, refetch, isRefetching } = useQuotesForRequest(requestId);
 
   if (isLoading) {
     return (
@@ -59,6 +59,7 @@ export default function QuotesScreen() {
           <QuoteCard quote={item} rank={index + 1} requestId={requestId} />
         )}
         ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
       />
     </SafeAreaView>
   );

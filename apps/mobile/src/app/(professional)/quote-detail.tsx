@@ -1,4 +1,4 @@
-import { StyleSheet, View, ScrollView, Pressable } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,7 +21,7 @@ const STATUS_CONFIG: Record<string, { color: string; label: string; icon: keyof 
 
 export default function QuoteDetailScreen() {
   const { quoteId, requestId } = useLocalSearchParams<{ quoteId: string; requestId: string }>();
-  const { data: quotes, isLoading, error, refetch } = useQuotesForRequest(requestId);
+  const { data: quotes, isLoading, error, refetch, isRefetching } = useQuotesForRequest(requestId);
   const quote = quotes?.find((q) => q.id === quoteId);
 
   if (isLoading) {
@@ -50,7 +50,7 @@ export default function QuoteDetailScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Header />
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
         {/* Status Banner */}
         <View style={[styles.statusBanner, { backgroundColor: statusConfig.color + '10' }]}>
           <Ionicons name={statusConfig.icon} size={24} color={statusConfig.color} />

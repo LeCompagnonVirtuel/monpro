@@ -1,4 +1,4 @@
-import { StyleSheet, View, ScrollView, Pressable } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -39,7 +39,7 @@ const STATUS_ORDER: ServiceRequestStatus[] = [
 
 export default function RequestDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data: request, isLoading, error, refetch } = useServiceRequest(id);
+  const { data: request, isLoading, error, refetch, isRefetching } = useServiceRequest(id);
   const { data: quotes } = useQuotesForRequest(id);
 
   if (isLoading) {
@@ -85,7 +85,7 @@ export default function RequestDetailScreen() {
         <View style={styles.backBtn} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
         <View style={styles.titleSection}>
           <View style={{ flex: 1 }}>
             <Text variant="h2">{request.title}</Text>

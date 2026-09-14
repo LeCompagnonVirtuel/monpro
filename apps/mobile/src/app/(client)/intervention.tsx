@@ -1,4 +1,4 @@
-import { StyleSheet, View, ScrollView, Pressable, Alert } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, Alert, RefreshControl } from 'react-native';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -32,7 +32,7 @@ function getStepIndex(intervention: { arrivedAt?: string; startedAt?: string; co
 
 export default function InterventionScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
-  const { data: intervention, isLoading, error, refetch } = useIntervention(bookingId);
+  const { data: intervention, isLoading, error, refetch, isRefetching } = useIntervention(bookingId);
   const { data: booking } = useBooking(bookingId);
   const confirmMutation = useConfirmIntervention();
 
@@ -73,7 +73,7 @@ export default function InterventionScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Header />
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
         <View style={styles.statusBanner}>
           <Ionicons
             name={isConfirmed ? 'checkmark-circle' : isCompleted ? 'hourglass' : 'construct'}

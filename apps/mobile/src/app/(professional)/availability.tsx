@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, Switch, Alert, Modal } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, Switch, Alert, Modal, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -35,7 +35,7 @@ interface TimePickerState {
 
 export default function AvailabilityScreen() {
   const { data: profile, isLoading: profileLoading } = useMyProfessionalProfile();
-  const { data: slots, isLoading: slotsLoading, error: slotsError, isError, refetch } = useProfessionalAvailability(profile?.id);
+  const { data: slots, isLoading: slotsLoading, error: slotsError, isError, refetch, isRefetching } = useProfessionalAvailability(profile?.id);
   const setAvailability = useSetAvailability();
 
   const [localSlots, setLocalSlots] = useState<AvailabilitySlot[]>(DEFAULT_SLOTS);
@@ -137,7 +137,7 @@ export default function AvailabilityScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Header />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
         <Text variant="bodySmall" color={colors.textSecondary}>
           Indiquez les jours où vous êtes disponible pour recevoir des demandes.
         </Text>

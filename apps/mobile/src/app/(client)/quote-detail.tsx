@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, Alert } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, Alert, RefreshControl } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,7 +13,7 @@ import { formatCurrency, formatDate } from '@/lib/format';
 
 export default function QuoteDetailScreen() {
   const { quoteId, requestId } = useLocalSearchParams<{ quoteId: string; requestId: string }>();
-  const { data: quotes, isLoading, error, refetch } = useQuotesForRequest(requestId);
+  const { data: quotes, isLoading, error, refetch, isRefetching } = useQuotesForRequest(requestId);
   const acceptMutation = useAcceptQuote();
   const rejectMutation = useRejectQuote();
   const [actionInProgress, setActionInProgress] = useState(false);
@@ -95,7 +95,7 @@ export default function QuoteDetailScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Header />
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
         <View style={styles.proSection}>
           <Avatar uri={quote.professional?.user?.avatarUrl} name={proName} size={56} />
           <View style={styles.proInfo}>

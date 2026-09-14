@@ -1,4 +1,4 @@
-import { StyleSheet, View, ScrollView, Pressable } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -34,7 +34,7 @@ const STATUS_LABELS: Record<string, { color: string; label: string }> = {
 
 export default function ProfessionalRequestDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data: request, isLoading, error, refetch } = useProfessionalRequest(id);
+  const { data: request, isLoading, error, refetch, isRefetching } = useProfessionalRequest(id);
 
   if (isLoading) {
     return (
@@ -64,7 +64,7 @@ export default function ProfessionalRequestDetailScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Header />
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
         {/* Title & Service */}
         <View style={styles.titleSection}>
           <Text variant="h2">{request.title}</Text>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, TextInput, Alert, KeyboardAvoidingView, Platform, RefreshControl } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,7 +23,7 @@ const DIMENSIONS: { key: string; label: string; field: 'qualityRating' | 'punctu
 
 export default function ReviewScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
-  const { data: booking, isLoading: bookingLoading, isError: bookingError, refetch } = useBooking(bookingId);
+  const { data: booking, isLoading: bookingLoading, isError: bookingError, refetch, isRefetching } = useBooking(bookingId);
   const createReview = useCreateReview();
   const { data: alreadyReviewed } = useHasReviewed(bookingId);
 
@@ -129,7 +129,7 @@ export default function ReviewScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
         <View style={styles.intro}>
           <Text variant="h2">{"Comment s'est passée votre intervention ?"}</Text>
           {booking && (

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, Alert } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, Alert, RefreshControl } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,7 +25,7 @@ const STATUS_LABELS: Record<BookingStatus, { label: string; variant: 'success' |
 
 export default function BookingDetailScreen() {
   const { bookingId, quoteId, requestId } = useLocalSearchParams<{ bookingId?: string; quoteId?: string; requestId?: string }>();
-  const { data: booking, isLoading: bookingLoading, error: bookingError, refetch } = useBooking(bookingId);
+  const { data: booking, isLoading: bookingLoading, error: bookingError, refetch, isRefetching } = useBooking(bookingId);
   const { data: quotes } = useQuotesForRequest(requestId);
   const createBooking = useCreateBooking();
   const cancelBooking = useCancelBooking();
@@ -100,7 +100,7 @@ export default function BookingDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
           <View style={styles.confirmationBanner}>
             <Ionicons name="checkmark-circle" size={48} color={colors.success} />
             <Text variant="h2" align="center">Réservation confirmée</Text>
@@ -172,7 +172,7 @@ export default function BookingDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
           <View style={styles.confirmationBanner}>
             <Ionicons name="checkmark-circle" size={48} color={colors.success} />
             <Text variant="h2" align="center">Devis accepté !</Text>

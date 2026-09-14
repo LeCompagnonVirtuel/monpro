@@ -1,4 +1,4 @@
-import { StyleSheet, View, FlatList, Pressable } from 'react-native';
+import { StyleSheet, View, FlatList, Pressable, RefreshControl } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,7 +24,7 @@ export default function ServiceScreen() {
     ...(location ? { latitude: location.latitude, longitude: location.longitude } : {}),
   } : undefined;
 
-  const { data: professionals, isLoading: prosLoading, error, refetch } = useProfessionalMatch(matchParams);
+  const { data: professionals, isLoading: prosLoading, error, refetch, isRefetching } = useProfessionalMatch(matchParams);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -86,6 +86,7 @@ export default function ServiceScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => <ProfessionalRow professional={item} />}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
         />
       )}
 

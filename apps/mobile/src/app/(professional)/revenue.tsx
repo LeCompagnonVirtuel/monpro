@@ -1,4 +1,4 @@
-import { StyleSheet, View, ScrollView, Pressable } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,7 +14,7 @@ import { getErrorMessage } from '@/lib/api-errors';
 import { formatCurrency } from '@/lib/format';
 
 export default function RevenueScreen() {
-  const { data: wallet, isLoading, error, refetch } = useProfessionalWallet();
+  const { data: wallet, isLoading, error, refetch, isRefetching } = useProfessionalWallet();
 
   if (isLoading) {
     return (
@@ -49,7 +49,7 @@ export default function RevenueScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Header />
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
         {/* Balance Card */}
         <View style={styles.balanceCard}>
           <Text variant="caption" color={colors.textInverse}>SOLDE DISPONIBLE</Text>

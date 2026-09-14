@@ -1,4 +1,4 @@
-import { StyleSheet, View, ScrollView, Pressable } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,7 +16,7 @@ import { Review } from '@/api/reviews';
 
 export default function ProfessionalScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data: pro, isLoading, error, refetch } = useProfessional(id);
+  const { data: pro, isLoading, error, refetch, isRefetching } = useProfessional(id);
   const { data: reviewsData, error: reviewsError, refetch: refetchReviews } = useReviews(id, { limit: 5 });
   const { data: isFavorite } = useIsFavorite(id);
   const addFavorite = useAddFavorite();
@@ -83,7 +83,7 @@ export default function ProfessionalScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
         <View style={styles.profileHeader}>
           <Avatar uri={pro.user?.avatarUrl} name={proName} size={80} />
           <Text variant="h2">{proName}</Text>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, Alert } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, Alert, RefreshControl } from 'react-native';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -33,7 +33,7 @@ function getStep(intervention: { arrivedAt?: string; startedAt?: string; complet
 
 export default function ProfessionalInterventionScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
-  const { data: intervention, isLoading, error, refetch } = useProfessionalIntervention(bookingId);
+  const { data: intervention, isLoading, error, refetch, isRefetching } = useProfessionalIntervention(bookingId);
   const markArrived = useMarkArrived();
   const startIntervention = useStartIntervention();
   const completeIntervention = useCompleteIntervention();
@@ -161,7 +161,7 @@ export default function ProfessionalInterventionScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Header />
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
         <View style={styles.timeline}>
           {STEPS.map((step, index) => {
             const isDone = index <= currentStep;

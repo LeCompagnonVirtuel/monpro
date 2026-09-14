@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View, FlatList, Pressable, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, View, FlatList, Pressable, TextInput, KeyboardAvoidingView, Platform, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -74,9 +74,8 @@ export default function ReviewsScreen() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <ReviewCard review={item} />}
           contentContainerStyle={styles.listContent}
-          onRefresh={refetch}
-          refreshing={isRefetching}
           keyboardShouldPersistTaps="handled"
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
         />
       </KeyboardAvoidingView>
     </SafeAreaView>

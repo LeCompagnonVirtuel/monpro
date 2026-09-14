@@ -1,4 +1,4 @@
-import { StyleSheet, View, ScrollView, Pressable, Switch, Alert } from 'react-native';
+import { StyleSheet, View, ScrollView, Pressable, Switch, Alert, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,7 +18,7 @@ const APP_VERSION = Constants.expoConfig?.version || '1.0.0';
 
 export default function SettingsScreen() {
   const logout = useAuthStore((s) => s.logout);
-  const { data: profile, isLoading, error, isError, refetch } = useMyProfessionalProfile();
+  const { data: profile, isLoading, error, isError, refetch, isRefetching } = useMyProfessionalProfile();
   const updateProfile = useUpdateProfessionalProfile();
 
   const handleToggleAvailability = () => {
@@ -78,7 +78,7 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScreenHeader title="Paramètres" />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
         {profile && (
           <View style={styles.section}>
             <Text variant="caption" color={colors.textSecondary} style={styles.sectionTitle}>
