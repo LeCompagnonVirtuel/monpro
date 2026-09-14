@@ -106,6 +106,9 @@ export default function RequestDetailScreen() {
           {request.preferredTimeStart && (
             <DetailRow icon="time-outline" label="Horaire" value={`${request.preferredTimeStart} - ${request.preferredTimeEnd || ''}`} />
           )}
+          {request.address?.fullAddress && (
+            <DetailRow icon="location-outline" label="Adresse" value={request.address.fullAddress} />
+          )}
         </View>
 
         <Divider />

@@ -115,6 +115,9 @@ export default function BookingDetailScreen() {
             {booking.scheduledTime && <DetailRow label="Heure" value={booking.scheduledTime} />}
             <DetailRow label="Montant" value={formatCurrency(booking.totalAmount)} />
             <DetailRow label="Statut" value={statusInfo.label} />
+            {booking.address?.fullAddress && (
+              <DetailRow label="Adresse" value={booking.address.fullAddress} />
+            )}
           </View>
 
           <BookingTimeline status={booking.status} />

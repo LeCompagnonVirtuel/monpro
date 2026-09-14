@@ -9,6 +9,7 @@ import { setSessionExpiredHandler } from '@/api/client';
 import { useSocket } from '@/hooks/use-socket';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { useRealtimeSync } from '@/hooks/use-realtime-sync';
+import { useLocation } from '@/hooks/use-location';
 import { OfflineBanner } from '@/components/feedback/OfflineBanner';
 import { GlobalErrorBoundary } from '@/components/feedback/GlobalErrorBoundary';
 import { AnimatedSplash } from '@/components/feedback/AnimatedSplash';
@@ -29,6 +30,7 @@ function AppServices() {
   useSocket();
   usePushNotifications();
   useRealtimeSync();
+  useLocation();
   return null;
 }
 

@@ -113,6 +113,18 @@ export default function ProfessionalBookingDetailScreen() {
               <Text variant="bodyMedium">{formatRelativeDate(booking.createdAt)}</Text>
             </View>
           </View>
+
+          {booking.address?.fullAddress && (
+            <View style={styles.detailRow}>
+              <View style={styles.detailIcon}>
+                <Ionicons name="location-outline" size={18} color={colors.primary} />
+              </View>
+              <View style={styles.detailInfo}>
+                <Text variant="caption" color={colors.textSecondary}>Adresse</Text>
+                <Text variant="bodyMedium">{booking.address.fullAddress}</Text>
+              </View>
+            </View>
+          )}
         </View>
       </ScrollView>
 
