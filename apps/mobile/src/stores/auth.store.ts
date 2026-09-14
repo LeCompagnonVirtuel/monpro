@@ -4,6 +4,7 @@ import { authApi } from '@/api/auth';
 import { usersApi } from '@/api/users';
 import { apiClient } from '@/api/client';
 import { queryClient } from '@/lib/query-client';
+import { clearLocationCache } from '@/hooks/use-location';
 
 type Role = 'CLIENT' | 'PROFESSIONAL' | 'ADMIN';
 
@@ -42,6 +43,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
     await tokenStorage.clearTokens();
     queryClient.clear();
+    clearLocationCache();
     set({ userId: null, role: null, isAuthenticated: false, isLoading: false });
   },
 

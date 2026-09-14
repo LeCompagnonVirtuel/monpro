@@ -3,6 +3,7 @@ import { StyleSheet, View, ScrollView, Pressable, RefreshControl } from 'react-n
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
@@ -225,7 +226,7 @@ export default function DashboardScreen() {
         </View>
 
         {/* ──────────── STATUS + LOCATION ──────────── */}
-        <View style={styles.statusLocationRow}>
+        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.statusLocationRow}>
           <Pressable
             style={[styles.statusPill, profile.isAvailable ? styles.statusPillOn : styles.statusPillOff]}
             onPress={handleToggleAvailability}
@@ -237,7 +238,7 @@ export default function DashboardScreen() {
             <Text variant="bodySmall" color={profile.isAvailable ? colors.success : colors.textTertiary} style={styles.statusPillLabel}>
               {profile.isAvailable ? 'En ligne' : 'Hors ligne'}
             </Text>
-            <Ionicons name="chevron-down" size={14} color={profile.isAvailable ? colors.success : colors.textTertiary} />
+            <Ionicons name={profile.isAvailable ? 'radio-button-on' : 'radio-button-off'} size={14} color={profile.isAvailable ? colors.success : colors.textTertiary} />
           </Pressable>
 
           {locationText?.name && (
@@ -259,9 +260,10 @@ export default function DashboardScreen() {
               <Ionicons name="chevron-forward" size={12} color={colors.textTertiary} />
             </Pressable>
           )}
-        </View>
+        </Animated.View>
 
         {/* ──────────── BANNER ──────────── */}
+        <Animated.View entering={FadeInDown.delay(200).duration(400)}>
         <Pressable
           style={styles.banner}
           onPress={() => router.push('/(professional)/(tabs)/requests')}
@@ -285,9 +287,10 @@ export default function DashboardScreen() {
           </View>
           <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.6)" />
         </Pressable>
+        </Animated.View>
 
         {/* ──────────── STATS ──────────── */}
-        <View style={styles.statsRow}>
+        <Animated.View entering={FadeInDown.delay(300).duration(400)} style={styles.statsRow}>
           <StatCard
             icon="document-text-outline"
             iconBg={colors.infoLight}
@@ -323,18 +326,18 @@ export default function DashboardScreen() {
             label="Total ce mois"
             onPress={() => router.push('/(professional)/revenue')}
           />
-        </View>
+        </Animated.View>
 
         {/* ──────────── QUICK ACTIONS ──────────── */}
-        <View style={styles.quickGrid}>
+        <Animated.View entering={FadeInDown.delay(400).duration(400)} style={styles.quickGrid}>
           <QuickAction icon="document-text-outline" label="Gérer mes services" onPress={() => router.push('/(professional)/services')} />
           <QuickAction icon="calendar-outline" label="Mes disponibilités" onPress={() => router.push('/(professional)/availability')} />
           <QuickAction icon="location-outline" label="Ma zone d'intervention" onPress={() => router.push('/(professional)/onboarding')} />
           <QuickAction icon="bar-chart-outline" label="Mes revenus" onPress={() => router.push('/(professional)/revenue')} />
-        </View>
+        </Animated.View>
 
         {/* ──────────── NOUVELLES DEMANDES ──────────── */}
-        <View style={styles.section}>
+        <Animated.View entering={FadeInDown.delay(500).duration(400)} style={styles.section}>
           <SectionHead title="Nouvelles demandes" actionLabel="Voir toutes" onAction={() => router.push('/(professional)/(tabs)/requests')} />
           {requestsLoading ? (
             <View style={styles.skeletonCol}>
@@ -375,10 +378,10 @@ export default function DashboardScreen() {
           ) : (
             <EmptyBlock icon="file-tray-outline" text="Aucune nouvelle demande" />
           )}
-        </View>
+        </Animated.View>
 
         {/* ──────────── PLANNING ──────────── */}
-        <View style={styles.section}>
+        <Animated.View entering={FadeInDown.delay(600).duration(400)} style={styles.section}>
           <SectionHead title="Mon planning aujourd'hui" actionLabel="Voir tout" onAction={() => router.push('/(professional)/(tabs)/interventions')} />
           {bookingsLoading ? (
             <Skeleton width="100%" height={68} borderRadius={radius.lg} />
@@ -412,7 +415,7 @@ export default function DashboardScreen() {
           ) : (
             <EmptyBlock icon="calendar-outline" text="Aucune intervention prévue aujourd'hui" />
           )}
-        </View>
+        </Animated.View>
 
         {/* ──────────── DISPONIBILITÉS ──────────── */}
         {todayAvailability && (

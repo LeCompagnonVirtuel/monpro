@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { StyleSheet, View, ScrollView, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -13,8 +14,6 @@ import { Text, Button, Input, Skeleton } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { uploadsApi } from '@/api/uploads';
 import { kycApi, KycDocumentType, KycDocument, KycStatus } from '@/api/kyc';
-
-const TOTAL_STEPS = 7;
 
 interface DocumentOption {
   type: KycDocumentType;
@@ -60,6 +59,16 @@ export default function KycScreen() {
   const selectedOption = DOCUMENT_OPTIONS.find((o) => o.type === documentType);
   const needsBack = selectedOption?.needsBack ?? true;
 
+  const STEPS = useMemo(() => {
+    const base = ['docType', 'docNumber', 'front'];
+    if (needsBack) base.push('back');
+    base.push('selfie', 'review', 'success');
+    return base;
+  }, [needsBack]);
+
+  const totalSteps = STEPS.length;
+  const currentStepKey = STEPS[step];
+
   const pickImage = useCallback(async (onResult: (uri: string) => void) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -100,24 +109,16 @@ export default function KycScreen() {
   }, [takePhoto, pickImage]);
 
   const canProceed = (() => {
-    switch (step) {
-      case 0: return documentType !== null;
-      case 1: return documentNumber.trim().length >= 3;
-      case 2: return frontUri !== null;
-      case 3: return needsBack ? backUri !== null : true;
-      case 4: return selfieUri !== null;
-      case 5: return true;
+    switch (currentStepKey) {
+      case 'docType': return documentType !== null;
+      case 'docNumber': return documentNumber.trim().length >= 3;
+      case 'front': return frontUri !== null;
+      case 'back': return backUri !== null;
+      case 'selfie': return selfieUri !== null;
+      case 'review': return true;
       default: return true;
     }
   })();
-
-  const handleNext = useCallback(async () => {
-    if (step < TOTAL_STEPS - 1) {
-      setStep(step + 1);
-      return;
-    }
-    await handleSubmit();
-  }, [step]);
 
   const handleSubmit = useCallback(async () => {
     if (!documentType || !documentNumber || !frontUri || !selfieUri) return;
@@ -160,22 +161,32 @@ export default function KycScreen() {
         status: 'PENDING',
         submittedAt: new Date().toISOString(),
       });
-      setStep(TOTAL_STEPS - 1);
+      setStep(totalSteps - 1);
     } catch {
       Alert.alert('Erreur', 'Impossible de soumettre vos documents. Veuillez réessayer.');
     } finally {
       setUploading(false);
       setSubmitting(false);
     }
-  }, [documentType, documentNumber, frontUri, backUri, selfieUri]);
+  }, [documentType, documentNumber, frontUri, backUri, selfieUri, totalSteps]);
+
+  const handleNext = useCallback(async () => {
+    if (currentStepKey === 'review') {
+      await handleSubmit();
+      return;
+    }
+    if (step < totalSteps - 1) {
+      setStep(step + 1);
+    }
+  }, [step, currentStepKey, totalSteps, handleSubmit]);
 
   const handleBack = useCallback(() => {
-    if (step > 0 && step < TOTAL_STEPS - 1) {
+    if (step > 0 && currentStepKey !== 'success') {
       setStep(step - 1);
     } else {
       router.back();
     }
-  }, [step]);
+  }, [step, currentStepKey]);
 
   const handleResubmit = useCallback(() => {
     setExistingKyc(null);
@@ -246,7 +257,7 @@ export default function KycScreen() {
           <View style={styles.backBtn} />
         </View>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <View style={[styles.statusBanner, { backgroundColor: statusConf.color + '15' }]}>
+          <Animated.View entering={FadeInDown.delay(100).duration(400)} style={[styles.statusBanner, { backgroundColor: statusConf.color + '15' }]}>
             <Ionicons name={statusConf.icon} size={24} color={statusConf.color} />
             <View style={styles.statusText}>
               <Text variant="bodyMedium" color={statusConf.color}>{statusConf.label}</Text>
@@ -266,25 +277,25 @@ export default function KycScreen() {
                 </Text>
               )}
             </View>
-          </View>
+          </Animated.View>
 
-          <View style={styles.infoCard}>
+          <Animated.View entering={FadeInDown.delay(200).duration(400)} style={styles.infoCard}>
             <Text variant="caption" color={colors.textSecondary}>TYPE DE DOCUMENT</Text>
             <Text variant="bodyMedium">{DOCUMENT_OPTIONS.find((o) => o.type === existingKyc.documentType)?.label || existingKyc.documentType}</Text>
-          </View>
+          </Animated.View>
 
-          <View style={styles.infoCard}>
+          <Animated.View entering={FadeInDown.delay(300).duration(400)} style={styles.infoCard}>
             <Text variant="caption" color={colors.textSecondary}>NUMÉRO</Text>
             <Text variant="bodyMedium">{existingKyc.documentNumber}</Text>
-          </View>
+          </Animated.View>
 
-          <View style={styles.infoCard}>
+          <Animated.View entering={FadeInDown.delay(400).duration(400)} style={styles.infoCard}>
             <Text variant="caption" color={colors.textSecondary}>SOUMIS LE</Text>
             <Text variant="bodyMedium">{new Date(existingKyc.submittedAt).toLocaleDateString('fr-FR')}</Text>
-          </View>
+          </Animated.View>
 
           {existingKyc.status === 'REJECTED' && (
-            <View style={styles.infoCard}>
+            <Animated.View entering={FadeInDown.delay(500).duration(400)} style={styles.infoCard}>
               <Text variant="caption" color={colors.textSecondary}>DOCUMENTS SOUMIS</Text>
               <View style={styles.docPreviewRow}>
                 <Image source={{ uri: existingKyc.frontUrl }} style={styles.docPreview} contentFit="cover" />
@@ -295,7 +306,7 @@ export default function KycScreen() {
                   <Image source={{ uri: existingKyc.selfieUrl }} style={styles.docPreview} contentFit="cover" />
                 )}
               </View>
-            </View>
+            </Animated.View>
           )}
         </ScrollView>
 
@@ -323,19 +334,19 @@ export default function KycScreen() {
         <Text
           variant="bodySmall"
           color={colors.textSecondary}
-          accessibilityLabel={`Étape ${step + 1} sur ${TOTAL_STEPS}`}
+          accessibilityLabel={`Étape ${step + 1} sur ${totalSteps}`}
         >
-          {step + 1} / {TOTAL_STEPS}
+          {step + 1} / {totalSteps}
         </Text>
         <View style={styles.backBtn} />
       </View>
 
       <View
         style={styles.progressBar}
-        accessibilityLabel={`Progression : étape ${step + 1} sur ${TOTAL_STEPS}`}
+        accessibilityLabel={`Progression : étape ${step + 1} sur ${totalSteps}`}
         accessibilityRole="progressbar"
       >
-        <View style={[styles.progressFill, { width: `${((step + 1) / TOTAL_STEPS) * 100}%` }]} />
+        <View style={[styles.progressFill, { width: `${((step + 1) / totalSteps) * 100}%` }]} />
       </View>
 
       <ScrollView
@@ -343,8 +354,8 @@ export default function KycScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {step === 0 && (
-          <View style={styles.stepContent}>
+        {currentStepKey === 'docType' && (
+          <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.stepContent}>
             <View style={styles.trustBanner}>
               <Ionicons name="shield-checkmark-outline" size={24} color={colors.primary} />
               <View style={styles.trustText}>
@@ -361,29 +372,30 @@ export default function KycScreen() {
             </Text>
 
             <View style={styles.optionsGrid}>
-              {DOCUMENT_OPTIONS.map((option) => (
-                <Pressable
-                  key={option.type}
-                  style={[styles.optionCard, documentType === option.type && styles.optionCardActive]}
-                  onPress={() => setDocumentType(option.type)}
-                  accessibilityLabel={option.label}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: documentType === option.type }}
-                >
-                  <View style={[styles.optionIconContainer, documentType === option.type && styles.optionIconActive]}>
-                    <Ionicons name={option.icon} size={28} color={documentType === option.type ? colors.textInverse : colors.primary} />
-                  </View>
-                  <Text variant="bodySmall" color={documentType === option.type ? colors.primary : colors.text} style={styles.optionLabel}>
-                    {option.label}
-                  </Text>
-                </Pressable>
+              {DOCUMENT_OPTIONS.map((option, index) => (
+                <Animated.View key={option.type} entering={FadeInDown.delay(200 + index * 80).duration(350)}>
+                  <Pressable
+                    style={[styles.optionCard, documentType === option.type && styles.optionCardActive]}
+                    onPress={() => setDocumentType(option.type)}
+                    accessibilityLabel={option.label}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: documentType === option.type }}
+                  >
+                    <View style={[styles.optionIconContainer, documentType === option.type && styles.optionIconActive]}>
+                      <Ionicons name={option.icon} size={28} color={documentType === option.type ? colors.textInverse : colors.primary} />
+                    </View>
+                    <Text variant="bodySmall" color={documentType === option.type ? colors.primary : colors.text} style={styles.optionLabel}>
+                      {option.label}
+                    </Text>
+                  </Pressable>
+                </Animated.View>
               ))}
             </View>
-          </View>
+          </Animated.View>
         )}
 
-        {step === 1 && (
-          <View style={styles.stepContent}>
+        {currentStepKey === 'docNumber' && (
+          <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.stepContent}>
             <Text variant="h2">Numéro du document</Text>
             <Text variant="bodySmall" color={colors.textSecondary}>
               Saisissez le numéro inscrit sur votre document
@@ -395,11 +407,11 @@ export default function KycScreen() {
               autoCapitalize="characters"
               autoFocus
             />
-          </View>
+          </Animated.View>
         )}
 
-        {step === 2 && (
-          <View style={styles.stepContent}>
+        {currentStepKey === 'front' && (
+          <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.stepContent}>
             <Text variant="h2">Photo du recto</Text>
             <Text variant="bodySmall" color={colors.textSecondary}>
               Prenez une photo claire du recto de votre document
@@ -410,11 +422,11 @@ export default function KycScreen() {
                 <Text variant="bodySmall" color={colors.primary} align="center">Changer la photo</Text>
               </Pressable>
             )}
-          </View>
+          </Animated.View>
         )}
 
-        {step === 3 && (
-          <View style={styles.stepContent}>
+        {currentStepKey === 'back' && (
+          <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.stepContent}>
             <Text variant="h2">Photo du verso</Text>
             <Text variant="bodySmall" color={colors.textSecondary}>
               Prenez une photo du verso de votre document
@@ -425,11 +437,11 @@ export default function KycScreen() {
                 <Text variant="bodySmall" color={colors.primary} align="center">Changer la photo</Text>
               </Pressable>
             )}
-          </View>
+          </Animated.View>
         )}
 
-        {step === 4 && (
-          <View style={styles.stepContent}>
+        {currentStepKey === 'selfie' && (
+          <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.stepContent}>
             <Text variant="h2">Photo de vous-même</Text>
             <Text variant="bodySmall" color={colors.textSecondary}>
               Prenez un selfie pour confirmer votre identité
@@ -440,11 +452,11 @@ export default function KycScreen() {
                 <Text variant="bodySmall" color={colors.primary} align="center">Changer la photo</Text>
               </Pressable>
             )}
-          </View>
+          </Animated.View>
         )}
 
-        {step === 5 && (
-          <View style={styles.stepContent}>
+        {currentStepKey === 'review' && (
+          <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.stepContent}>
             <Text variant="h2">Vérification</Text>
             <Text variant="bodySmall" color={colors.textSecondary}>
               Vérifiez les informations avant de soumettre votre dossier
@@ -472,11 +484,11 @@ export default function KycScreen() {
               <Text variant="caption" color={colors.textSecondary}>SELFIE FOURNI</Text>
               <Image source={{ uri: selfieUri || '' }} style={styles.selfiePreview} contentFit="cover" />
             </View>
-          </View>
+          </Animated.View>
         )}
 
-        {step === TOTAL_STEPS - 1 && (
-          <View style={styles.stepContent}>
+        {currentStepKey === 'success' && (
+          <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.stepContent}>
             <View style={styles.successContainer}>
               <View style={styles.successIcon}>
                 <Ionicons name="checkmark-circle" size={80} color={colors.success} />
@@ -489,14 +501,14 @@ export default function KycScreen() {
                 Statut : En cours de vérification
               </Text>
             </View>
-          </View>
+          </Animated.View>
         )}
       </ScrollView>
 
-      {step < TOTAL_STEPS - 1 && (
+      {currentStepKey !== 'success' && (
         <View style={styles.footer}>
           <Button
-            title={step === 5 ? 'Soumettre mon dossier' : 'Continuer'}
+            title={currentStepKey === 'review' ? 'Soumettre mon dossier' : 'Continuer'}
             onPress={handleNext}
             disabled={!canProceed || submitting}
             loading={submitting}
@@ -504,7 +516,7 @@ export default function KycScreen() {
         </View>
       )}
 
-      {step === TOTAL_STEPS - 1 && (
+      {currentStepKey === 'success' && (
         <View style={styles.footer}>
           <Button title="Retour au profil" onPress={() => router.back()} />
         </View>

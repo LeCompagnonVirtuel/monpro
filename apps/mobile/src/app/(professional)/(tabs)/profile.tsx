@@ -2,6 +2,7 @@ import { StyleSheet, View, ScrollView, Pressable, Alert, RefreshControl, Switch 
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
@@ -179,7 +180,7 @@ export default function ProfessionalProfileScreen() {
         </View>
 
         {/* Profile Card */}
-        <View style={styles.profileCard}>
+        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.profileCard}>
           <View style={styles.profileTop}>
             <Pressable onPress={handleAvatarPress} accessibilityLabel="Changer la photo de profil" accessibilityRole="button">
               <Avatar uri={user?.avatarUrl} name={user?.fullName || ''} size={80} />
@@ -233,11 +234,11 @@ export default function ProfessionalProfileScreen() {
             <Ionicons name="create-outline" size={16} color={colors.primary} />
             <Text variant="bodySmall" color={colors.primary}>Éditer</Text>
           </Pressable>
-        </View>
+        </Animated.View>
 
         {/* Online Status */}
         {profile && (
-          <View style={styles.statusCard}>
+          <Animated.View entering={FadeInDown.delay(200).duration(400)} style={styles.statusCard}>
             <View style={styles.statusLeft}>
               <View style={[styles.statusDot, { backgroundColor: profile.isAvailable ? colors.success : colors.textTertiary }]} />
               <View>
@@ -260,12 +261,12 @@ export default function ProfessionalProfileScreen() {
               accessibilityLabel={`Disponibilité : ${profile.isAvailable ? 'activée' : 'désactivée'}`}
               accessibilityRole="switch"
             />
-          </View>
+          </Animated.View>
         )}
 
         {/* Stats */}
         {profile && (
-          <View style={styles.statsRow}>
+          <Animated.View entering={FadeInDown.delay(300).duration(400)} style={styles.statsRow}>
             <Pressable
               style={styles.statCard}
               onPress={() => router.push('/(professional)/services')}
@@ -321,7 +322,7 @@ export default function ProfessionalProfileScreen() {
               </Text>
               <Text variant="caption" color={colors.textSecondary}>Revenus</Text>
             </Pressable>
-          </View>
+          </Animated.View>
         )}
 
         {/* No profile prompt */}

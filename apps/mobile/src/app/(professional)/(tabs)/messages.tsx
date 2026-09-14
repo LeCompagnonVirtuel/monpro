@@ -3,6 +3,7 @@ import { StyleSheet, View, FlatList, Pressable, TextInput, RefreshControl } from
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
@@ -74,12 +75,16 @@ export default function ProfessionalMessagesScreen() {
 
   const showNotifications = filter === 'notifications';
 
-  const renderConversation = useCallback(({ item }: { item: Conversation }) => (
-    <ConversationRow conversation={item} currentUserId={userId} />
+  const renderConversation = useCallback(({ item, index }: { item: Conversation; index: number }) => (
+    <Animated.View entering={FadeInDown.delay(index * 50).duration(350)}>
+      <ConversationRow conversation={item} currentUserId={userId} />
+    </Animated.View>
   ), [userId]);
 
-  const renderNotification = useCallback(({ item }: { item: { id: string; title: string; body: string; createdAt: string; isRead: boolean } }) => (
-    <NotificationRow notification={item} />
+  const renderNotification = useCallback(({ item, index }: { item: { id: string; title: string; body: string; createdAt: string; isRead: boolean }; index: number }) => (
+    <Animated.View entering={FadeInDown.delay(index * 50).duration(350)}>
+      <NotificationRow notification={item} />
+    </Animated.View>
   ), []);
 
   const keyExtractor = useCallback((item: Conversation | { id: string }) => item.id, []);

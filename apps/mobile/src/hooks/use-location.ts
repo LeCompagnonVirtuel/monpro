@@ -25,6 +25,11 @@ interface UseLocationResult {
 let cachedLocation: UserLocation | null = null;
 let cachedAddress: ReverseAddress | null = null;
 
+export function clearLocationCache() {
+  cachedLocation = null;
+  cachedAddress = null;
+}
+
 export function useLocation(): UseLocationResult {
   const [location, setLocation] = useState<UserLocation | null>(cachedLocation);
   const [address, setAddress] = useState<ReverseAddress | null>(cachedAddress);

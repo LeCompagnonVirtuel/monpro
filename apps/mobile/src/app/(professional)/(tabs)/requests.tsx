@@ -135,46 +135,26 @@ export default function ProfessionalRequestsScreen() {
 
   const keyExtractor = useCallback((item: ServiceRequest) => item.id, []);
 
-  const renderHeader = () => (
-    <>
-      {/* Banner */}
-      {showBanner && bannerConfig ? (
-        <Pressable
-          style={styles.banner}
-          onPress={() => router.push(bannerConfig.route)}
-          accessibilityLabel={bannerConfig.title}
-          accessibilityRole="button"
-        >
-          <View style={styles.bannerIconWrap}>
-            <Ionicons name={bannerConfig.icon} size={22} color={colors.primary} />
-          </View>
-          <View style={styles.bannerContent}>
-            <Text variant="bodyMedium" style={styles.bannerTitle}>{bannerConfig.title}</Text>
-            <Text variant="caption" color={colors.textSecondary}>{bannerConfig.description}</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
-        </Pressable>
-      ) : (
-        <Pressable
-          style={styles.banner}
-          onPress={() => router.push('/(professional)/(tabs)/profile')}
-          accessibilityLabel="Recevez des demandes pertinentes"
-          accessibilityRole="button"
-        >
-          <View style={styles.bannerIconWrap}>
-            <Ionicons name="radio-outline" size={22} color={colors.primary} />
-          </View>
-          <View style={styles.bannerContent}>
-            <Text variant="bodyMedium" style={styles.bannerTitle}>Recevez des demandes pertinentes</Text>
-            <Text variant="caption" color={colors.textSecondary}>
-              Complétez votre profil, vos services et votre zone d'intervention pour apparaître en priorité.
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
-        </Pressable>
-      )}
-    </>
-  );
+  const renderBanner = () => {
+    if (!showBanner || !bannerConfig) return null;
+    return (
+      <Pressable
+        style={styles.banner}
+        onPress={() => router.push(bannerConfig.route)}
+        accessibilityLabel={bannerConfig.title}
+        accessibilityRole="button"
+      >
+        <View style={styles.bannerIconWrap}>
+          <Ionicons name={bannerConfig.icon} size={22} color={colors.primary} />
+        </View>
+        <View style={styles.bannerContent}>
+          <Text variant="bodyMedium" style={styles.bannerTitle}>{bannerConfig.title}</Text>
+          <Text variant="caption" color={colors.textSecondary}>{bannerConfig.description}</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+      </Pressable>
+    );
+  };
 
   if (isLoading) {
     return (
@@ -269,6 +249,9 @@ export default function ProfessionalRequestsScreen() {
         <FilterTabBtn label="Traitées" count={tabCounts.done} active={filter === 'done'} onPress={() => setFilter('done')} />
       </ScrollView>
 
+      {/* Banner */}
+      {renderBanner()}
+
       {/* Request list */}
       {displayRequests.length === 0 ? (
         <EmptyState
@@ -281,7 +264,6 @@ export default function ProfessionalRequestsScreen() {
           data={displayRequests}
           keyExtractor={keyExtractor}
           renderItem={renderRequestCard}
-          ListHeaderComponent={renderHeader}
           contentContainerStyle={styles.listContent}
           onRefresh={refetch}
           refreshing={isRefetching}
@@ -584,6 +566,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
+    marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
     backgroundColor: colors.infoLight,
     borderRadius: radius.lg,

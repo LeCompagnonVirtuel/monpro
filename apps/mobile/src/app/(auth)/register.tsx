@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -112,17 +113,17 @@ export default function RegisterScreen() {
           {/* Content */}
           <View style={styles.content}>
             {/* Title */}
-            <View style={styles.titleBlock}>
+            <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.titleBlock}>
               <Text variant="h1" style={styles.title}>
                 Créez votre profil
               </Text>
               <Text variant="body" color={colors.textSecondary}>
                 Dernière étape avant de commencer.
               </Text>
-            </View>
+            </Animated.View>
 
             {/* Role selector */}
-            <View style={styles.section}>
+            <Animated.View entering={FadeInDown.delay(250).duration(500)} style={styles.section}>
               <Text variant="bodyMedium" style={styles.sectionLabel}>
                 Vous êtes
               </Text>
@@ -224,10 +225,10 @@ export default function RegisterScreen() {
                   )}
                 </View>
               </Pressable>
-            </View>
+            </Animated.View>
 
             {/* Name fields */}
-            <View style={styles.section}>
+            <Animated.View entering={FadeInDown.delay(400).duration(500)} style={styles.section}>
               <Text variant="bodyMedium" style={styles.sectionLabel}>
                 Informations
               </Text>
@@ -292,7 +293,7 @@ export default function RegisterScreen() {
                   Vérifié
                 </Text>
               </View>
-            </View>
+            </Animated.View>
 
             {/* Terms */}
             <Pressable

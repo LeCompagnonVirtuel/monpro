@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -104,16 +105,17 @@ export default function EmailLoginScreen() {
 
           {/* Main content */}
           <View style={styles.main}>
-            <View style={styles.titleBlock}>
+            <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.titleBlock}>
               <Text variant="h1" style={styles.title}>
                 Connexion par{'\n'}email
               </Text>
               <Text variant="body" color={colors.textSecondary}>
                 Entrez votre adresse email et mot de passe.
               </Text>
-            </View>
+            </Animated.View>
 
             {/* Email field */}
+            <Animated.View entering={FadeInDown.delay(250).duration(500)}>
             <Controller
               control={control}
               name="email"
@@ -140,6 +142,7 @@ export default function EmailLoginScreen() {
                 </View>
               )}
             />
+            </Animated.View>
             {errors.email?.message && (
               <Text variant="bodySmall" color={colors.error}>
                 {errors.email.message}
@@ -147,6 +150,7 @@ export default function EmailLoginScreen() {
             )}
 
             {/* Password field */}
+            <Animated.View entering={FadeInDown.delay(350).duration(500)}>
             <Controller
               control={control}
               name="password"
@@ -185,6 +189,7 @@ export default function EmailLoginScreen() {
                 </View>
               )}
             />
+            </Animated.View>
             {errors.password?.message && (
               <Text variant="bodySmall" color={colors.error}>
                 {errors.password.message}

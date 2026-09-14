@@ -1116,6 +1116,15 @@ export default function CreateRequestScreen() {
                   )}
                 </View>
               )}
+
+              {!selectedAddressId && !_location && selectedCityId && (
+                <View style={styles.locationHint}>
+                  <Ionicons name="information-circle-outline" size={16} color={colors.warning} />
+                  <Text variant="caption" color={colors.warning} style={{ flex: 1 }}>
+                    Pour un meilleur matching, enregistrez une adresse ou activez le GPS.
+                  </Text>
+                </View>
+              )}
             </View>
 
             {/* Time Preferences */}
@@ -1829,6 +1838,16 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: radius.md,
     marginBottom: spacing.md,
+  },
+  locationHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.warningLight,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    marginTop: spacing.sm,
   },
   addressSelectCard: {
     flexDirection: 'row',

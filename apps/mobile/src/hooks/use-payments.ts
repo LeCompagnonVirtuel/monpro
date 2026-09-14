@@ -35,7 +35,7 @@ export function useRefundPayment() {
       const { data } = await paymentsApi.refund(paymentId, reason);
       return data.data;
     },
-    onSuccess: (_result, { paymentId: _paymentId }) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payments'] });
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
     },

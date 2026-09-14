@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -101,15 +102,16 @@ export default function PhoneScreen() {
 
           {/* Main content */}
           <View style={styles.main}>
-            <View style={styles.titleBlock}>
+            <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.titleBlock}>
               <Text variant="h1" style={styles.title}>
                 Quel est votre{'\n'}numéro ?
               </Text>
               <Text variant="body" color={colors.textSecondary}>
                 Nous vous enverrons un code de vérification par SMS.
               </Text>
-            </View>
+            </Animated.View>
 
+            <Animated.View entering={FadeInDown.delay(250).duration(500)}>
             <Controller
               control={control}
               name="phone"
@@ -149,6 +151,7 @@ export default function PhoneScreen() {
                 </View>
               )}
             />
+            </Animated.View>
 
             {(errors.phone?.message || error) && (
               <Text variant="bodySmall" color={colors.error}>

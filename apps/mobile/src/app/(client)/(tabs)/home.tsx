@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { FlatList, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
@@ -81,7 +82,7 @@ export default function HomeScreen() {
         <HomeHeader firstName={firstName} avatarUrl={user?.avatarUrl} />
 
         {/* ── Catégories ── */}
-        <View style={styles.categoriesSection}>
+        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.categoriesSection}>
           {categories.isLoading ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
               {Array.from({ length: 6 }).map((_, i) => (
@@ -111,13 +112,15 @@ export default function HomeScreen() {
               />
             </ScrollView>
           )}
-        </View>
+        </Animated.View>
 
         {/* ── Bandeau professionnels vérifiés ── */}
-        <VerifiedBanner />
+        <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+          <VerifiedBanner />
+        </Animated.View>
 
         {/* ── Professionnels recommandés ── */}
-        <View style={styles.section}>
+        <Animated.View entering={FadeInDown.delay(300).duration(400)} style={styles.section}>
           <SectionHeader
             title="Professionnels recommandés"
             onSeeAll={() => router.push('/(client)/(tabs)/search')}
@@ -146,10 +149,10 @@ export default function HomeScreen() {
               renderItem={({ item }) => <ProfessionalHomeCard professional={item} />}
             />
           )}
-        </View>
+        </Animated.View>
 
         {/* ── Vos demandes récentes ── */}
-        <View style={styles.section}>
+        <Animated.View entering={FadeInDown.delay(400).duration(400)} style={styles.section}>
           <SectionHeader
             title="Vos demandes récentes"
             onSeeAll={() => router.push('/(client)/(tabs)/requests')}
@@ -175,10 +178,12 @@ export default function HomeScreen() {
               ))}
             </View>
           )}
-        </View>
+        </Animated.View>
 
         {/* ── CTA Publier ── */}
-        <PublishCTA />
+        <Animated.View entering={FadeInDown.delay(500).duration(400)}>
+          <PublishCTA />
+        </Animated.View>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>

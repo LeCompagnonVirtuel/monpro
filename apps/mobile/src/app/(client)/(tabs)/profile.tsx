@@ -1,6 +1,7 @@
 import { Alert, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useCallback, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -111,18 +112,20 @@ export default function ProfileScreen() {
       >
         <ProfileHeader />
 
-        <ProfileIdentity
-          fullName={user?.fullName || ''}
-          avatarUrl={user?.avatarUrl}
-          location={user?.city?.name}
-          onCameraPress={handleAvatarPress}
-        />
+        <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+          <ProfileIdentity
+            fullName={user?.fullName || ''}
+            avatarUrl={user?.avatarUrl}
+            location={user?.city?.name}
+            onCameraPress={handleAvatarPress}
+          />
+        </Animated.View>
 
-        <View style={styles.section}>
+        <Animated.View entering={FadeInDown.delay(200).duration(400)} style={styles.section}>
           <PremiumBanner memberSince={user?.createdAt} />
-        </View>
+        </Animated.View>
 
-        <View style={styles.section}>
+        <Animated.View entering={FadeInDown.delay(300).duration(400)} style={styles.section}>
           <ProfileStats
             requestCount={requestCount}
             completedCount={completedCount}
@@ -130,19 +133,19 @@ export default function ProfileScreen() {
             averageRating={null}
             reviewCount={0}
           />
-        </View>
+        </Animated.View>
 
-        <View style={styles.section}>
+        <Animated.View entering={FadeInDown.delay(400).duration(400)} style={styles.section}>
           <ProfileMenu />
-        </View>
+        </Animated.View>
 
-        <View style={styles.section}>
+        <Animated.View entering={FadeInDown.delay(500).duration(400)} style={styles.section}>
           <PremiumCTA />
-        </View>
+        </Animated.View>
 
-        <View style={styles.section}>
+        <Animated.View entering={FadeInDown.delay(550).duration(400)} style={styles.section}>
           <ProfileLogout onLogout={logout} />
-        </View>
+        </Animated.View>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>

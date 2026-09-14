@@ -8,7 +8,7 @@ export function useServices(params?: ServiceSearchParams) {
       const { data } = await servicesApi.list(params);
       return data.data;
     },
-    enabled: !params?.categoryId || !!params.categoryId,
+    enabled: !!params,
   });
 }
 

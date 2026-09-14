@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
@@ -195,16 +196,20 @@ export default function InterventionsScreen() {
     return items;
   }, [groupedBookings]);
 
-  const renderItem = useCallback(({ item }: { item: { type: 'header' | 'card'; data: string | Booking } }) => {
+  const renderItem = useCallback(({ item, index }: { item: { type: 'header' | 'card'; data: string | Booking }; index: number }) => {
     if (item.type === 'header') {
       return (
-        <View style={styles.sectionHeader}>
+        <Animated.View entering={FadeInDown.delay(index * 50).duration(350)} style={styles.sectionHeader}>
           <Ionicons name="calendar-outline" size={16} color={colors.primary} />
           <Text variant="bodyMedium" color={colors.primary}>{item.data as string}</Text>
-        </View>
+        </Animated.View>
       );
     }
-    return <InterventionCard booking={item.data as Booking} />;
+    return (
+      <Animated.View entering={FadeInDown.delay(index * 50).duration(350)}>
+        <InterventionCard booking={item.data as Booking} />
+      </Animated.View>
+    );
   }, []);
 
   const keyExtractor = useCallback((item: { type: 'header' | 'card'; data: string | Booking }, index: number) => {

@@ -70,7 +70,7 @@ export const requestsApi = {
     );
   },
 
-  getAvailable(params?: { professionalId?: string; status?: ServiceRequestStatus; page?: number; limit?: number }) {
+  getAvailable(params?: { status?: ServiceRequestStatus; page?: number; limit?: number }) {
     return apiClient.get<{ success: boolean; data: ServiceRequest[]; total: number }>(
       '/service-requests/available',
       { params },

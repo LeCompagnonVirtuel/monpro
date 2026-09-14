@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -118,17 +119,17 @@ export default function EmailRegisterScreen() {
           {/* Content */}
           <View style={styles.content}>
             {/* Title */}
-            <View style={styles.titleBlock}>
+            <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.titleBlock}>
               <Text variant="h1" style={styles.title}>
                 Créez votre compte
               </Text>
               <Text variant="body" color={colors.textSecondary}>
                 Inscrivez-vous avec votre adresse email.
               </Text>
-            </View>
+            </Animated.View>
 
             {/* Role selector */}
-            <View style={styles.section}>
+            <Animated.View entering={FadeInDown.delay(250).duration(500)} style={styles.section}>
               <Text variant="bodyMedium" style={styles.sectionLabel}>
                 Vous êtes
               </Text>
@@ -230,7 +231,7 @@ export default function EmailRegisterScreen() {
                   )}
                 </View>
               </Pressable>
-            </View>
+            </Animated.View>
 
             {/* Name fields */}
             <View style={styles.section}>
