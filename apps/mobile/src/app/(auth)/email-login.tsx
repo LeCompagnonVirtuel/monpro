@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -225,7 +226,9 @@ export default function EmailLoginScreen() {
               <Text variant="button" color={colors.primary}>
                 {isLoading ? 'Connexion...' : 'Se connecter'}
               </Text>
-              {!isLoading && (
+              {isLoading ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
                 <Ionicons
                   name="arrow-forward"
                   size={20}

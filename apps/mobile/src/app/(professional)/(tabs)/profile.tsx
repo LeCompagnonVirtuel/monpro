@@ -141,7 +141,7 @@ export default function ProfessionalProfileScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <ErrorState
-          message={getErrorMessage(isError ? new Error() : undefined, 'Impossible de charger votre profil.')}
+          message={getErrorMessage(userError || profileError, 'Impossible de charger votre profil.')}
           onRetry={() => { refetchUser(); refetchProfile(); }}
         />
       </SafeAreaView>

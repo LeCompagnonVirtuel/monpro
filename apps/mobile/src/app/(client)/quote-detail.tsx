@@ -8,6 +8,7 @@ import { spacing } from '@/theme/spacing';
 import { Text, Badge, Button, Avatar, Skeleton, Divider } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useQuotesForRequest, useAcceptQuote, useRejectQuote } from '@/hooks/use-quotes';
+import { getErrorMessage } from '@/lib/api-errors';
 import { formatCurrency, formatDate } from '@/lib/format';
 
 export default function QuoteDetailScreen() {
@@ -35,7 +36,7 @@ export default function QuoteDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message="Devis introuvable" onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, 'Devis introuvable')} onRetry={refetch} />
       </SafeAreaView>
     );
   }

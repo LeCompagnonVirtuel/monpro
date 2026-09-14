@@ -127,6 +127,12 @@ export default function OnboardingScreen() {
     });
   }, []);
 
+  const handleLogin = useCallback(() => {
+    completeOnboarding().then(() => {
+      router.replace('/(auth)/email-login');
+    });
+  }, []);
+
   const renderItem = useCallback(({ item }: { item: Slide }) => (
     <View style={[styles.slide, { width }]}>
       <View style={styles.slideContent}>
@@ -181,6 +187,7 @@ export default function OnboardingScreen() {
           onNext={handleNext}
           onBack={handleBack}
           onSkip={handleSkip}
+          onLogin={handleLogin}
         />
       </Animated.View>
     </SafeAreaView>

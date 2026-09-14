@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
+  ActivityIndicator,
   Animated,
   KeyboardAvoidingView,
   Platform,
@@ -293,6 +294,7 @@ export default function OtpScreen() {
               <Text variant="button" color={colors.primary}>
                 {isLoading ? 'Vérification...' : 'Vérifier'}
               </Text>
+              {isLoading && <ActivityIndicator size="small" color={colors.primary} style={{ marginLeft: 8 }} />}
             </Pressable>
 
             <Pressable

@@ -12,6 +12,7 @@ interface OnboardingFooterProps {
   onNext: () => void;
   onBack: () => void;
   onSkip: () => void;
+  onLogin?: () => void;
 }
 
 export function OnboardingFooter({
@@ -20,13 +21,14 @@ export function OnboardingFooter({
   onNext,
   onBack,
   onSkip,
+  onLogin,
 }: OnboardingFooterProps) {
   if (isLast) {
     return (
       <View style={styles.container}>
         <Pressable
           style={styles.secondaryButton}
-          onPress={onNext}
+          onPress={onLogin || onNext}
           accessibilityRole="button"
           accessibilityLabel="J'ai déjà un compte"
         >

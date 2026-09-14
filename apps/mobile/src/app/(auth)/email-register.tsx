@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -410,7 +411,9 @@ export default function EmailRegisterScreen() {
               <Text variant="button" color={colors.primary}>
                 {isLoading ? 'Création...' : 'Créer mon compte'}
               </Text>
-              {!isLoading && (
+              {isLoading ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
                 <Ionicons
                   name="arrow-forward"
                   size={20}

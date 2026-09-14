@@ -11,6 +11,7 @@ import { useServiceRequest } from '@/hooks/use-service-requests';
 import { useQuotesForRequest } from '@/hooks/use-quotes';
 import { ServiceRequestStatus } from '@/api/requests';
 import { formatDate, formatCurrency } from '@/lib/format';
+import { getErrorMessage } from '@/lib/api-errors';
 
 const STATUS_LABELS: Record<ServiceRequestStatus, { label: string; variant: 'success' | 'warning' | 'info' | 'error' }> = {
   DRAFT: { label: 'Brouillon', variant: 'info' },
@@ -66,7 +67,7 @@ export default function RequestDetailScreen() {
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </Pressable>
         </View>
-        <ErrorState message="Demande introuvable" onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, 'Demande introuvable')} onRetry={refetch} />
       </SafeAreaView>
     );
   }

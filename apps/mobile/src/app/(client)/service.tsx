@@ -8,6 +8,7 @@ import { radius } from '@/theme/radius';
 import { Text, Button, Card, Skeleton } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useService } from '@/hooks/use-services';
+import { getErrorMessage } from '@/lib/api-errors';
 import { useProfessionalMatch } from '@/hooks/use-professionals';
 import { useLocation } from '@/hooks/use-location';
 import { Professional } from '@/api/professionals';
@@ -68,7 +69,7 @@ export default function ServiceScreen() {
           ))}
         </View>
       ) : error ? (
-        <ErrorState message="Erreur de chargement" onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, 'Erreur de chargement')} onRetry={refetch} />
       ) : !professionals?.length ? (
         <View style={styles.emptyBlock}>
           <Ionicons name="people-outline" size={48} color={colors.textTertiary} />

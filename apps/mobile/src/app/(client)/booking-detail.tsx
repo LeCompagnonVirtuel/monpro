@@ -11,6 +11,7 @@ import { useBooking, useCreateBooking, useCancelBooking } from '@/hooks/use-book
 import { useQuotesForRequest } from '@/hooks/use-quotes';
 import { BookingStatus, CreateBookingPayload } from '@/api/bookings';
 import { formatCurrency, formatDate } from '@/lib/format';
+import { getErrorMessage } from '@/lib/api-errors';
 
 const STATUS_LABELS: Record<BookingStatus, { label: string; variant: 'success' | 'warning' | 'info' | 'error' }> = {
   PENDING: { label: 'En attente', variant: 'warning' },
@@ -89,7 +90,7 @@ export default function BookingDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message="Réservation introuvable" onRetry={refetch} />
+        <ErrorState message={getErrorMessage(bookingError, 'Réservation introuvable')} onRetry={refetch} />
       </SafeAreaView>
     );
   }

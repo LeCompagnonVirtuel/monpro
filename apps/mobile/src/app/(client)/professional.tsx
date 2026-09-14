@@ -8,6 +8,7 @@ import { radius } from '@/theme/radius';
 import { Text, Button, Card, Badge, Skeleton, Avatar } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useProfessional } from '@/hooks/use-professionals';
+import { getErrorMessage } from '@/lib/api-errors';
 import { useReviews } from '@/hooks/use-reviews';
 import { useIsFavorite, useAddFavorite, useRemoveFavorite } from '@/hooks/use-favorites';
 import { useCreateConversation } from '@/hooks/use-conversations';
@@ -58,7 +59,7 @@ export default function ProfessionalScreen() {
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </Pressable>
         </View>
-        <ErrorState message="Profil introuvable" onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, 'Profil introuvable')} onRetry={refetch} />
       </SafeAreaView>
     );
   }
