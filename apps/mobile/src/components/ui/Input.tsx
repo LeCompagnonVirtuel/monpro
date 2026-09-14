@@ -8,9 +8,12 @@ import { Text } from './Text';
 interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
+  helperText?: string;
 }
 
-export function Input({ label, error, style, ...props }: InputProps) {
+export function Input({ label, error, helperText, style, ...props }: InputProps) {
+  const isMultiline = props.multiline;
+
   return (
     <View style={styles.container}>
       {label && (
@@ -21,15 +24,21 @@ export function Input({ label, error, style, ...props }: InputProps) {
       <TextInput
         style={[
           styles.input,
+          isMultiline && styles.multiline,
           error ? styles.inputError : null,
           style,
         ]}
         placeholderTextColor={colors.textTertiary}
+        textAlignVertical={isMultiline ? 'top' : 'center'}
         {...props}
       />
-      {error && (
-        <Text variant="caption" color={colors.error} style={styles.error}>
-          {error}
+      {(error || helperText) && (
+        <Text
+          variant="caption"
+          color={error ? colors.error : colors.textTertiary}
+          style={styles.hint}
+        >
+          {error || helperText}
         </Text>
       )}
     </View>
@@ -53,10 +62,14 @@ const styles = StyleSheet.create({
     color: colors.text,
     backgroundColor: colors.surface,
   },
+  multiline: {
+    height: 120,
+    paddingTop: spacing.md,
+  },
   inputError: {
     borderColor: colors.error,
   },
-  error: {
+  hint: {
     marginTop: spacing.xs,
   },
 });
