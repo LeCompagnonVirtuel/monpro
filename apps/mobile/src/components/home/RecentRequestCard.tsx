@@ -32,7 +32,7 @@ export function RecentRequestCard({ request }: RecentRequestCardProps) {
 
   return (
     <Pressable
-      style={styles.card}
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       onPress={() => router.push({ pathname: '/(client)/request-detail', params: { id: request.id } })}
       accessibilityLabel={`${request.title}, ${config.label}`}
       accessibilityRole="button"
@@ -82,6 +82,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderLight,
     ...shadows.sm,
+  },
+  cardPressed: {
+    opacity: 0.85,
+    backgroundColor: colors.surfaceSecondary,
   },
   iconWrap: {
     width: 42,

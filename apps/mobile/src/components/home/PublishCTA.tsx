@@ -22,7 +22,7 @@ export function PublishCTA() {
         <View style={styles.content}>
           <View style={styles.iconRow}>
             <View style={styles.iconBadge}>
-              <Ionicons name="megaphone" size={20} color={colors.secondary} />
+              <Ionicons name="megaphone" size={18} color={colors.secondary} />
             </View>
           </View>
 
@@ -35,12 +35,12 @@ export function PublishCTA() {
           </Text>
 
           <Pressable
-            style={styles.ctaBtn}
+            style={({ pressed }) => [styles.ctaBtn, pressed && styles.ctaBtnPressed]}
             onPress={() => router.push('/(client)/create-request')}
             accessibilityLabel="Publier une demande"
             accessibilityRole="button"
           >
-            <Ionicons name="add-circle" size={22} color={colors.primary} />
+            <Ionicons name="add-circle" size={20} color={colors.primary} />
             <Text variant="bodyMedium" color={colors.primary} style={styles.ctaText}>
               Publier une demande
             </Text>
@@ -107,6 +107,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     marginTop: spacing.xs,
     ...shadows.md,
+  },
+  ctaBtnPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.98 }],
   },
   ctaText: {
     fontWeight: '700',

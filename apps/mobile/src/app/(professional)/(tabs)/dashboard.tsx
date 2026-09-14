@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { StyleSheet, View, ScrollView, Pressable, RefreshControl } from 'react-native';
+import { Alert, StyleSheet, View, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -86,7 +86,10 @@ export default function DashboardScreen() {
 
   const handleToggleAvailability = useCallback(() => {
     if (!profile) return;
-    updateProfile.mutate({ id: profile.id, isAvailable: !profile.isAvailable });
+    updateProfile.mutate(
+      { id: profile.id, isAvailable: !profile.isAvailable },
+      { onError: () => Alert.alert('Erreur', 'Impossible de changer votre disponibilité. Veuillez réessayer.') },
+    );
   }, [profile, updateProfile]);
 
   if (profileLoading) {

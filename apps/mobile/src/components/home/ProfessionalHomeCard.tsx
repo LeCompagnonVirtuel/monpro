@@ -36,7 +36,7 @@ export function ProfessionalHomeCard({ professional }: ProfessionalHomeCardProps
 
   return (
     <Pressable
-      style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]}
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       onPress={() => router.push({ pathname: '/(client)/professional', params: { id: professional.id } })}
       accessibilityLabel={`${fullName}, ${profession}${professional.isVerified ? ', vérifié' : ''}`}
       accessibilityRole="button"
@@ -50,12 +50,23 @@ export function ProfessionalHomeCard({ professional }: ProfessionalHomeCardProps
           />
         ) : (
           <View style={styles.photoPlaceholder}>
-            <Ionicons name="person" size={36} color={colors.textTertiary} />
+            <Ionicons name="person" size={32} color={colors.textTertiary} />
+          </View>
+        )}
+
+        <View style={styles.photoOverlay} />
+
+        {professional.isVerified && (
+          <View style={styles.verifiedBadge}>
+            <Ionicons name="checkmark-circle" size={12} color={colors.success} />
+            <Text variant="caption" color={colors.textInverse} style={styles.verifiedLabel}>
+              Vérifié
+            </Text>
           </View>
         )}
 
         <Pressable
-          style={[styles.favBtn, isFav && styles.favBtnActive]}
+          style={styles.favBtn}
           onPress={toggleFavorite}
           accessibilityLabel={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
           accessibilityRole="button"
@@ -69,23 +80,19 @@ export function ProfessionalHomeCard({ professional }: ProfessionalHomeCardProps
       </View>
 
       <View style={styles.info}>
-        {professional.averageRating != null && professional.averageRating > 0 && (
-          <View style={styles.ratingRow}>
-            <Ionicons name="star" size={12} color={colors.secondary} />
-            <Text variant="caption" style={styles.ratingValue}>
-              {professional.averageRating.toFixed(1)}
-            </Text>
-            {professional.totalReviews != null && professional.totalReviews > 0 && (
-              <Text variant="caption" color={colors.textTertiary}>
-                ({professional.totalReviews})
+        <View style={styles.nameRow}>
+          <Text variant="bodyMedium" numberOfLines={1} style={styles.name}>
+            {displayName}
+          </Text>
+          {professional.averageRating != null && professional.averageRating > 0 && (
+            <View style={styles.ratingBadge}>
+              <Ionicons name="star" size={10} color={colors.secondary} />
+              <Text variant="caption" style={styles.ratingValue}>
+                {professional.averageRating.toFixed(1)}
               </Text>
-            )}
-          </View>
-        )}
-
-        <Text variant="bodyMedium" numberOfLines={1} style={styles.name}>
-          {displayName}
-        </Text>
+            </View>
+          )}
+        </View>
 
         <Text variant="caption" color={colors.textSecondary} numberOfLines={1}>
           {profession}
@@ -99,15 +106,6 @@ export function ProfessionalHomeCard({ professional }: ProfessionalHomeCardProps
             </Text>
           </View>
         ) : null}
-
-        {professional.isVerified && (
-          <View style={styles.verifiedPill}>
-            <Ionicons name="checkmark-circle" size={12} color={colors.success} />
-            <Text variant="caption" color={colors.success} style={styles.verifiedLabel}>
-              Vérifié
-            </Text>
-          </View>
-        )}
       </View>
     </Pressable>
   );
@@ -123,9 +121,13 @@ const styles = StyleSheet.create({
     borderColor: colors.borderLight,
     ...shadows.md,
   },
+  cardPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.98 }],
+  },
   photoSection: {
     width: '100%',
-    height: 120,
+    height: 110,
     backgroundColor: colors.surfaceSecondary,
     overflow: 'hidden',
   },
@@ -138,6 +140,27 @@ const styles = StyleSheet.create({
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.surfaceSecondary,
+  },
+  photoOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+  },
+  verifiedBadge: {
+    position: 'absolute',
+    top: spacing.sm,
+    left: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xxs,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xxs,
+    borderRadius: radius.full,
+  },
+  verifiedLabel: {
+    fontSize: 10,
+    fontWeight: '700',
   },
   favBtn: {
     position: 'absolute',
@@ -146,29 +169,36 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  favBtnActive: {
-    backgroundColor: colors.errorLight,
   },
   info: {
     padding: spacing.md,
     gap: spacing.xxs,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
   name: {
     fontWeight: '700',
     letterSpacing: -0.2,
+    flex: 1,
   },
-  ratingRow: {
+  ratingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xxs,
+    gap: 2,
+    backgroundColor: colors.goldTintLight,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 2,
+    borderRadius: radius.full,
   },
   ratingValue: {
     fontWeight: '700',
-    fontSize: 13,
+    fontSize: 11,
     color: colors.text,
   },
   locationRow: {
@@ -176,20 +206,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xxs,
     marginTop: spacing.xxs,
-  },
-  verifiedPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: spacing.xxs,
-    backgroundColor: colors.successLight,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xxs,
-    borderRadius: radius.full,
-    marginTop: spacing.xs,
-  },
-  verifiedLabel: {
-    fontSize: 10,
-    fontWeight: '700',
   },
 });

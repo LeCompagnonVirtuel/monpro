@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
+import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
 import { Text } from '@/components/ui';
 import { CATEGORY_ICONS, CATEGORY_COLORS } from '@/constants/category-maps';
@@ -21,7 +22,7 @@ export function CategoryCircle({ name, isFirst, icon, onPress }: CategoryCircleP
 
   return (
     <Pressable
-      style={({ pressed }) => [styles.container, pressed && { opacity: 0.7 }]}
+      style={({ pressed }) => [styles.container, pressed && styles.containerPressed]}
       onPress={onPress}
       accessibilityLabel={name}
       accessibilityRole="button"
@@ -47,6 +48,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 70,
     gap: spacing.sm,
+  },
+  containerPressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.95 }],
   },
   circle: {
     width: 58,

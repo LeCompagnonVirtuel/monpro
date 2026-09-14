@@ -151,16 +151,9 @@ export default function OnboardingScreen() {
       return;
     }
 
-    const payload = {
-      businessName: businessName.trim(),
-      description: description.trim(),
-      experienceYears: Number(experienceYears),
-      serviceIds: selectedServices,
-    };
-
     const expYears = Math.max(0, Math.floor(Number(experienceYears) || 0));
 
-    // Build final zones: use existing zones array, add current form zone if valid and not duplicate
+    // Build final zones — sanitize null lat/lng to undefined so they are stripped from JSON
     const currentZone = zoneName.trim() ? {
       name: zoneName.trim(),
       latitude: zoneLatitude ?? undefined,
@@ -168,50 +161,59 @@ export default function OnboardingScreen() {
       radiusKm: Number(zoneRadiusKm) || 15,
     } : null;
 
-    let finalZones = [...zones];
+    let finalZones = zones.map((z) => ({
+      name: z.name,
+      latitude: z.latitude ?? undefined,
+      longitude: z.longitude ?? undefined,
+      radiusKm: z.radiusKm ?? 15,
+    }));
     if (currentZone) {
-      // Replace first zone or add if new
       if (finalZones.length > 0) {
         finalZones[0] = currentZone;
       } else {
         finalZones = [currentZone];
       }
-    } else if (finalZones.length === 0) {
-      finalZones = [];
     }
+
+    const profilePayload = {
+      businessName: businessName.trim(),
+      description: description.trim(),
+      experienceYears: expYears,
+      serviceIds: selectedServices,
+      zones: finalZones,
+    };
 
     try {
       if (profile) {
-        await updateProfile.mutateAsync({
-          id: profile.id,
-          businessName: businessName.trim(),
-          description: description.trim(),
-          experienceYears: expYears,
-          serviceIds: selectedServices,
-          zones: finalZones,
-        });
+        await updateProfile.mutateAsync({ id: profile.id, ...profilePayload });
       } else {
-        await createProfile.mutateAsync({
-          businessName: businessName.trim(),
-          description: description.trim(),
-          experienceYears: expYears,
-          serviceIds: selectedServices,
-          zones: finalZones,
-        });
+        await createProfile.mutateAsync(profilePayload);
       }
       router.replace('/(professional)/(tabs)/dashboard');
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { status?: number }; isAxiosError?: boolean };
+      const axiosErr = err as { response?: { status?: number; data?: { message?: string | string[] } }; isAxiosError?: boolean };
       let msg = "Impossible d'enregistrer votre profil professionnel. Veuillez réessayer.";
+
       if (axiosErr?.isAxiosError && !axiosErr?.response) {
-        msg = 'Vérifiez votre connexion et réessayez.';
+        msg = 'Vérifiez votre connexion internet et réessayez.';
+      } else if (axiosErr?.response?.status === 400) {
+        const raw = axiosErr.response.data?.message;
+        const detail = Array.isArray(raw) ? raw[0] : raw;
+        msg = detail
+          ? `Données invalides : ${detail}`
+          : 'Certaines données sont invalides. Vérifiez vos informations et réessayez.';
       } else if (axiosErr?.response?.status === 401) {
         msg = 'Votre session a expiré. Veuillez vous reconnecter.';
       } else if (axiosErr?.response?.status === 403) {
         msg = "Vous n'avez pas les droits pour modifier ce profil.";
+      } else if (axiosErr?.response?.status === 404) {
+        msg = 'Profil introuvable. Veuillez relancer l\'application.';
+      } else if (axiosErr?.response?.status === 409) {
+        msg = 'Un conflit a été détecté. Veuillez réessayer.';
       } else if (axiosErr?.response?.status && axiosErr.response.status >= 500) {
-        msg = 'Le service est temporairement indisponible. Réessayez dans quelques instants.';
+        msg = 'Le serveur rencontre un problème temporaire. Réessayez dans quelques instants.';
       }
+
       Alert.alert('Erreur', msg);
     }
   }, [isLastStep, step, businessName, description, experienceYears, selectedServices, zoneName, zoneLatitude, zoneLongitude, zoneRadiusKm, zones, profile, updateProfile, createProfile, animateTransition]);

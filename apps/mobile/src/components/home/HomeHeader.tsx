@@ -28,7 +28,7 @@ export function HomeHeader({ firstName, avatarUrl }: HomeHeaderProps) {
       imageStyle={styles.bgImage}
     >
       <LinearGradient
-        colors={[colors.primaryOverlayHeavy, 'rgba(7,31,73,0.82)', colors.primaryOverlayLight]}
+        colors={[colors.primaryOverlayHeavy, 'rgba(7,31,73,0.88)', colors.primaryOverlayLight]}
         style={styles.gradient}
       />
 
@@ -38,7 +38,7 @@ export function HomeHeader({ firstName, avatarUrl }: HomeHeaderProps) {
             Bonjour,
           </Text>
           <Text variant="h1" color={colors.textInverse} style={styles.nameLine}>
-            {firstName || 'Client'} 👋
+            {firstName || 'Client'}
           </Text>
         </View>
 
@@ -49,7 +49,7 @@ export function HomeHeader({ firstName, avatarUrl }: HomeHeaderProps) {
             accessibilityLabel={`Notifications${unreadCount ? `, ${unreadCount} non lues` : ''}`}
             accessibilityRole="button"
           >
-            <Ionicons name="notifications-outline" size={22} color={colors.textInverse} />
+            <Ionicons name="notifications-outline" size={20} color={colors.textInverse} />
             {(unreadCount ?? 0) > 0 && (
               <View style={styles.badge}>
                 <Text variant="caption" color={colors.textInverse} style={styles.badgeText}>
@@ -64,12 +64,12 @@ export function HomeHeader({ firstName, avatarUrl }: HomeHeaderProps) {
             accessibilityLabel="Mon profil"
             accessibilityRole="button"
           >
-            <Avatar uri={avatarUrl} name={firstName || 'C'} size={44} />
+            <Avatar uri={avatarUrl} name={firstName || 'C'} size={42} />
           </Pressable>
         </View>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(120).duration(400)} style={styles.heroBlock}>
+      <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.heroBlock}>
         <Text variant="body" color={colors.textInverseSoft} style={styles.heroText}>
           Trouvez le bon professionnel,
         </Text>
@@ -78,7 +78,7 @@ export function HomeHeader({ firstName, avatarUrl }: HomeHeaderProps) {
         </Text>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(250).duration(400)}>
+      <Animated.View entering={FadeInDown.delay(220).duration(400)}>
         <Pressable
           style={styles.searchBar}
           onPress={() => router.push('/(client)/(tabs)/search')}
@@ -95,7 +95,7 @@ export function HomeHeader({ firstName, avatarUrl }: HomeHeaderProps) {
         </Pressable>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(380).duration(400)} style={styles.signature}>
+      <Animated.View entering={FadeInDown.delay(340).duration(400)} style={styles.signature}>
         <Text variant="caption" color={colors.textInverseMuted} style={styles.signatureText}>
           Des services fiables pour un quotidien plus simple.
         </Text>
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   },
   bgImage: {
     resizeMode: 'cover',
-    opacity: 0.3,
+    opacity: 0.25,
   },
   gradient: {
     ...StyleSheet.absoluteFillObject,
@@ -142,14 +142,14 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   iconBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: colors.whiteOverlaySubtle,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: colors.whiteOverlaySubtle,
+    borderColor: colors.whiteOverlayLight,
   },
   badge: {
     position: 'absolute',
