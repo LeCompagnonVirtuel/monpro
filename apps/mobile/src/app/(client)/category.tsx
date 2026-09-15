@@ -10,6 +10,7 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { useCategory } from '@/hooks/use-categories';
 import { getErrorMessage } from '@/lib/api-errors';
+import { messages } from '@/constants/messages';
 
 interface ServiceItem {
   id: string;
@@ -47,7 +48,7 @@ export default function CategoryScreen() {
           ))}
         </View>
       ) : error ? (
-        <ErrorState message={getErrorMessage(error, 'Impossible de charger les services')} onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, messages.errors.loadCategory)} onRetry={refetch} />
       ) : sections.length === 0 ? (
         <EmptyState title="Aucun service" description="Cette catégorie ne contient pas encore de services." />
       ) : (

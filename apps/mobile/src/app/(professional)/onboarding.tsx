@@ -8,6 +8,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { colors } from '@/theme/colors';
+import { messages } from '@/constants/messages';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
@@ -214,7 +215,7 @@ export default function OnboardingScreen() {
         msg = 'Le serveur rencontre un problème temporaire. Réessayez dans quelques instants.';
       }
 
-      Alert.alert('Erreur', msg);
+      Alert.alert(messages.common.error, msg);
     }
   }, [isLastStep, step, businessName, description, experienceYears, selectedServices, zoneName, zoneLatitude, zoneLongitude, zoneRadiusKm, zones, profile, updateProfile, createProfile, animateTransition]);
 
@@ -524,7 +525,7 @@ export default function OnboardingScreen() {
                 )}
 
                 {!categoriesLoading && !categoriesError && categories && categories.length === 0 && (
-                  <EmptyState icon="folder-open-outline" title="Aucune catégorie disponible" description="Les catégories ne sont pas encore configurées." />
+                  <EmptyState icon="folder-open-outline" title={messages.empty.noCategories} description="Les catégories ne sont pas encore configurées." />
                 )}
 
                 {selectedCategoryId && servicesLoading && (
@@ -544,7 +545,7 @@ export default function OnboardingScreen() {
 
                 {selectedCategoryId && !servicesLoading && !servicesError && services && services.length === 0 && (
                   <View style={styles.emptyServices}>
-                    <Text variant="bodySmall" color={colors.textTertiary}>Aucun service dans cette catégorie.</Text>
+                    <Text variant="bodySmall" color={colors.textTertiary}>{messages.empty.noCategoryServices}</Text>
                   </View>
                 )}
 
@@ -619,7 +620,7 @@ export default function OnboardingScreen() {
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
         <Button
-          title={isMutating ? 'Envoi...' : isLastStep ? (profile ? 'Mettre à jour' : 'Créer mon profil') : 'Continuer'}
+          title={isMutating ? 'Envoi...' : isLastStep ? (profile ? messages.common.save : messages.auth.register.createAccount) : messages.common.continue}
           onPress={handleNext}
           disabled={!canProceed || isMutating}
           loading={isMutating}

@@ -15,6 +15,7 @@ import { useProfessionalReviews, useRespondToReview } from '@/hooks/use-professi
 import { getErrorMessage } from '@/lib/api-errors';
 import { Review } from '@/api/reviews';
 import { formatRelativeDate } from '@/lib/format';
+import { messages } from '@/constants/messages';
 
 export default function ReviewsScreen() {
   const insets = useSafeAreaInsets();
@@ -36,7 +37,7 @@ export default function ReviewsScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message={getErrorMessage(error, 'Impossible de charger les avis')} onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, messages.errors.loadReviews)} onRetry={refetch} />
       </SafeAreaView>
     );
   }
@@ -47,7 +48,7 @@ export default function ReviewsScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <EmptyState title="Aucun avis" description="Les avis de vos clients apparaîtront ici." icon="star-outline" />
+        <EmptyState title={messages.empty.noReviews} description="Les avis de vos clients apparaîtront ici." icon="star-outline" />
       </SafeAreaView>
     );
   }
@@ -160,7 +161,7 @@ function Header() {
       <Pressable onPress={() => router.back()} accessibilityLabel="Retour" accessibilityRole="button" style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
-      <Text variant="h3" style={styles.headerTitle}>Mes avis</Text>
+      <Text variant="h3" style={styles.headerTitle}>{messages.profile.myReviews}</Text>
       <View style={styles.backBtn} />
     </View>
   );

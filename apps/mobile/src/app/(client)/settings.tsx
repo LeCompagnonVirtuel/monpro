@@ -7,6 +7,7 @@ import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
 import { Text } from '@/components/ui';
+import { messages } from '@/constants/messages';
 import { useSettings, useUpdateSettings } from '@/hooks/use-settings';
 
 interface SettingRowProps {
@@ -72,7 +73,7 @@ export default function SettingsScreen() {
     try {
       await updateSettings.mutateAsync({ [key]: value });
     } catch {
-      Alert.alert('Erreur', 'Impossible de modifier le paramètre. Veuillez réessayer.');
+      Alert.alert(messages.common.error, messages.errors.updateSetting);
     }
   };
 
@@ -87,7 +88,7 @@ export default function SettingsScreen() {
               color={colors.text}
             />
           </Pressable>
-          <Text variant="h2" color={colors.text}>Paramètres</Text>
+          <Text variant="h2" color={colors.text}>{messages.settings.title}</Text>
         </View>
       </View>
 
@@ -170,20 +171,20 @@ export default function SettingsScreen() {
           <View style={styles.card}>
             <View style={aboutStyles.row}>
               <Ionicons name="information-circle-outline" size={20} color={colors.textSecondary} />
-              <Text variant="body" style={aboutStyles.label}>Version</Text>
+              <Text variant="body" style={aboutStyles.label}>{messages.settings.versionTitle}</Text>
               <Text variant="body" color={colors.textSecondary}>1.0.0</Text>
             </View>
             <View style={styles.separator} />
             <SettingRow
               icon="document-text-outline"
-              label="Conditions d'utilisation"
+              label={messages.settings.termsTitle}
               type="link"
               onPress={() => router.push('/(client)/terms')}
             />
             <View style={styles.separator} />
             <SettingRow
               icon="shield-checkmark-outline"
-              label="Politique de confidentialité"
+              label={messages.settings.privacyTitle}
               type="link"
               onPress={() => router.push('/(client)/privacy-policy')}
             />

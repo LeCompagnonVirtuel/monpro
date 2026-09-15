@@ -12,25 +12,26 @@ import { useQuotesForRequest } from '@/hooks/use-quotes';
 import { ServiceRequestStatus } from '@/api/requests';
 import { formatDate, formatCurrency } from '@/lib/format';
 import { getErrorMessage } from '@/lib/api-errors';
+import { messages } from '@/constants/messages';
 
 const STATUS_LABELS: Record<ServiceRequestStatus, { label: string; variant: 'success' | 'warning' | 'info' | 'error' }> = {
-  DRAFT: { label: 'Brouillon', variant: 'info' },
-  SUBMITTED: { label: 'Envoyée', variant: 'info' },
-  MATCHING: { label: 'Matching en cours', variant: 'warning' },
-  QUOTED: { label: 'Devis reçu', variant: 'info' },
-  ACCEPTED: { label: 'Acceptée', variant: 'success' },
-  SCHEDULED: { label: 'Planifiée', variant: 'info' },
-  IN_PROGRESS: { label: 'En cours', variant: 'warning' },
-  COMPLETED: { label: 'Terminée', variant: 'success' },
-  CANCELLED: { label: 'Annulée', variant: 'error' },
-  DISPUTED: { label: 'Litige', variant: 'error' },
+  DRAFT: { label: messages.status.draft, variant: 'info' },
+  SUBMITTED: { label: messages.status.sent, variant: 'info' },
+  MATCHING: { label: messages.status.matching, variant: 'warning' },
+  QUOTED: { label: messages.status.quoteReceived, variant: 'info' },
+  ACCEPTED: { label: messages.status.accepted, variant: 'success' },
+  SCHEDULED: { label: messages.status.planned, variant: 'info' },
+  IN_PROGRESS: { label: messages.status.inProgress, variant: 'warning' },
+  COMPLETED: { label: messages.status.completed, variant: 'success' },
+  CANCELLED: { label: messages.status.cancelled, variant: 'error' },
+  DISPUTED: { label: messages.status.dispute, variant: 'error' },
 };
 
 const URGENCY_LABELS: Record<string, string> = {
-  LOW: 'Faible',
-  NORMAL: 'Normale',
-  HIGH: 'Élevée',
-  URGENT: 'Urgente',
+  LOW: messages.urgency.low,
+  NORMAL: messages.urgency.normalF,
+  HIGH: messages.urgency.high,
+  URGENT: messages.urgency.urgentF,
 };
 
 const STATUS_ORDER: ServiceRequestStatus[] = [
@@ -78,10 +79,10 @@ export default function RequestDetailScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} accessibilityLabel="Retour" style={styles.backBtn}>
+        <Pressable onPress={() => router.back()} accessibilityLabel={messages.common.back} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </Pressable>
-        <Text variant="h3" numberOfLines={1} style={styles.headerTitle}>Détail</Text>
+        <Text variant="h3" numberOfLines={1} style={styles.headerTitle}>{messages.requests.detail}</Text>
         <View style={styles.backBtn} />
       </View>
 
@@ -98,24 +99,24 @@ export default function RequestDetailScreen() {
         <Divider />
 
         <View style={styles.detailSection}>
-          <DetailRow icon="construct-outline" label="Service" value={request.service?.name || '-'} />
-          <DetailRow icon="alert-circle-outline" label="Urgence" value={URGENCY_LABELS[request.urgency] || request.urgency} />
-          <DetailRow icon="calendar-outline" label="Créée le" value={formatDate(request.createdAt)} />
+          <DetailRow icon="construct-outline" label={messages.requests.detailLabels.service} value={request.service?.name || '-'} />
+          <DetailRow icon="alert-circle-outline" label={messages.requests.detailLabels.urgency} value={URGENCY_LABELS[request.urgency] || request.urgency} />
+          <DetailRow icon="calendar-outline" label={messages.requests.detailLabels.created} value={formatDate(request.createdAt)} />
           {request.preferredDate && (
-            <DetailRow icon="time-outline" label="Date souhaitée" value={request.preferredDate} />
+            <DetailRow icon="time-outline" label={messages.requests.detailLabels.desiredDate} value={request.preferredDate} />
           )}
           {request.preferredTimeStart && (
-            <DetailRow icon="time-outline" label="Horaire" value={`${request.preferredTimeStart} - ${request.preferredTimeEnd || ''}`} />
+            <DetailRow icon="time-outline" label={messages.requests.detailLabels.schedule} value={`${request.preferredTimeStart} - ${request.preferredTimeEnd || ''}`} />
           )}
           {request.address?.fullAddress && (
-            <DetailRow icon="location-outline" label="Adresse" value={request.address.fullAddress} />
+            <DetailRow icon="location-outline" label={messages.requests.detailLabels.address} value={request.address.fullAddress} />
           )}
         </View>
 
         <Divider />
 
         <View style={styles.descriptionSection}>
-          <Text variant="h3">Description</Text>
+          <Text variant="h3">{messages.requests.description}</Text>
           <Text variant="body" color={colors.textSecondary}>{request.description}</Text>
         </View>
 
@@ -124,13 +125,13 @@ export default function RequestDetailScreen() {
             <Divider />
             <View style={styles.quotesSection}>
               <View style={styles.quotesSectionHeader}>
-                <Text variant="h3">Devis reçus ({quotes.length})</Text>
+                <Text variant="h3">{messages.requests.quotesReceived.replace('{count}', String(quotes.length))}</Text>
                 {quotes.length > 1 && (
                   <Pressable
                     onPress={() => router.push({ pathname: '/(client)/quotes', params: { requestId: id } })}
                     accessibilityLabel="Voir tous les devis"
                   >
-                    <Text variant="bodySmall" color={colors.primary}>Comparer</Text>
+                    <Text variant="bodySmall" color={colors.primary}>{messages.requests.compare}</Text>
                   </Pressable>
                 )}
               </View>
@@ -144,7 +145,7 @@ export default function RequestDetailScreen() {
                 >
                   <View style={styles.quoteCardHeader}>
                     <Text variant="body" numberOfLines={1}>
-                      {quote.professional?.businessName || quote.professional?.user?.fullName || 'Professionnel'}
+                      {quote.professional?.businessName || quote.professional?.user?.fullName || messages.booking.professional}
                     </Text>
                     {quote.professional?.isVerified && (
                       <Ionicons name="checkmark-circle" size={16} color={colors.success} />
@@ -153,13 +154,13 @@ export default function RequestDetailScreen() {
                   <View style={styles.quoteCardBody}>
                     <Text variant="h3" color={colors.primary}>{formatCurrency(quote.totalAmount)}</Text>
                     <Badge
-                      label={quote.status === 'PENDING' ? 'En attente' : quote.status === 'ACCEPTED' ? 'Accepté' : quote.status === 'REJECTED' ? 'Refusé' : 'Expiré'}
+                      label={quote.status === 'PENDING' ? messages.requests.quoteStatus.pending : quote.status === 'ACCEPTED' ? messages.requests.quoteStatus.accepted : quote.status === 'REJECTED' ? messages.requests.quoteStatus.refused : messages.requests.quoteStatus.expired}
                       variant={quote.status === 'ACCEPTED' ? 'success' : quote.status === 'REJECTED' ? 'error' : 'info'}
                     />
                   </View>
                   {quote.estimatedDuration && (
                     <Text variant="bodySmall" color={colors.textSecondary}>
-                      Délai : {quote.estimatedDuration}
+                      {messages.booking.delay} : {quote.estimatedDuration}
                     </Text>
                   )}
                 </Pressable>
@@ -171,7 +172,7 @@ export default function RequestDetailScreen() {
         {pendingQuotes.length > 0 && (
           <View style={styles.actionsSection}>
             <Button
-              title={`Voir les ${pendingQuotes.length} devis`}
+              title={messages.requests.viewQuotes.replace('{count}', String(pendingQuotes.length))}
               onPress={() => router.push({ pathname: '/(client)/quotes', params: { requestId: id } })}
               size="lg"
             />

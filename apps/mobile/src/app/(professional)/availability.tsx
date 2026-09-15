@@ -12,6 +12,7 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { useMyProfessionalProfile } from '@/hooks/use-professional-profile';
 import { useProfessionalAvailability, useSetAvailability, AvailabilitySlot } from '@/hooks/use-professional-availability';
 import { getErrorMessage } from '@/lib/api-errors';
+import { messages } from '@/constants/messages';
 
 const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
@@ -85,8 +86,8 @@ export default function AvailabilityScreen() {
     );
     if (invalidSlot) {
       Alert.alert(
-        'Horaires invalides',
-        `Pour ${DAYS[invalidSlot.dayOfWeek]}, l'heure de fin doit être après l'heure de début.`,
+        messages.availability.invalidHoursTitle,
+        messages.availability.invalidHoursMessage.replace('{day}', DAYS[invalidSlot.dayOfWeek]),
       );
       return;
     }
@@ -94,9 +95,9 @@ export default function AvailabilityScreen() {
     try {
       await setAvailability.mutateAsync({ professionalId: profile.id, slots: localSlots });
       setHasChanges(false);
-      Alert.alert('Enregistré', 'Vos disponibilités ont été mises à jour.');
+      Alert.alert(messages.availability.savedTitle, messages.availability.savedMessage);
     } catch {
-      Alert.alert('Erreur', 'Impossible d\'enregistrer vos disponibilités. Veuillez réessayer.');
+      Alert.alert(messages.common.error, messages.errors.saveAvailability);
     }
   }, [profile, localSlots, setAvailability]);
 
@@ -127,7 +128,7 @@ export default function AvailabilityScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
         <ErrorState
-          message={getErrorMessage(slotsError, 'Impossible de charger vos disponibilités.')}
+          message={getErrorMessage(slotsError, messages.errors.loadAvailability)}
           onRetry={() => refetch()}
         />
       </SafeAreaView>
@@ -185,7 +186,7 @@ export default function AvailabilityScreen() {
       {hasChanges && (
         <View style={styles.footer}>
           <Button
-            title={setAvailability.isPending ? 'Enregistrement...' : 'Enregistrer les modifications'}
+            title={setAvailability.isPending ? messages.common.loading : messages.availability.save}
             onPress={handleSave}
             disabled={setAvailability.isPending}
             loading={setAvailability.isPending}
@@ -258,7 +259,7 @@ function Header() {
       >
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
-      <Text variant="h3" style={styles.headerTitle}>Disponibilités</Text>
+      <Text variant="h3" style={styles.headerTitle}>{messages.availability.title}</Text>
       <View style={styles.backBtn} />
     </View>
   );

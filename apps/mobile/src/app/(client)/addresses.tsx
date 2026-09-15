@@ -12,6 +12,7 @@ import { Text, Button, Skeleton } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useAddresses, useCreateAddress, useDeleteAddress, useSetDefaultAddress } from '@/hooks/use-addresses';
 import { getErrorMessage } from '@/lib/api-errors';
+import { messages } from '@/constants/messages';
 
 const QUICK_LABELS = ['Maison', 'Travail', 'Bureau'];
 
@@ -86,21 +87,21 @@ export default function AddressesScreen() {
       setLongitude(null);
       setGpsError(null);
     } catch {
-      Alert.alert('Erreur', "Impossible d'ajouter l'adresse.");
+      Alert.alert(messages.common.error, messages.errors.addAddress);
     }
   };
 
   const handleDelete = (id: string) => {
-    Alert.alert('Supprimer', 'Supprimer cette adresse ?', [
-      { text: 'Annuler', style: 'cancel' },
+    Alert.alert(messages.common.delete, 'Supprimer cette adresse ?', [
+      { text: messages.common.cancel, style: 'cancel' },
       {
-        text: 'Supprimer',
+        text: messages.common.delete,
         style: 'destructive',
         onPress: async () => {
           try {
             await deleteAddress.mutateAsync(id);
           } catch {
-            Alert.alert('Erreur', 'Impossible de supprimer.');
+            Alert.alert(messages.common.error, messages.errors.deleteAddress);
           }
         },
       },
@@ -111,7 +112,7 @@ export default function AddressesScreen() {
     try {
       await setDefault.mutateAsync(id);
     } catch {
-      Alert.alert('Erreur', 'Impossible de définir par défaut.');
+      Alert.alert(messages.common.error, 'Impossible de définir par défaut.');
     }
   };
 
@@ -215,7 +216,7 @@ export default function AddressesScreen() {
           />
           <View style={styles.formActions}>
             <Button
-              title="Annuler"
+              title={messages.common.cancel}
               onPress={() => { setShowForm(false); setLabel(''); setFullAddress(''); setLatitude(null); setLongitude(null); setGpsError(null); }}
               variant="outline"
               size="sm"
@@ -237,7 +238,7 @@ export default function AddressesScreen() {
               <Ionicons name="location-outline" size={56} color={colors.textTertiary} />
             </View>
             <Text variant="h3" color={colors.text} align="center">
-              Aucune adresse enregistrée
+              {messages.empty.noAddresses}
             </Text>
             <Text variant="body" color={colors.textSecondary} align="center" style={styles.emptyDescription}>
               Ajoutez vos adresses pour faciliter vos réservations de services.
@@ -296,14 +297,14 @@ function Header({ onAdd }: { onAdd: () => void }) {
   return (
     <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
       <View style={styles.headerRow}>
-        <Pressable onPress={() => router.back()} accessibilityLabel="Retour" accessibilityRole="button">
+        <Pressable onPress={() => router.back()} accessibilityLabel={messages.common.back} accessibilityRole="button">
           <Ionicons
             name="chevron-back"
             size={24}
             color={colors.text}
           />
         </Pressable>
-        <Text variant="h2" color={colors.text}>Adresses enregistrées</Text>
+        <Text variant="h2" color={colors.text}>{messages.profile.savedAddresses}</Text>
         <Pressable onPress={onAdd} style={styles.headerRight}>
           <Ionicons name="add" size={28} color={colors.secondary} />
         </Pressable>

@@ -10,6 +10,7 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { useService } from '@/hooks/use-services';
 import { getErrorMessage } from '@/lib/api-errors';
 import { useProfessionalMatch } from '@/hooks/use-professionals';
+import { messages } from '@/constants/messages';
 import { useLocation } from '@/hooks/use-location';
 import { Professional } from '@/api/professionals';
 
@@ -29,7 +30,7 @@ export default function ServiceScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} accessibilityLabel="Retour" style={styles.backBtn}>
+        <Pressable onPress={() => router.back()} accessibilityLabel={messages.common.back} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </Pressable>
         <Text variant="h2" numberOfLines={1} style={styles.title}>
@@ -69,7 +70,7 @@ export default function ServiceScreen() {
           ))}
         </View>
       ) : error ? (
-        <ErrorState message={getErrorMessage(error, 'Erreur de chargement')} onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, messages.errors.generic)} onRetry={refetch} />
       ) : !professionals?.length ? (
         <View style={styles.emptyBlock}>
           <Ionicons name="people-outline" size={48} color={colors.textTertiary} />
@@ -107,7 +108,7 @@ function ProfessionalRow({ professional }: { professional: Professional }) {
   return (
     <Pressable
       onPress={() => router.push({ pathname: '/(client)/professional', params: { id: professional.id } })}
-      accessibilityLabel={professional.user?.fullName || professional.businessName || 'Professionnel'}
+      accessibilityLabel={professional.user?.fullName || professional.businessName || messages.booking.professional}
     >
       <Card style={styles.proCard}>
         <View style={styles.proInfo}>
@@ -117,7 +118,7 @@ function ProfessionalRow({ professional }: { professional: Professional }) {
           <View style={styles.proDetails}>
             <View style={styles.proNameRow}>
               <Text variant="body" numberOfLines={1}>
-                {professional.user?.fullName || professional.businessName || 'Professionnel'}
+                {professional.user?.fullName || professional.businessName || messages.booking.professional}
               </Text>
               {professional.isVerified && (
                 <Ionicons name="checkmark-circle" size={16} color={colors.success} />

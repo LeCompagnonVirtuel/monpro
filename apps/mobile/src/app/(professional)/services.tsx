@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
+import { messages } from '@/constants/messages';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
@@ -27,7 +28,7 @@ export default function ServicesScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <ScreenHeader title="Mes services" />
+        <ScreenHeader title={messages.profile.myServices} />
         <View style={styles.skeletonContent}>
           <Skeleton width="40%" height={16} />
           {[1, 2, 3, 4].map((i) => (
@@ -47,9 +48,9 @@ export default function ServicesScreen() {
   if (isError) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <ScreenHeader title="Mes services" />
+        <ScreenHeader title={messages.profile.myServices} />
         <ErrorState
-          message={getErrorMessage(error, 'Impossible de charger vos services.')}
+          message={getErrorMessage(error, messages.errors.loadServices)}
           onRetry={() => refetch()}
         />
       </SafeAreaView>
@@ -61,12 +62,12 @@ export default function ServicesScreen() {
   if (services.length === 0) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <ScreenHeader title="Mes services" />
+        <ScreenHeader title={messages.profile.myServices} />
         <ScrollView contentContainerStyle={styles.emptyScroll} showsVerticalScrollIndicator={false}>
           <View style={styles.emptyBlock}>
             <Ionicons name="list-outline" size={56} color={colors.textTertiary} />
             <Text variant="h3" color={colors.textSecondary} align="center">
-              Aucun service configuré
+              {messages.empty.noServices}
             </Text>
             <Text variant="bodySmall" color={colors.textTertiary} align="center">
               Vos services apparaîtront ici une fois configurés dans votre profil professionnel.

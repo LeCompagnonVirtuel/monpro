@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
+import { messages } from '@/constants/messages';
 import { spacing } from '@/theme/spacing';
 import { Text, Skeleton } from '@/components/ui';
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -67,7 +68,7 @@ export default function ProfessionalNotificationsScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header hasUnread={false} onMarkAllRead={() => {}} />
-        <ErrorState message={getErrorMessage(error, 'Impossible de charger les notifications')} onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, messages.errors.loadNotifications)} onRetry={refetch} />
       </SafeAreaView>
     );
   }
@@ -76,7 +77,7 @@ export default function ProfessionalNotificationsScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header hasUnread={false} onMarkAllRead={() => {}} />
-        <EmptyState title="Aucune notification" icon="notifications-outline" />
+        <EmptyState title={messages.empty.noNotifications} icon="notifications-outline" />
       </SafeAreaView>
     );
   }
@@ -115,7 +116,7 @@ function Header({ hasUnread, onMarkAllRead }: { hasUnread: boolean; onMarkAllRea
       <Pressable onPress={() => router.back()} accessibilityLabel="Retour" accessibilityRole="button" style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
-      <Text variant="h3" style={styles.headerTitle}>Notifications</Text>
+      <Text variant="h3" style={styles.headerTitle}>{messages.profile.notifications}</Text>
       {hasUnread ? (
         <Pressable onPress={onMarkAllRead} accessibilityLabel="Tout marquer comme lu" style={styles.backBtn}>
           <Ionicons name="checkmark-done" size={22} color={colors.primary} />

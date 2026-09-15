@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
+import { messages } from '@/constants/messages';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
@@ -45,9 +46,9 @@ export default function CreateQuoteScreen() {
       'Confirmer le devis',
       `Montant total : ${formatCurrency(total)}\n\nVoulez-vous envoyer ce devis ?`,
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: messages.common.cancel, style: 'cancel' },
           {
-            text: 'Envoyer',
+            text: messages.common.send,
             onPress: async () => {
               const validUntil = parsedValidDays > 0
                 ? new Date(Date.now() + parsedValidDays * 86400000).toISOString()
@@ -66,8 +67,8 @@ export default function CreateQuoteScreen() {
               router.back();
             } catch {
               Alert.alert(
-                'Erreur',
-                'Impossible d\'envoyer votre devis. Veuillez vérifier les informations et réessayer.',
+                messages.common.error,
+                messages.errors.sendQuote,
               );
             }
           },
@@ -85,7 +86,7 @@ export default function CreateQuoteScreen() {
           <Text variant="body" color={colors.textSecondary} align="center">
             Demande indisponible. Impossible de créer un devis sans demande associée.
           </Text>
-          <Button title="Retour" onPress={() => router.back()} variant="outline" size="sm" />
+          <Button title={messages.common.back} onPress={() => router.back()} variant="outline" size="sm" />
         </View>
       </SafeAreaView>
     );

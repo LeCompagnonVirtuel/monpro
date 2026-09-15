@@ -11,6 +11,7 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { useQuotesForRequest } from '@/hooks/use-quotes';
 import { getErrorMessage } from '@/lib/api-errors';
 import { formatCurrency, formatDate, formatRelativeDate } from '@/lib/format';
+import { messages } from '@/constants/messages';
 
 const STATUS_CONFIG: Record<string, { color: string; label: string; icon: keyof typeof Ionicons.glyphMap; description: string }> = {
   PENDING: { color: colors.warning, label: 'En attente', icon: 'hourglass-outline', description: 'Le client examine votre devis.' },
@@ -40,7 +41,7 @@ export default function QuoteDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message={getErrorMessage(error, 'Impossible de charger le devis')} onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, messages.errors.loadQuotes)} onRetry={refetch} />
       </SafeAreaView>
     );
   }

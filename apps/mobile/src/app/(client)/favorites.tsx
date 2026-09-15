@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useFavorites, useRemoveFavorite } from '@/hooks/use-favorites';
 import { getErrorMessage } from '@/lib/api-errors';
+import { messages } from '@/constants/messages';
 import { Professional } from '@/api/professionals';
 
 export default function FavoritesScreen() {
@@ -39,7 +40,7 @@ export default function FavoritesScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <EmptyState title="Aucun favori" icon="heart-outline" description="Les professionnels que vous ajoutez en favoris apparaîtront ici." />
+        <EmptyState title={messages.empty.noFavorites} icon="heart-outline" description="Les professionnels que vous ajoutez en favoris apparaîtront ici." />
       </SafeAreaView>
     );
   }
@@ -69,17 +70,17 @@ export default function FavoritesScreen() {
 function Header() {
   return (
     <View style={styles.header}>
-      <Pressable onPress={() => router.back()} accessibilityLabel="Retour" style={styles.backBtn}>
+      <Pressable onPress={() => router.back()} accessibilityLabel={messages.common.back} style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
-      <Text variant="h3" style={styles.headerTitle}>Mes favoris</Text>
+      <Text variant="h3" style={styles.headerTitle}>{messages.profile.favorites}</Text>
       <View style={styles.backBtn} />
     </View>
   );
 }
 
 function FavoriteRow({ professional, onPress, onRemove }: { professional: Professional; onPress: () => void; onRemove: () => void }) {
-  const name = professional.user?.fullName || professional.businessName || 'Professionnel';
+  const name = professional.user?.fullName || professional.businessName || messages.booking.professional;
 
   return (
     <Pressable style={styles.row} onPress={onPress} accessibilityLabel={`Voir ${name}`}>

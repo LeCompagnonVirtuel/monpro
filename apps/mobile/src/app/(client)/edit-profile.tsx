@@ -10,6 +10,7 @@ import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
 import { Text, Input, Spinner } from '@/components/ui';
+import { messages } from '@/constants/messages';
 import { useMe } from '@/hooks/use-me';
 import { useUpdateProfile } from '@/hooks/use-update-profile';
 import { uploadsApi } from '@/api/uploads';
@@ -32,7 +33,7 @@ export default function EditProfileScreen() {
 
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission requise', "Veuillez autoriser l'accès à la galerie pour modifier votre photo.");
+      Alert.alert(messages.profile.permissionTitle, messages.profile.permissionMessage);
       return;
     }
 
@@ -55,7 +56,7 @@ export default function EditProfileScreen() {
       const { data: uploadResponse } = await uploadsApi.uploadImage({ uri, name, type }, 'avatars');
       await updateProfile.mutateAsync({ avatarUrl: uploadResponse.data.url });
     } catch {
-      Alert.alert('Erreur', 'Impossible de mettre à jour votre photo. Veuillez réessayer.');
+      Alert.alert(messages.common.error, messages.errors.uploadPhoto);
     } finally {
       setIsUploading(false);
     }
@@ -79,7 +80,7 @@ export default function EditProfileScreen() {
       await updateProfile.mutateAsync({ fullName: fullName.trim() });
       router.back();
     } catch {
-      Alert.alert('Erreur', 'Impossible de sauvegarder les modifications. Veuillez réessayer.');
+      Alert.alert(messages.common.error, messages.errors.updateProfile);
     }
   }, [fullName, validate, updateProfile]);
 
@@ -117,10 +118,10 @@ export default function EditProfileScreen() {
         <View style={styles.errorContent}>
           <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
           <Text variant="body" color={colors.textSecondary} align="center">
-            Impossible de charger votre profil.
+            {messages.errors.loadProfile}
           </Text>
           <Pressable style={styles.retryBtn} onPress={() => me.refetch()}>
-            <Text variant="buttonSmall" color={colors.primary}>Réessayer</Text>
+            <Text variant="buttonSmall" color={colors.primary}>{messages.common.retry}</Text>
           </Pressable>
         </View>
       </View>
@@ -153,7 +154,7 @@ export default function EditProfileScreen() {
                 style={styles.saveButton}
               >
                 <Text variant="body" color={colors.secondary}>
-                  Modifier
+                  {messages.common.edit}
                 </Text>
               </Pressable>
             )}
@@ -213,7 +214,7 @@ export default function EditProfileScreen() {
               />
               <View style={styles.verifiedBadge}>
                 <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-                <Text variant="caption" color={colors.success}>Vérifié</Text>
+                <Text variant="caption" color={colors.success}>{messages.common.verified}</Text>
               </View>
             </View>
 

@@ -8,6 +8,7 @@ import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { Text, Button, Divider, Skeleton } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
+import { messages } from '@/constants/messages';
 import { useBooking } from '@/hooks/use-bookings';
 import { getErrorMessage } from '@/lib/api-errors';
 import { useCreateReview, useHasReviewed } from '@/hooks/use-create-review';
@@ -50,7 +51,7 @@ export default function ReviewScreen() {
       });
       setSubmitted(true);
     } catch {
-      Alert.alert('Erreur', 'Impossible de publier votre avis. Veuillez réessayer.');
+      Alert.alert(messages.common.error, messages.errors.publishReview);
     }
   };
 

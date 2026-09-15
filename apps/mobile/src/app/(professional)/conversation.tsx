@@ -19,6 +19,7 @@ import { Message } from '@/api/messaging';
 import { uploadsApi } from '@/api/uploads';
 import { aiApi } from '@/api/ai';
 import { formatRelativeDate } from '@/lib/format';
+import { messages as msg } from '@/constants/messages';
 
 export default function ProfessionalConversationScreen() {
   const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
@@ -74,7 +75,7 @@ export default function ProfessionalConversationScreen() {
       await sendMessageMutation.mutateAsync({ conversationId, content: trimmed });
       setText('');
     } catch {
-      Alert.alert('Erreur', 'Message non envoyé. Réessayez.');
+      Alert.alert(msg.common.error, msg.errors.messageNotSent);
     } finally {
       setSending(false);
     }
@@ -106,7 +107,7 @@ export default function ProfessionalConversationScreen() {
       });
       setText('');
     } catch {
-      Alert.alert('Erreur', 'Image non envoyée. Réessayez.');
+      Alert.alert(msg.common.error, msg.errors.uploadPhotos);
     } finally {
       setUploadingImage(false);
     }
@@ -154,7 +155,7 @@ export default function ProfessionalConversationScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header name={other?.fullName} />
-        <ErrorState message={getErrorMessage(error, 'Impossible de charger les messages')} onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, msg.errors.loadConversations)} onRetry={refetch} />
       </SafeAreaView>
     );
   }
@@ -183,7 +184,7 @@ export default function ProfessionalConversationScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContent}>
               <Ionicons name="chatbubbles-outline" size={48} color={colors.textTertiary} />
-              <Text variant="body" color={colors.textTertiary}>Aucun message pour le moment</Text>
+              <Text variant="body" color={colors.textTertiary}>{msg.empty.noMessages}</Text>
             </View>
           }
           contentContainerStyle={styles.messagesContent}
@@ -224,7 +225,7 @@ export default function ProfessionalConversationScreen() {
             style={styles.input}
             value={text}
             onChangeText={handleTextChange}
-            placeholder="Écrire un message..."
+            placeholder={msg.search.messagePlaceholder}
             placeholderTextColor={colors.textTertiary}
             multiline
             maxLength={2000}

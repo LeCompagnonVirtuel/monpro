@@ -9,6 +9,7 @@ import { radius } from '@/theme/radius';
 import { Text, Button, Skeleton, Divider } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { EmptyState } from '@/components/feedback/EmptyState';
+import { messages } from '@/constants/messages';
 import { useIntervention, useConfirmIntervention } from '@/hooks/use-interventions';
 import { getErrorMessage } from '@/lib/api-errors';
 import { useBooking } from '@/hooks/use-bookings';
@@ -52,7 +53,7 @@ export default function InterventionScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message={getErrorMessage(error, "Impossible de charger l'intervention")} onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, messages.errors.loadIntervention)} onRetry={refetch} />
       </SafeAreaView>
     );
   }
@@ -174,7 +175,7 @@ export default function InterventionScreen() {
                   await confirmMutation.mutateAsync(bookingId);
                   refetch();
                 } catch {
-                  Alert.alert('Erreur', "Impossible de confirmer l'intervention. Veuillez réessayer.");
+                  Alert.alert(messages.common.error, "Impossible de confirmer l'intervention. Veuillez réessayer.");
                 }
               }}
               loading={confirmMutation.isPending}
@@ -187,12 +188,12 @@ export default function InterventionScreen() {
         {isConfirmed && (
           <View style={styles.actions}>
             <Button
-              title="Procéder au paiement"
+              title={messages.booking.pay}
               onPress={() => router.push({ pathname: '/(client)/payment', params: { bookingId } })}
               size="lg"
             />
             <Button
-              title="Laisser un avis"
+              title={messages.booking.review}
               onPress={() => router.push({ pathname: '/(client)/review', params: { bookingId } })}
               variant="outline"
               size="lg"
@@ -221,7 +222,7 @@ function Header() {
       <Pressable onPress={() => router.back()} accessibilityLabel="Retour" style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
-      <Text variant="h3" style={styles.headerTitle}>Intervention</Text>
+      <Text variant="h3" style={styles.headerTitle}>{messages.intervention.title}</Text>
       <View style={styles.backBtn} />
     </View>
   );

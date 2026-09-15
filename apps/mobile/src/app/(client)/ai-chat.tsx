@@ -13,9 +13,10 @@ import { shadows } from '@/theme/shadows';
 import { Text } from '@/components/ui';
 import { AiChatBubble, AiTypingIndicator } from '@/components/messages/AiChatBubble';
 import { useAiChat } from '@/hooks/use-ai-chat';
+import { messages } from '@/constants/messages';
 
 export default function AiChatScreen() {
-  const { messages, isLoading, error, sendMessage, sendImage } = useAiChat();
+  const { messages: chatMessages, isLoading, error, sendMessage, sendImage } = useAiChat();
   const [text, setText] = useState('');
   const [pickingImage, setPickingImage] = useState(false);
   const flatListRef = useRef<FlatList>(null);
@@ -79,7 +80,7 @@ export default function AiChatScreen() {
   }, [isLoading, pickingImage, sendImage]);
 
   const renderHeader = () => {
-    if (messages.length > 0) return null;
+    if (chatMessages.length > 0) return null;
     return (
       <Animated.View entering={FadeIn.duration(500)} style={styles.welcomeContainer}>
         <Animated.View entering={FadeInUp.delay(100).duration(400).springify()} style={styles.welcomeAvatar}>
@@ -90,7 +91,7 @@ export default function AiChatScreen() {
         </Animated.View>
         <Animated.View entering={FadeInUp.delay(300).duration(400)}>
           <Text variant="body" color={colors.textSecondary} align="center" style={styles.welcomeDesc}>
-            Je vous aide à trouver le bon professionnel, diagnostiquer un problème ou estimer un prix.
+            {messages.chat.subtitle}
           </Text>
         </Animated.View>
 
@@ -138,7 +139,7 @@ export default function AiChatScreen() {
           <View style={styles.headerAvatar}>
             <Ionicons name="sparkles" size={14} color={colors.primary} />
           </View>
-          <Text variant="h3">Assistant IA</Text>
+          <Text variant="h3">{messages.chat.title}</Text>
           <View style={styles.onlineDot} />
         </View>
         <View style={styles.backBtn} />
@@ -151,7 +152,7 @@ export default function AiChatScreen() {
       >
         <FlatList
           ref={flatListRef}
-          data={messages}
+          data={chatMessages}
           keyExtractor={(_, i) => `msg-${i}`}
           renderItem={({ item }) => <AiChatBubble message={item} />}
           ListHeaderComponent={renderHeader}
@@ -195,7 +196,7 @@ export default function AiChatScreen() {
             style={styles.input}
             value={text}
             onChangeText={setText}
-            placeholder="Posez votre question..."
+            placeholder={messages.chat.placeholder}
             placeholderTextColor={colors.textTertiary}
             multiline
             maxLength={1000}

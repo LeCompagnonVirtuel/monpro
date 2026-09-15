@@ -18,6 +18,7 @@ import { useCategories } from '@/hooks/use-categories';
 import { useProfessionals } from '@/hooks/use-professionals';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Professional } from '@/api/professionals';
+import { messages } from '@/constants/messages';
 
 type SortOption = 'rating' | 'reviews' | undefined;
 
@@ -91,7 +92,7 @@ export default function SearchScreen() {
 
       <View style={styles.categoriesSection}>
         <SectionHeader
-          title="Catégories populaires"
+          title={messages.search.popularCategories}
           onSeeAll={showAllCategories ? undefined : () => setShowAllCategories(true)}
         />
         {categories.isLoading ? (
@@ -172,9 +173,9 @@ export default function SearchScreen() {
           {renderHeader()}
           <View style={styles.emptyContainer}>
             <EmptyState
-              title="Erreur de chargement"
-              description="Impossible de charger les résultats. Veuillez réessayer."
-              action={{ label: 'Réessayer', onPress: () => professionals.refetch() }}
+              title={messages.errors.generic}
+              description={messages.errors.loadProfessionals}
+              action={{ label: messages.common.retry, onPress: () => professionals.refetch() }}
             />
           </View>
         </ScrollView>
@@ -187,7 +188,7 @@ export default function SearchScreen() {
           {renderHeader()}
           <View style={styles.emptyContainer}>
             <EmptyState
-              title="Aucun professionnel trouvé"
+              title={messages.empty.noResults}
               description={`Aucun résultat${resultsLabel ? ` pour "${resultsLabel}"` : ''}. Essayez une autre recherche ou catégorie.`}
             />
           </View>
@@ -236,10 +237,10 @@ export default function SearchScreen() {
             <View style={styles.modalHandle} />
 
             <View style={styles.modalHeader}>
-              <Text variant="h3">Filtres</Text>
+              <Text variant="h3">{messages.search.filters}</Text>
               <Pressable
                 onPress={() => setFilterVisible(false)}
-                accessibilityLabel="Fermer les filtres"
+                accessibilityLabel={messages.search.closeFilters}
                 accessibilityRole="button"
                 style={styles.modalClose}
               >
@@ -249,9 +250,9 @@ export default function SearchScreen() {
 
             <View style={styles.filterRow}>
               <View style={styles.filterInfo}>
-                <Text variant="body">Professionnels vérifiés</Text>
+                <Text variant="body">{messages.search.verifiedOnly}</Text>
                 <Text variant="caption" color={colors.textSecondary}>
-                  Afficher uniquement les profils certifiés
+                  {messages.search.verifiedDesc}
                 </Text>
               </View>
               <Switch
@@ -265,9 +266,9 @@ export default function SearchScreen() {
 
             <View style={styles.filterRow}>
               <View style={styles.filterInfo}>
-                <Text variant="body">Disponibles maintenant</Text>
+                <Text variant="body">{messages.search.availableNow}</Text>
                 <Text variant="caption" color={colors.textSecondary}>
-                  Afficher uniquement les professionnels disponibles
+                  {messages.search.availableDesc}
                 </Text>
               </View>
               <Switch
@@ -280,12 +281,12 @@ export default function SearchScreen() {
             </View>
 
             <View style={styles.sortSection}>
-              <Text variant="body" style={styles.sortSectionTitle}>Trier par</Text>
+              <Text variant="body" style={styles.sortSectionTitle}>{messages.search.sortBy}</Text>
               <View style={styles.sortOptions}>
                 {([
-                  { value: undefined, label: 'Par défaut' },
-                  { value: 'rating' as SortOption, label: 'Meilleure note' },
-                  { value: 'reviews' as SortOption, label: 'Plus d\'avis' },
+                  { value: undefined, label: messages.search.defaultSort },
+                  { value: 'rating' as SortOption, label: messages.search.bestRating },
+                  { value: 'reviews' as SortOption, label: messages.search.mostReviews },
                 ] as const).map((opt) => (
                   <Pressable
                     key={opt.label}
@@ -313,7 +314,7 @@ export default function SearchScreen() {
                 accessibilityLabel="Réinitialiser les filtres"
                 accessibilityRole="button"
               >
-                <Text variant="body" color={colors.textSecondary}>Réinitialiser</Text>
+                <Text variant="body" color={colors.textSecondary}>{messages.search.reset}</Text>
               </Pressable>
               <Pressable
                 style={styles.applyButton}
@@ -321,7 +322,7 @@ export default function SearchScreen() {
                 accessibilityLabel="Appliquer les filtres"
                 accessibilityRole="button"
               >
-                <Text variant="body" color={colors.textInverse}>Appliquer</Text>
+                <Text variant="body" color={colors.textInverse}>{messages.common.apply}</Text>
               </Pressable>
             </View>
           </Pressable>

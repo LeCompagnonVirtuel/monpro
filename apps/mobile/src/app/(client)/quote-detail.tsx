@@ -10,6 +10,7 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { useQuotesForRequest, useAcceptQuote, useRejectQuote } from '@/hooks/use-quotes';
 import { getErrorMessage } from '@/lib/api-errors';
 import { formatCurrency, formatDate } from '@/lib/format';
+import { messages } from '@/constants/messages';
 
 export default function QuoteDetailScreen() {
   const { quoteId, requestId } = useLocalSearchParams<{ quoteId: string; requestId: string }>();
@@ -41,14 +42,14 @@ export default function QuoteDetailScreen() {
     );
   }
 
-  const proName = quote.professional?.businessName || quote.professional?.user?.fullName || 'Professionnel';
+  const proName = quote.professional?.businessName || quote.professional?.user?.fullName || messages.booking.professional;
 
   const handleAccept = () => {
     Alert.alert(
-      'Accepter ce devis ?',
+      messages.quote.acceptTitle,
       `Vous allez accepter le devis de ${proName} pour ${formatCurrency(quote.totalAmount)}. Les autres devis seront automatiquement refusés.`,
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: messages.common.cancel, style: 'cancel' },
         {
           text: 'Accepter',
           onPress: async () => {
@@ -57,7 +58,7 @@ export default function QuoteDetailScreen() {
               const accepted = await acceptMutation.mutateAsync(quote.id);
               router.replace({ pathname: '/(client)/booking-detail', params: { quoteId: accepted.id, requestId } });
             } catch {
-              Alert.alert('Erreur', 'Impossible d\'accepter ce devis. Veuillez réessayer.');
+              Alert.alert(messages.common.error, messages.errors.acceptQuote);
             } finally {
               setActionInProgress(false);
             }
@@ -69,10 +70,10 @@ export default function QuoteDetailScreen() {
 
   const handleReject = () => {
     Alert.alert(
-      'Refuser ce devis ?',
-      'Cette action est irréversible.',
+      messages.quote.refuseTitle,
+      messages.quote.refuseMessage,
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: messages.common.cancel, style: 'cancel' },
         {
           text: 'Refuser',
           style: 'destructive',
@@ -82,7 +83,7 @@ export default function QuoteDetailScreen() {
               await rejectMutation.mutateAsync(quote.id);
               router.back();
             } catch {
-              Alert.alert('Erreur', 'Impossible de refuser ce devis. Veuillez réessayer.');
+              Alert.alert(messages.common.error, messages.errors.refuseQuote);
             } finally {
               setActionInProgress(false);
             }
@@ -115,7 +116,7 @@ export default function QuoteDetailScreen() {
             )}
           </View>
           <Badge
-            label={quote.status === 'PENDING' ? 'En attente' : quote.status === 'ACCEPTED' ? 'Accepté' : quote.status === 'REJECTED' ? 'Refusé' : 'Expiré'}
+            label={quote.status === 'PENDING' ? messages.requests.quoteStatus.pending : quote.status === 'ACCEPTED' ? messages.requests.quoteStatus.accepted : quote.status === 'REJECTED' ? messages.requests.quoteStatus.refused : messages.requests.quoteStatus.expired}
             variant={quote.status === 'ACCEPTED' ? 'success' : quote.status === 'REJECTED' ? 'error' : 'info'}
           />
         </View>
@@ -184,7 +185,7 @@ export default function QuoteDetailScreen() {
 function Header() {
   return (
     <View style={styles.header}>
-      <Pressable onPress={() => router.back()} accessibilityLabel="Retour" style={styles.backBtn}>
+      <Pressable onPress={() => router.back()} accessibilityLabel={messages.common.back} style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
       <Text variant="h3" style={styles.headerTitle}>Détail du devis</Text>

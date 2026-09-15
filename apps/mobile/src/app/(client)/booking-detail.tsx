@@ -176,24 +176,24 @@ export default function BookingDetailScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
           <View style={styles.confirmationBanner}>
             <Ionicons name="checkmark-circle" size={48} color={colors.success} />
-            <Text variant="h2" align="center">Devis accepté !</Text>
+            <Text variant="h2" align="center">{messages.booking.quoteAccepted}</Text>
             <Text variant="body" color={colors.textSecondary} align="center">
-              Créez maintenant une réservation avec ce professionnel.
+              {messages.booking.createPrompt}
             </Text>
           </View>
 
           <Divider />
 
           <View style={styles.detailSection}>
-            <DetailRow label="Professionnel" value={acceptedQuote.professional?.businessName || acceptedQuote.professional?.user?.fullName || '-'} />
-            <DetailRow label="Montant" value={formatCurrency(acceptedQuote.totalAmount)} />
+            <DetailRow label={messages.booking.professional} value={acceptedQuote.professional?.businessName || acceptedQuote.professional?.user?.fullName || '-'} />
+            <DetailRow label={messages.booking.amount} value={formatCurrency(acceptedQuote.totalAmount)} />
             {acceptedQuote.estimatedDuration && (
-              <DetailRow label="Délai" value={acceptedQuote.estimatedDuration} />
+              <DetailRow label={messages.booking.delay} value={acceptedQuote.estimatedDuration} />
             )}
           </View>
 
           <View style={styles.dateSection}>
-            <Text variant="bodyMedium" style={styles.dateSectionTitle}>Choisissez une date</Text>
+            <Text variant="bodyMedium" style={styles.dateSectionTitle}>{messages.booking.chooseDate}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dateChips}>
               {dateOptions.map((opt) => {
                 const isSelected = opt.date.toDateString() === selectedDate.toDateString();
@@ -215,7 +215,7 @@ export default function BookingDetailScreen() {
 
           <View style={styles.actions}>
             <Button
-              title="Créer la réservation"
+              title={messages.booking.create}
               onPress={() => handleCreateBooking()}
               loading={creating}
               disabled={creating}
@@ -245,7 +245,7 @@ export default function BookingDetailScreen() {
       const newBooking = await createBooking.mutateAsync(payload);
       router.replace({ pathname: '/(client)/booking-detail', params: { bookingId: newBooking.id } });
     } catch {
-      Alert.alert('Erreur', 'Impossible de créer la réservation. Vérifiez votre connexion.');
+      Alert.alert(messages.common.error, messages.quote.bookingError);
     } finally {
       setCreating(false);
     }
@@ -255,10 +255,10 @@ export default function BookingDetailScreen() {
 function Header() {
   return (
     <View style={styles.header}>
-      <Pressable onPress={() => router.back()} accessibilityLabel="Retour" style={styles.backBtn}>
+      <Pressable onPress={() => router.back()} accessibilityLabel={messages.common.back} style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
-      <Text variant="h3" style={styles.headerTitle}>Réservation</Text>
+      <Text variant="h3" style={styles.headerTitle}>{messages.booking.title}</Text>
       <View style={styles.backBtn} />
     </View>
   );

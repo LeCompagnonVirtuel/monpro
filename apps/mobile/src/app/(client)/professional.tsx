@@ -10,6 +10,7 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { useProfessional } from '@/hooks/use-professionals';
 import { getErrorMessage } from '@/lib/api-errors';
 import { useReviews } from '@/hooks/use-reviews';
+import { messages } from '@/constants/messages';
 import { useIsFavorite, useAddFavorite, useRemoveFavorite } from '@/hooks/use-favorites';
 import { useCreateConversation } from '@/hooks/use-conversations';
 import { Review } from '@/api/reviews';
@@ -64,12 +65,12 @@ export default function ProfessionalScreen() {
     );
   }
 
-  const proName = pro.user?.fullName || 'Professionnel';
+  const proName = pro.user?.fullName || messages.booking.professional;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} accessibilityLabel="Retour" style={styles.backBtn}>
+        <Pressable onPress={() => router.back()} accessibilityLabel={messages.common.back} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </Pressable>
         <View style={styles.headerRight}>
@@ -91,7 +92,7 @@ export default function ProfessionalScreen() {
             <Text variant="body" color={colors.textSecondary}>{pro.businessName}</Text>
           ) : null}
           <View style={styles.badgeRow}>
-            {pro.isVerified ? <Badge label="Vérifié" variant="success" /> : null}
+            {pro.isVerified ? <Badge label={messages.common.verified} variant="success" /> : null}
             {pro.isAvailable ? <Badge label="Disponible" variant="info" /> : null}
           </View>
           {pro.averageRating != null ? (
@@ -116,7 +117,7 @@ export default function ProfessionalScreen() {
           <View style={styles.infoRow}>
             <Ionicons name="briefcase-outline" size={18} color={colors.textSecondary} />
             <Text variant="body" color={colors.textSecondary}>
-              {pro.experienceYears} {pro.experienceYears > 1 ? "ans d'expérience" : "an d'expérience"}
+              {messages.profile.experience.replace('{years}', String(pro.experienceYears))}
             </Text>
           </View>
         ) : null}
@@ -145,7 +146,7 @@ export default function ProfessionalScreen() {
           {reviewsError ? (
             <View style={styles.emptyContainer}>
               <Ionicons name="alert-circle-outline" size={24} color={colors.error} />
-              <Text variant="bodySmall" color={colors.textSecondary}>Impossible de charger les avis</Text>
+              <Text variant="bodySmall" color={colors.textSecondary}>{messages.errors.loadReviews}</Text>
               <Pressable onPress={() => refetchReviews()} style={styles.retryBtn} accessibilityLabel="Réessayer">
                 <Text variant="caption" color={colors.primary}>Réessayer</Text>
               </Pressable>

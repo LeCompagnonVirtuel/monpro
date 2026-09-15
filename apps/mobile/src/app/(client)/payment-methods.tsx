@@ -7,6 +7,7 @@ import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
 import { Text } from '@/components/ui';
+import { messages } from '@/constants/messages';
 
 const PAYMENT_METHODS = [
   { id: 'orange', name: 'Orange Money', icon: 'phone-portrait-outline', color: '#FF6600', available: true },

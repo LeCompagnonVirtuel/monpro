@@ -11,6 +11,7 @@ import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead 
 import { getErrorMessage } from '@/lib/api-errors';
 import { Notification } from '@/api/notifications';
 import { formatRelativeDate } from '@/lib/format';
+import { messages } from '@/constants/messages';
 
 const TYPE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   NEW_MESSAGE: 'chatbubble-outline',
@@ -68,7 +69,7 @@ export default function NotificationsScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header hasUnread={false} onMarkAllRead={() => {}} />
-        <EmptyState title="Aucune notification" icon="notifications-outline" />
+        <EmptyState title={messages.empty.noNotifications} icon="notifications-outline" />
       </SafeAreaView>
     );
   }
@@ -104,10 +105,10 @@ export default function NotificationsScreen() {
 function Header({ hasUnread, onMarkAllRead }: { hasUnread: boolean; onMarkAllRead: () => void }) {
   return (
     <View style={styles.header}>
-      <Pressable onPress={() => router.back()} accessibilityLabel="Retour" style={styles.backBtn}>
+      <Pressable onPress={() => router.back()} accessibilityLabel={messages.common.back} style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
-      <Text variant="h3" style={styles.headerTitle}>Notifications</Text>
+      <Text variant="h3" style={styles.headerTitle}>{messages.profile.notifications}</Text>
       {hasUnread ? (
         <Pressable onPress={onMarkAllRead} accessibilityLabel="Tout marquer comme lu" style={styles.backBtn}>
           <Ionicons name="checkmark-done" size={22} color={colors.primary} />

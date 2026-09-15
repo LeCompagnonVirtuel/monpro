@@ -12,6 +12,7 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { useProfessionalWallet } from '@/hooks/use-professional-revenue';
 import { getErrorMessage } from '@/lib/api-errors';
 import { formatCurrency } from '@/lib/format';
+import { messages } from '@/constants/messages';
 
 export default function RevenueScreen() {
   const { data: wallet, isLoading, error, refetch, isRefetching } = useProfessionalWallet();
@@ -32,7 +33,7 @@ export default function RevenueScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message={getErrorMessage(error, 'Impossible de charger vos revenus')} onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, messages.errors.loadRevenues)} onRetry={refetch} />
       </SafeAreaView>
     );
   }
@@ -41,7 +42,7 @@ export default function RevenueScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <EmptyState title="Aucun revenu" description="Vos revenus apparaîtront après vos premières interventions." icon="wallet-outline" />
+        <EmptyState title={messages.empty.noRevenues} description="Vos revenus apparaîtront après vos premières interventions." icon="wallet-outline" />
       </SafeAreaView>
     );
   }
@@ -93,7 +94,7 @@ function Header() {
       <Pressable onPress={() => router.back()} accessibilityLabel="Retour" accessibilityRole="button" style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
-      <Text variant="h3" style={styles.headerTitle}>Mes revenus</Text>
+      <Text variant="h3" style={styles.headerTitle}>{messages.revenue.title}</Text>
       <View style={styles.backBtn} />
     </View>
   );

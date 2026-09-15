@@ -12,6 +12,7 @@ import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
 import { Text } from '@/components/ui';
 import { Skeleton } from '@/components/ui';
+import { messages } from '@/constants/messages';
 import { UrgencyLevel } from '@/api/requests';
 import { uploadsApi } from '@/api/uploads';
 import { aiApi, DiagnosisResult } from '@/api/ai';
@@ -762,7 +763,7 @@ export default function CreateRequestScreen() {
               {categories && categories.length === 0 && (
                 <View style={styles.inlineEmpty}>
                   <Ionicons name="file-tray-outline" size={24} color={colors.textTertiary} />
-                  <Text variant="bodySmall" color={colors.textTertiary}>Aucune catégorie disponible</Text>
+                  <Text variant="bodySmall" color={colors.textTertiary}>{messages.empty.noCategories}</Text>
                 </View>
               )}
 
@@ -815,7 +816,7 @@ export default function CreateRequestScreen() {
                 {services && services.length === 0 && (
                   <View style={styles.inlineEmpty}>
                     <Ionicons name="file-tray-outline" size={24} color={colors.textTertiary} />
-                    <Text variant="bodySmall" color={colors.textTertiary}>Aucun service dans cette catégorie</Text>
+                    <Text variant="bodySmall" color={colors.textTertiary}>{messages.empty.noCategoryServices}</Text>
                   </View>
                 )}
 
@@ -1347,7 +1348,7 @@ export default function CreateRequestScreen() {
           onPress={currentStep === STEPS.length - 1 ? handleSubmit : goNext}
           disabled={!canProceed() || isSubmitting}
           accessibilityRole="button"
-          accessibilityLabel={currentStep === STEPS.length - 1 ? 'Confirmer et publier' : 'Continuer'}
+          accessibilityLabel={currentStep === STEPS.length - 1 ? 'Confirmer et publier' : messages.common.continue}
           accessibilityState={{ disabled: !canProceed() || isSubmitting }}
         >
           {isSubmitting ? (
@@ -1355,7 +1356,7 @@ export default function CreateRequestScreen() {
           ) : (
             <>
               <Text variant="button" color={colors.textInverse}>
-                {currentStep === STEPS.length - 1 ? 'Confirmer et publier' : 'Continuer'}
+                {currentStep === STEPS.length - 1 ? 'Confirmer et publier' : messages.common.continue}
               </Text>
               <Ionicons
                 name={currentStep === STEPS.length - 1 ? 'checkmark' : 'arrow-forward'}

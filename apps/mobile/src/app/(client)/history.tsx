@@ -10,6 +10,7 @@ import { shadows } from '@/theme/shadows';
 import { Text, Skeleton } from '@/components/ui';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
+import { messages } from '@/constants/messages';
 import { useServiceRequests } from '@/hooks/use-service-requests';
 import { getErrorMessage } from '@/lib/api-errors';
 import { formatDate } from '@/lib/format';
@@ -109,7 +110,7 @@ export default function HistoryScreen() {
       >
         {requests.length === 0 ? (
           <EmptyState
-            title="Aucun historique"
+            title={messages.empty.noHistory}
             description="Vos demandes de service apparaîtront ici."
             icon="time-outline"
           />

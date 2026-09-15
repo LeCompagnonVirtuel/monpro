@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
 import { colors } from '@/theme/colors';
+import { messages } from '@/constants/messages';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
@@ -163,7 +164,7 @@ export default function KycScreen() {
       });
       setStep(totalSteps - 1);
     } catch {
-      Alert.alert('Erreur', 'Impossible de soumettre vos documents. Veuillez réessayer.');
+      Alert.alert(messages.common.error, messages.errors.submitKYC);
     } finally {
       setUploading(false);
       setSubmitting(false);
@@ -508,7 +509,7 @@ export default function KycScreen() {
       {currentStepKey !== 'success' && (
         <View style={styles.footer}>
           <Button
-            title={currentStepKey === 'review' ? 'Soumettre mon dossier' : 'Continuer'}
+            title={currentStepKey === 'review' ? 'Soumettre mon dossier' : messages.common.continue}
             onPress={handleNext}
             disabled={!canProceed || submitting}
             loading={submitting}
@@ -527,7 +528,7 @@ export default function KycScreen() {
           <View style={styles.loadingCard}>
             <ActivityIndicator size="large" color={colors.primary} />
             <Text variant="body" color={colors.text} style={styles.loadingText}>
-              Upload en cours...
+              {messages.intervention.uploading}
             </Text>
           </View>
         </View>

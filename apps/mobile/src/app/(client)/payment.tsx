@@ -7,6 +7,7 @@ import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { Text, Button, Skeleton, Divider, Badge } from '@/components/ui';
+import { messages } from '@/constants/messages';
 import { useBooking } from '@/hooks/use-bookings';
 import { usePaymentForBooking, useInitiatePayment } from '@/hooks/use-payments';
 import { PaymentProvider, PaymentStatus } from '@/api/payments';
@@ -82,7 +83,7 @@ export default function PaymentScreen() {
     if (!selectedProvider || !bookingId) return;
 
     if (!phoneNumber || !/^\d{10}$/.test(phoneNumber.replace(/\s/g, ''))) {
-      Alert.alert('Erreur', 'Veuillez entrer un numéro de téléphone valide à 10 chiffres (ex: 0707070707).');
+      Alert.alert(messages.common.error, 'Veuillez entrer un numéro de téléphone valide à 10 chiffres (ex: 0707070707).');
       return;
     }
 
@@ -94,7 +95,7 @@ export default function PaymentScreen() {
       });
       refetchPayment();
     } catch {
-      Alert.alert('Erreur', "Impossible d'initier le paiement.");
+      Alert.alert(messages.common.error, messages.errors.initiatePayment);
     }
   };
 
@@ -147,7 +148,7 @@ export default function PaymentScreen() {
           {existingPayment.status === 'COMPLETED' && (
             <View style={styles.actions}>
               <Button
-                title="Laisser un avis"
+                title={messages.booking.review}
                 onPress={() => router.replace({ pathname: '/(client)/review', params: { bookingId } })}
                 size="lg"
               />
@@ -166,7 +167,7 @@ export default function PaymentScreen() {
                 Le paiement a échoué. Vous pouvez réessayer.
               </Text>
               <Button
-                title="Réessayer"
+                title={messages.common.retry}
                 onPress={() => router.replace({ pathname: '/(client)/payment', params: { bookingId } })}
                 size="lg"
               />

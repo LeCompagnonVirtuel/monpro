@@ -13,6 +13,7 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { useAuthStore } from '@/stores/auth.store';
 import { useMyProfessionalProfile, useUpdateProfessionalProfile } from '@/hooks/use-professional-profile';
 import { getErrorMessage } from '@/lib/api-errors';
+import { messages } from '@/constants/messages';
 
 const APP_VERSION = Constants.expoConfig?.version || '1.0.0';
 
@@ -27,16 +28,16 @@ export default function SettingsScreen() {
   };
 
   const handleLogout = () => {
-    Alert.alert('Déconnexion', 'Voulez-vous vraiment vous déconnecter ?', [
-      { text: 'Annuler', style: 'cancel' },
-      { text: 'Déconnexion', style: 'destructive', onPress: () => logout() },
+    Alert.alert(messages.settings.logout, messages.settings.logoutConfirm, [
+      { text: messages.common.cancel, style: 'cancel' },
+      { text: messages.settings.logout, style: 'destructive', onPress: () => logout() },
     ]);
   };
 
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <ScreenHeader title="Paramètres" />
+        <ScreenHeader title={messages.settings.title} />
         <View style={styles.skeletonContent}>
           <Skeleton width="30%" height={16} />
           <View style={styles.skeletonCard}>
@@ -66,9 +67,9 @@ export default function SettingsScreen() {
   if (isError) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <ScreenHeader title="Paramètres" />
+        <ScreenHeader title={messages.settings.title} />
         <ErrorState
-          message={getErrorMessage(error, 'Impossible de charger vos paramètres.')}
+          message={getErrorMessage(error, messages.errors.updateSetting)}
           onRetry={() => refetch()}
         />
       </SafeAreaView>
@@ -77,7 +78,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScreenHeader title="Paramètres" />
+      <ScreenHeader title={messages.settings.title} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
         {profile && (
           <View style={styles.section}>
@@ -113,19 +114,19 @@ export default function SettingsScreen() {
           <View style={styles.card}>
             <MenuItem
               icon="person-outline"
-              label="Modifier mon profil"
+              label={messages.profile.edit}
               onPress={() => router.push('/(professional)/onboarding')}
             />
             <View style={styles.divider} />
             <MenuItem
               icon="list-outline"
-              label="Mes services"
+              label={messages.profile.myServices}
               onPress={() => router.push('/(professional)/services')}
             />
             <View style={styles.divider} />
             <MenuItem
               icon="time-outline"
-              label="Disponibilités"
+              label={messages.profile.myAvailability}
               onPress={() => router.push('/(professional)/availability')}
             />
           </View>
@@ -138,7 +139,7 @@ export default function SettingsScreen() {
           <View style={styles.card}>
             <MenuItem
               icon="notifications-outline"
-              label="Mes notifications"
+              label={messages.profile.notifications}
               onPress={() => router.push('/(professional)/notifications')}
             />
           </View>
@@ -151,13 +152,13 @@ export default function SettingsScreen() {
           <View style={styles.card}>
             <MenuItem
               icon="document-text-outline"
-              label="Conditions d'utilisation"
+              label={messages.settings.termsTitle}
               onPress={() => router.push('/(professional)/terms')}
             />
             <View style={styles.divider} />
             <MenuItem
               icon="shield-checkmark-outline"
-              label="Politique de confidentialité"
+              label={messages.settings.privacyTitle}
               onPress={() => router.push('/(professional)/privacy-policy')}
             />
           </View>
@@ -175,7 +176,7 @@ export default function SettingsScreen() {
               accessibilityRole="button"
             >
               <Ionicons name="log-out-outline" size={20} color={colors.error} />
-              <Text variant="body" color={colors.error} style={styles.menuLabel}>Déconnexion</Text>
+              <Text variant="body" color={colors.error} style={styles.menuLabel}>{messages.settings.logout}</Text>
             </Pressable>
           </View>
         </View>
