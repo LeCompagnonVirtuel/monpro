@@ -71,7 +71,7 @@ export default function ProfessionalRequestDetailScreen() {
           <Text variant="h2">{request.title}</Text>
           <View style={styles.serviceRow}>
             <Ionicons name="briefcase-outline" size={16} color={colors.primary} />
-            <Text variant="bodyMedium" color={colors.primary}>{request.service?.name || 'Service'}</Text>
+            <Text variant="bodyMedium" color={colors.primary}>{request.service?.name || messages.requests.detailLabels.service}</Text>
           </View>
         </View>
 
@@ -91,7 +91,7 @@ export default function ProfessionalRequestDetailScreen() {
         {/* Description */}
         {request.description && (
           <View style={styles.section}>
-            <Text variant="caption" color={colors.textSecondary}>DESCRIPTION</Text>
+            <Text variant="caption" color={colors.textSecondary}>{messages.requests.detailLabels.description}</Text>
             <Text variant="body">{request.description}</Text>
           </View>
         )}
@@ -159,7 +159,7 @@ export default function ProfessionalRequestDetailScreen() {
 function Header() {
   return (
     <View style={styles.header}>
-      <Pressable onPress={() => router.back()} accessibilityLabel="Retour" accessibilityRole="button" style={styles.backBtn}>
+      <Pressable onPress={() => router.back()} accessibilityLabel={messages.common.back} accessibilityRole="button" style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
       <Text variant="h3" style={styles.headerTitle}>{messages.requests.title}</Text>

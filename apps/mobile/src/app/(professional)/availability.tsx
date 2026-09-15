@@ -240,7 +240,7 @@ export default function AvailabilityScreen() {
               </View>
             </View>
 
-            <Button title="Confirmer" onPress={confirmTimePicker} />
+            <Button title={messages.common.confirm} onPress={confirmTimePicker} />
           </Pressable>
         </Pressable>
       </Modal>

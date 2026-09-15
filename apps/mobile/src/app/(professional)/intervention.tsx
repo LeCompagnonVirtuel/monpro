@@ -301,7 +301,7 @@ export default function ProfessionalInterventionScreen() {
 function Header() {
   return (
     <View style={styles.header}>
-      <Pressable onPress={() => router.back()} accessibilityLabel="Retour" accessibilityRole="button" style={styles.backBtn}>
+      <Pressable onPress={() => router.back()} accessibilityLabel={messages.common.back} accessibilityRole="button" style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
       <Text variant="h3" style={styles.headerTitle}>{messages.intervention.title}</Text>

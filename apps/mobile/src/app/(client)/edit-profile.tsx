@@ -65,7 +65,7 @@ export default function EditProfileScreen() {
   const validate = useCallback(() => {
     let valid = true;
     if (!fullName.trim()) {
-      setFullNameError('Le nom complet est requis');
+      setFullNameError(messages.profile.fullNameRequired);
       valid = false;
     } else {
       setFullNameError('');
@@ -88,7 +88,7 @@ export default function EditProfileScreen() {
     return (
       <View style={styles.container}>
         <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
-          <Text variant="h2" color={colors.text}>Modifier le profil</Text>
+          <Text variant="h2" color={colors.text}>{messages.profile.editProfile}</Text>
         </View>
         <View style={styles.loadingContent}>
           <View style={styles.avatarSkeleton} />
@@ -106,12 +106,12 @@ export default function EditProfileScreen() {
           <View style={styles.headerRow}>
             <Pressable
               onPress={() => router.back()}
-              accessibilityLabel="Retour"
+              accessibilityLabel={messages.common.back}
               accessibilityRole="button"
             >
               <Ionicons name="chevron-back" size={24} color={colors.text} />
             </Pressable>
-            <Text variant="h2" color={colors.text}>Modifier le profil</Text>
+            <Text variant="h2" color={colors.text}>{messages.profile.editProfile}</Text>
             <View style={styles.headerRight} />
           </View>
         </View>
@@ -135,21 +135,21 @@ export default function EditProfileScreen() {
     >
       <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <View style={styles.headerRow}>
-          <Pressable
-            onPress={() => router.back()}
-            accessibilityLabel="Retour"
-            accessibilityRole="button"
-          >
-            <Ionicons name="chevron-back" size={24} color={colors.text} />
-          </Pressable>
-          <Text variant="h2" color={colors.text}>Modifier le profil</Text>
+            <Pressable
+              onPress={() => router.back()}
+              accessibilityLabel={messages.common.back}
+              accessibilityRole="button"
+            >
+              <Ionicons name="chevron-back" size={24} color={colors.text} />
+            </Pressable>
+            <Text variant="h2" color={colors.text}>{messages.profile.editProfile}</Text>
           <View style={styles.headerRight}>
             {isSaving ? (
               <Spinner size="small" color={colors.secondary} />
             ) : (
               <Pressable
                 onPress={handleSave}
-                accessibilityLabel="Sauvegarder les modifications"
+                accessibilityLabel={messages.common.save}
                 accessibilityRole="button"
                 style={styles.saveButton}
               >
@@ -189,7 +189,7 @@ export default function EditProfileScreen() {
             accessibilityRole="button"
           >
             <Text variant="bodySmall" color={colors.textSecondary} style={styles.changePhotoLink}>
-              Modifier la photo
+              {messages.profile.changePhoto}
             </Text>
           </Pressable>
         </View>
@@ -197,17 +197,17 @@ export default function EditProfileScreen() {
         <View style={styles.formSection}>
           <View style={styles.card}>
             <Input
-              label="Nom complet"
+              label={messages.profile.fullName}
               value={fullName}
               onChangeText={setFullName}
-              placeholder="Votre nom complet"
+              placeholder={messages.profile.fullNamePlaceholder}
               error={fullNameError}
               autoCapitalize="words"
             />
 
             <View style={styles.phoneRow}>
               <Input
-                label="Téléphone"
+                label={messages.profile.phone}
                 value={user?.phone || ''}
                 editable={false}
                 style={styles.phoneInput}
@@ -219,10 +219,10 @@ export default function EditProfileScreen() {
             </View>
 
             <Input
-              label="Ville"
+              label={messages.profile.city}
               value={city}
               editable={false}
-              placeholder="Non renseignée"
+              placeholder={messages.profile.cityPlaceholder}
               style={styles.phoneInput}
             />
           </View>

@@ -81,7 +81,7 @@ export default function SettingsScreen() {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <View style={styles.headerRow}>
-          <Pressable onPress={() => router.back()} accessibilityLabel="Retour" accessibilityRole="button">
+          <Pressable onPress={() => router.back()} accessibilityLabel={messages.common.back} accessibilityRole="button">
             <Ionicons
               name="chevron-back"
               size={24}
@@ -98,19 +98,19 @@ export default function SettingsScreen() {
       >
         <View style={styles.section}>
           <Text variant="bodySmall" color={colors.textSecondary} style={styles.sectionTitle}>
-            Compte
+            {messages.settings.sectionAccount}
           </Text>
           <View style={styles.card}>
             <SettingRow
               icon="wallet-outline"
-              label="Moyens de paiement"
+              label={messages.settings.paymentMethods}
               type="link"
               onPress={() => router.push('/(client)/payment-methods')}
             />
             <View style={styles.separator} />
             <SettingRow
               icon="time-outline"
-              label="Historique"
+              label={messages.settings.history}
               type="link"
               onPress={() => router.push('/(client)/history')}
             />
@@ -119,54 +119,54 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text variant="bodySmall" color={colors.textSecondary} style={styles.sectionTitle}>
-            Notifications
+            {messages.settings.sectionNotifications}
           </Text>
           <View style={styles.card}>
             <SettingRow
               icon="notifications-outline"
-              label="Notifications push"
+              label={messages.settings.pushNotifications}
               type="toggle"
               value={settings?.pushEnabled ?? true}
               onValueChange={(v) => handleToggle('pushEnabled', v)}
-              accessibilityLabel="Notifications push"
+              accessibilityLabel={messages.settings.accessibilityPushNotifications}
             />
           </View>
           <Text variant="caption" color={colors.textTertiary} style={styles.settingNote}>
-            Active ou désactive les notifications sur cet appareil.
+            {messages.settings.pushNotificationsDesc}
           </Text>
         </View>
 
         <View style={styles.section}>
           <Text variant="bodySmall" color={colors.textSecondary} style={styles.sectionTitle}>
-            Préférences locales
+            {messages.settings.sectionPreferences}
           </Text>
           <View style={styles.card}>
             <SettingRow
               icon="eye-outline"
-              label="Profil visible"
+              label={messages.settings.profileVisible}
               type="toggle"
               value={settings?.profileVisible ?? true}
               onValueChange={(v) => handleToggle('profileVisible', v)}
-              accessibilityLabel="Profil visible"
+              accessibilityLabel={messages.settings.accessibilityProfileVisible}
             />
             <View style={styles.separator} />
             <SettingRow
               icon="map-outline"
-              label="Données de localisation"
+              label={messages.settings.locationData}
               type="toggle"
               value={settings?.locationEnabled ?? true}
               onValueChange={(v) => handleToggle('locationEnabled', v)}
-              accessibilityLabel="Localisation"
+              accessibilityLabel={messages.settings.accessibilityLocation}
             />
           </View>
           <Text variant="caption" color={colors.textTertiary} style={styles.settingNote}>
-            Préférences enregistrées sur cet appareil uniquement.
+            {messages.settings.profileVisibleDesc}
           </Text>
         </View>
 
         <View style={styles.section}>
           <Text variant="bodySmall" color={colors.textSecondary} style={styles.sectionTitle}>
-            À propos
+            {messages.settings.sectionAbout}
           </Text>
           <View style={styles.card}>
             <View style={aboutStyles.row}>

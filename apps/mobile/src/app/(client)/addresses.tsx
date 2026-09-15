@@ -70,7 +70,7 @@ export default function AddressesScreen() {
 
   const handleCreate = async () => {
     if (!fullAddress.trim()) {
-      Alert.alert('Erreur', 'Veuillez entrer une adresse ou utiliser votre position.');
+      Alert.alert(messages.common.error, 'Veuillez entrer une adresse ou utiliser votre position.');
       return;
     }
     try {
@@ -92,7 +92,7 @@ export default function AddressesScreen() {
   };
 
   const handleDelete = (id: string) => {
-    Alert.alert(messages.common.delete, 'Supprimer cette adresse ?', [
+      Alert.alert(messages.common.delete, 'Supprimer cette adresse ?', [
       { text: messages.common.cancel, style: 'cancel' },
       {
         text: messages.common.delete,

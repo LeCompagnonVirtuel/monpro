@@ -14,10 +14,10 @@ import { formatCurrency, formatDate, formatRelativeDate } from '@/lib/format';
 import { messages } from '@/constants/messages';
 
 const STATUS_CONFIG: Record<string, { color: string; label: string; icon: keyof typeof Ionicons.glyphMap; description: string }> = {
-  PENDING: { color: colors.warning, label: 'En attente', icon: 'hourglass-outline', description: 'Le client examine votre devis.' },
-  ACCEPTED: { color: colors.success, label: 'Accepté', icon: 'checkmark-circle-outline', description: 'Le client a accepté votre devis.' },
-  REJECTED: { color: colors.error, label: 'Refusé', icon: 'close-circle-outline', description: 'Le client a refusé votre devis.' },
-  EXPIRED: { color: colors.textTertiary, label: 'Expiré', icon: 'time-outline', description: 'Ce devis a expiré.' },
+  PENDING: { color: colors.warning, label: messages.requests.quoteStatus.pending, icon: 'hourglass-outline', description: 'Le client examine votre devis.' },
+  ACCEPTED: { color: colors.success, label: messages.requests.quoteStatus.accepted, icon: 'checkmark-circle-outline', description: 'Le client a accepté votre devis.' },
+  REJECTED: { color: colors.error, label: messages.requests.quoteStatus.refused, icon: 'close-circle-outline', description: 'Le client a refusé votre devis.' },
+  EXPIRED: { color: colors.textTertiary, label: messages.requests.quoteStatus.expired, icon: 'time-outline', description: 'Ce devis a expiré.' },
 };
 
 export default function QuoteDetailScreen() {
@@ -63,17 +63,17 @@ export default function QuoteDetailScreen() {
 
         {/* Amount */}
         <View style={styles.amountCard}>
-          <Text variant="caption" color={colors.textSecondary}>MONTANT TOTAL</Text>
+          <Text variant="caption" color={colors.textSecondary}>{messages.quote.totalAmount}</Text>
           <Text variant="h1" color={colors.primary}>{formatCurrency(quote.totalAmount)}</Text>
         </View>
 
         {/* Breakdown */}
         <View style={styles.breakdownCard}>
-          <Text variant="caption" color={colors.textSecondary}>DÉCOMPOSITION</Text>
+          <Text variant="caption" color={colors.textSecondary}>{messages.quote.breakdown}</Text>
           <View style={styles.breakdown}>
-            <BreakdownRow label="Main-d'œuvre" amount={quote.laborCost} />
-            {quote.materialCost ? <BreakdownRow label="Matériel" amount={quote.materialCost} /> : null}
-            {quote.transportCost ? <BreakdownRow label="Déplacement" amount={quote.transportCost} /> : null}
+            <BreakdownRow label={messages.quote.laborCost} amount={quote.laborCost} />
+            {quote.materialCost ? <BreakdownRow label={messages.quote.materialCost} amount={quote.materialCost} /> : null}
+            {quote.transportCost ? <BreakdownRow label={messages.quote.transportCost} amount={quote.transportCost} /> : null}
           </View>
         </View>
 
@@ -83,7 +83,7 @@ export default function QuoteDetailScreen() {
             <View style={styles.detailRow}>
               <Ionicons name="document-text-outline" size={18} color={colors.primary} />
               <View style={styles.detailInfo}>
-                <Text variant="caption" color={colors.textSecondary}>Description</Text>
+                <Text variant="caption" color={colors.textSecondary}>{messages.quote.description}</Text>
                 <Text variant="body">{quote.description}</Text>
               </View>
             </View>
@@ -93,7 +93,7 @@ export default function QuoteDetailScreen() {
             <View style={styles.detailRow}>
               <Ionicons name="time-outline" size={18} color={colors.primary} />
               <View style={styles.detailInfo}>
-                <Text variant="caption" color={colors.textSecondary}>Délai estimé</Text>
+                <Text variant="caption" color={colors.textSecondary}>{messages.quote.estimatedDuration}</Text>
                 <Text variant="body">{quote.estimatedDuration}</Text>
               </View>
             </View>
@@ -103,7 +103,7 @@ export default function QuoteDetailScreen() {
             <View style={styles.detailRow}>
               <Ionicons name="calendar-outline" size={18} color={colors.primary} />
               <View style={styles.detailInfo}>
-                <Text variant="caption" color={colors.textSecondary}>Valide jusqu{"'"}au</Text>
+                <Text variant="caption" color={colors.textSecondary}>{messages.quote.validUntil}</Text>
                 <Text variant="body">{formatDate(quote.validUntil)}</Text>
               </View>
             </View>
@@ -112,7 +112,7 @@ export default function QuoteDetailScreen() {
           <View style={styles.detailRow}>
             <Ionicons name="time-outline" size={18} color={colors.primary} />
             <View style={styles.detailInfo}>
-              <Text variant="caption" color={colors.textSecondary}>Créé</Text>
+              <Text variant="caption" color={colors.textSecondary}>{messages.quote.created}</Text>
               <Text variant="body">{formatRelativeDate(quote.createdAt)}</Text>
             </View>
           </View>
@@ -125,10 +125,10 @@ export default function QuoteDetailScreen() {
 function Header() {
   return (
     <View style={styles.header}>
-      <Pressable onPress={() => router.back()} accessibilityLabel="Retour" accessibilityRole="button" style={styles.backBtn}>
+      <Pressable onPress={() => router.back()} accessibilityLabel={messages.common.back} accessibilityRole="button" style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
-      <Text variant="h3" style={styles.headerTitle}>Devis</Text>
+      <Text variant="h3" style={styles.headerTitle}>{messages.quote.devis}</Text>
       <View style={styles.backBtn} />
     </View>
   );

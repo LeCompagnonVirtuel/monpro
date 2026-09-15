@@ -22,11 +22,11 @@ const PROVIDERS: { value: PaymentProvider; label: string; icon: keyof typeof Ion
 ];
 
 const PAYMENT_STATUS_LABELS: Record<PaymentStatus, { label: string; variant: 'success' | 'warning' | 'info' | 'error' }> = {
-  PENDING: { label: 'En attente', variant: 'warning' },
+  PENDING: { label: messages.status.pending, variant: 'warning' },
   PROCESSING: { label: 'En cours de traitement', variant: 'info' },
-  COMPLETED: { label: 'Payé', variant: 'success' },
-  FAILED: { label: 'Échoué', variant: 'error' },
-  REFUNDED: { label: 'Remboursé', variant: 'info' },
+  COMPLETED: { label: messages.status.paid, variant: 'success' },
+  FAILED: { label: messages.status.failed, variant: 'error' },
+  REFUNDED: { label: messages.status.refunded, variant: 'info' },
 };
 
 const TERMINAL_STATUSES: PaymentStatus[] = ['COMPLETED', 'FAILED', 'REFUNDED'];
@@ -84,7 +84,7 @@ export default function PaymentScreen() {
     if (!selectedProvider || !bookingId) return;
 
     if (!phoneNumber || !/^\d{10}$/.test(phoneNumber.replace(/\s/g, ''))) {
-      Alert.alert(messages.common.error, 'Veuillez entrer un numéro de téléphone valide à 10 chiffres (ex: 0707070707).');
+      Alert.alert(messages.common.error, messages.auth.phone.invalid);
       return;
     }
 
@@ -137,7 +137,7 @@ export default function PaymentScreen() {
           <Divider />
 
           <View style={styles.detailSection}>
-            <DetailRow label="Montant" value={formatCurrency(existingPayment.amount)} />
+            <DetailRow label={messages.booking.amount} value={formatCurrency(existingPayment.amount)} />
             <DetailRow label="Moyen" value={existingPayment.provider ? (PROVIDERS.find((p) => p.value === existingPayment.provider)?.label || existingPayment.provider) : '-'} />
             {existingPayment.providerRef && <DetailRow label="Référence" value={existingPayment.providerRef} />}
             <DetailRow label="Statut" value={statusInfo.label} />

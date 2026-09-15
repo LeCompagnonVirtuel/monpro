@@ -17,11 +17,11 @@ import { useBooking } from '@/hooks/use-bookings';
 import { formatDateTime } from '@/lib/format';
 
 const INTERVENTION_STEPS = [
-  { key: 'CREATED', label: 'Intervention créée', icon: 'document-text' as const },
-  { key: 'ARRIVED', label: 'Professionnel arrivé', icon: 'location' as const },
-  { key: 'IN_PROGRESS', label: 'Intervention en cours', icon: 'construct' as const },
-  { key: 'COMPLETED', label: 'Intervention terminée', icon: 'checkmark-done' as const },
-  { key: 'CONFIRMED', label: 'Confirmée par le client', icon: 'checkmark-circle' as const },
+  { key: 'CREATED', label: messages.intervention.stepCreated, icon: 'document-text' as const },
+  { key: 'ARRIVED', label: messages.intervention.stepArrived, icon: 'location' as const },
+  { key: 'IN_PROGRESS', label: messages.intervention.stepInProgress, icon: 'construct' as const },
+  { key: 'COMPLETED', label: messages.intervention.stepCompleted, icon: 'checkmark-done' as const },
+  { key: 'CONFIRMED', label: messages.intervention.stepConfirmed, icon: 'checkmark-circle' as const },
 ];
 
 function getStepIndex(intervention: { arrivedAt?: string; startedAt?: string; completedAt?: string; clientConfirmedAt?: string }) {
@@ -63,7 +63,7 @@ export default function InterventionScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <EmptyState title="Aucune intervention en cours pour cette réservation." icon="construct-outline" />
+        <EmptyState title={messages.intervention.emptyClient} icon="construct-outline" />
       </SafeAreaView>
     );
   }
@@ -87,7 +87,7 @@ export default function InterventionScreen() {
             />
           )}
           <Text variant="h2" align="center">
-            {isConfirmed ? 'Intervention confirmée' : isCompleted ? 'En attente de confirmation' : 'Intervention en cours'}
+            {isConfirmed ? messages.intervention.confirmed : isCompleted ? messages.intervention.pendingConfirmation : messages.intervention.stepInProgress}
           </Text>
           {booking && (
             <Text variant="bodySmall" color={colors.textSecondary}>
@@ -129,7 +129,7 @@ export default function InterventionScreen() {
           <>
             <Divider />
             <View style={styles.photosSection}>
-              <Text variant="h3">Photos avant</Text>
+              <Text variant="h3">{messages.intervention.photosAvant}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View style={styles.photosRow}>
                   {intervention.beforePhotos.map((url, i) => (
@@ -145,7 +145,7 @@ export default function InterventionScreen() {
           <>
             <Divider />
             <View style={styles.photosSection}>
-              <Text variant="h3">Photos après</Text>
+              <Text variant="h3">{messages.intervention.photosApres}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View style={styles.photosRow}>
                   {intervention.afterPhotos.map((url, i) => (
@@ -161,7 +161,7 @@ export default function InterventionScreen() {
           <>
             <Divider />
             <View style={styles.notesSection}>
-              <Text variant="h3">Notes de fin</Text>
+              <Text variant="h3">{messages.intervention.notesFin}</Text>
               <Text variant="body" color={colors.textSecondary}>{intervention.completionNotes}</Text>
             </View>
           </>
@@ -170,17 +170,17 @@ export default function InterventionScreen() {
         {isCompleted && !isConfirmed && (
           <View style={styles.actions}>
             <Text variant="bodySmall" color={colors.textSecondary} align="center">
-              {"Le professionnel a terminé l'intervention. Veuillez confirmer si tout est correct."}
+              {messages.intervention.confirmMessage}
             </Text>
             <Button
-              title="Confirmer l'intervention"
+              title={messages.intervention.confirmButton}
               onPress={async () => {
                 if (!bookingId) return;
                 try {
                   await confirmMutation.mutateAsync(bookingId);
                   refetch();
                 } catch {
-                  Alert.alert(messages.common.error, "Impossible de confirmer l'intervention. Veuillez réessayer.");
+                  Alert.alert(messages.common.error, messages.intervention.confirmError);
                 }
               }}
               loading={confirmMutation.isPending}
@@ -224,7 +224,7 @@ function getTimestampForStep(index: number, intervention: { arrivedAt?: string; 
 function Header() {
   return (
     <View style={styles.header}>
-      <Pressable onPress={() => router.back()} accessibilityLabel="Retour" style={styles.backBtn}>
+      <Pressable onPress={() => router.back()} accessibilityLabel={messages.common.back} style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
       <Text variant="h3" style={styles.headerTitle}>{messages.intervention.title}</Text>

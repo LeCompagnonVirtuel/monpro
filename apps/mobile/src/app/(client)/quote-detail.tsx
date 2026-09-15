@@ -37,7 +37,7 @@ export default function QuoteDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message={getErrorMessage(error, 'Devis introuvable')} onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, messages.quote.notFound)} onRetry={refetch} />
       </SafeAreaView>
     );
   }
@@ -51,7 +51,7 @@ export default function QuoteDetailScreen() {
       [
         { text: messages.common.cancel, style: 'cancel' },
         {
-          text: 'Accepter',
+          text: messages.quote.accept,
           onPress: async () => {
             setActionInProgress(true);
             try {
@@ -75,7 +75,7 @@ export default function QuoteDetailScreen() {
       [
         { text: messages.common.cancel, style: 'cancel' },
         {
-          text: 'Refuser',
+          text: messages.quote.refuse,
           style: 'destructive',
           onPress: async () => {
             setActionInProgress(true);
@@ -126,12 +126,12 @@ export default function QuoteDetailScreen() {
         <View style={styles.priceSection}>
           <Text variant="h1" color={colors.primary}>{formatCurrency(quote.totalAmount)}</Text>
           <View style={styles.priceBreakdown}>
-            <PriceRow label="Main-d'œuvre" amount={quote.laborCost} />
+            <PriceRow label={messages.quote.laborCost} amount={quote.laborCost} />
             {quote.materialCost != null && quote.materialCost > 0 && (
-              <PriceRow label="Matériel" amount={quote.materialCost} />
+              <PriceRow label={messages.quote.materialCost} amount={quote.materialCost} />
             )}
             {quote.transportCost != null && quote.transportCost > 0 && (
-              <PriceRow label="Déplacement" amount={quote.transportCost} />
+              <PriceRow label={messages.quote.transportCost} amount={quote.transportCost} />
             )}
           </View>
         </View>
@@ -140,19 +140,19 @@ export default function QuoteDetailScreen() {
 
         <View style={styles.infoSection}>
           {quote.estimatedDuration && (
-            <InfoRow icon="time-outline" label="Délai estimé" value={quote.estimatedDuration} />
+            <InfoRow icon="time-outline" label={messages.quote.estimatedDuration} value={quote.estimatedDuration} />
           )}
           {quote.validUntil && (
-            <InfoRow icon="calendar-outline" label="Valide jusqu'au" value={formatDate(quote.validUntil)} />
+            <InfoRow icon="calendar-outline" label={messages.quote.validUntil} value={formatDate(quote.validUntil)} />
           )}
-          <InfoRow icon="document-text-outline" label="Date du devis" value={formatDate(quote.createdAt)} />
+          <InfoRow icon="document-text-outline" label={messages.requests.detailLabels.created} value={formatDate(quote.createdAt)} />
         </View>
 
         {quote.description && (
           <>
             <Divider />
             <View style={styles.descSection}>
-              <Text variant="h3">Notes du professionnel</Text>
+              <Text variant="h3">{messages.quote.professionalNotes}</Text>
               <Text variant="body" color={colors.textSecondary}>{quote.description}</Text>
             </View>
           </>
@@ -161,14 +161,14 @@ export default function QuoteDetailScreen() {
         {quote.status === 'PENDING' && (
           <View style={styles.actions}>
             <Button
-              title="Accepter ce devis"
+              title={messages.quote.acceptButton}
               onPress={handleAccept}
               loading={acceptMutation.isPending}
               disabled={actionInProgress}
               size="lg"
             />
             <Button
-              title="Refuser"
+              title={messages.quote.refuse}
               onPress={handleReject}
               loading={rejectMutation.isPending}
               disabled={actionInProgress}
@@ -188,7 +188,7 @@ function Header() {
       <Pressable onPress={() => router.back()} accessibilityLabel={messages.common.back} style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
-      <Text variant="h3" style={styles.headerTitle}>Détail du devis</Text>
+      <Text variant="h3" style={styles.headerTitle}>{messages.quote.detailTitle}</Text>
       <View style={styles.backBtn} />
     </View>
   );

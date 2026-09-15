@@ -86,7 +86,7 @@ export default function HistoryScreen() {
             <View style={styles.backBtn} />
           </View>
         </View>
-        <ErrorState message={getErrorMessage(error, "Impossible de charger l'historique")} onRetry={onRefresh} />
+        <ErrorState message={getErrorMessage(error, messages.errors.loadRequests)} onRetry={onRefresh} />
       </View>
     );
   }
