@@ -112,7 +112,7 @@ export default function HistoryScreen() {
           <EmptyState
             title={messages.empty.noHistory}
             description="Vos demandes de service apparaîtront ici."
-            icon="time-outline"
+            lottie={require('../../../lotties/Settings.json')}
           />
         ) : (
           <View style={styles.historyList}>

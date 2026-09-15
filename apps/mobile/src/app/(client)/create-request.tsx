@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { StyleSheet, View, ScrollView, Pressable, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import LottieView from 'lottie-react-native';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -548,7 +549,7 @@ export default function CreateRequestScreen() {
               {/* AI Diagnosis */}
               {diagnosisLoading && (
                 <View style={styles.diagnosisBanner}>
-                  <ActivityIndicator size="small" color={colors.primary} />
+                  <LottieView source={require('../../../lotties/Settings.json')} autoPlay loop style={styles.inlineLottie} />
                   <Text variant="bodySmall" color={colors.textSecondary}>Analyse de votre photo en cours...</Text>
                 </View>
               )}
@@ -927,7 +928,7 @@ export default function CreateRequestScreen() {
               )}
               {locationLoading && !detectedAddress && (
                 <View style={styles.detectedLocation}>
-                  <ActivityIndicator size="small" color={colors.primary} />
+                  <LottieView source={require('../../../lotties/Settings.json')} autoPlay loop style={styles.inlineLottie} />
                   <Text variant="bodySmall" color={colors.textTertiary}>Détection de votre position...</Text>
                 </View>
               )}
@@ -1339,7 +1340,7 @@ export default function CreateRequestScreen() {
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
         {uploadProgress && (
           <View style={styles.uploadProgressBar}>
-            <ActivityIndicator size="small" color={colors.primary} />
+            <LottieView source={require('../../../lotties/Settings.json')} autoPlay loop style={styles.inlineLottie} />
             <Text variant="caption" color={colors.textSecondary}>{uploadProgress}</Text>
           </View>
         )}
@@ -1949,5 +1950,9 @@ const styles = StyleSheet.create({
   },
   submitErrorText: {
     flex: 1,
+  },
+  inlineLottie: {
+    width: 36,
+    height: 36,
   },
 });

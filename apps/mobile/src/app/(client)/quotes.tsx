@@ -41,7 +41,7 @@ export default function QuotesScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <EmptyState title="Vous n'avez pas encore reçu de devis." icon="document-text-outline" />
+        <EmptyState title="Vous n'avez pas encore reçu de devis." lottie={require('../../../lotties/Settings.json')} />
       </SafeAreaView>
     );
   }

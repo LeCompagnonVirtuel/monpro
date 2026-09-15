@@ -190,7 +190,7 @@ export default function RequestsScreen() {
         <ErrorState message={getErrorMessage(error, messages.errors.loadRequests)} onRetry={refetch} />
       ) : filteredRequests.length === 0 ? (
         <EmptyState
-          icon="document-text-outline"
+          lottie={require('../../../../lotties/Settings.json')}
           title={filter === 'all' ? messages.empty.noRequests : filter === 'active' ? messages.requests.emptyActive : filter === 'completed' ? messages.requests.emptyCompleted : messages.requests.emptyCancelled}
           description={filter === 'all'
             ? messages.requests.emptyCreate

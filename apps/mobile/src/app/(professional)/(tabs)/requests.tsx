@@ -257,7 +257,7 @@ export default function ProfessionalRequestsScreen() {
       {/* Request list */}
       {displayRequests.length === 0 ? (
         <EmptyState
-          icon="document-text-outline"
+          lottie={require('../../../../lotties/Settings.json')}
           title={getEmptyMessage(filter).title}
           description={getEmptyMessage(filter).description}
         />
