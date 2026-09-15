@@ -68,6 +68,7 @@ export default function ProfessionalRequestsScreen() {
   const { data, isLoading, error, refetch, isRefetching } = useProfessionalRequests({
     status: statusParam,
     limit: 50,
+    enabled: !!profile,
   });
 
   const allRequests = useMemo(() => data?.requests || [], [data]);

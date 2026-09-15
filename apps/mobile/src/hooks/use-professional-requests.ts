@@ -2,12 +2,13 @@ import { useQuery } from '@tanstack/react-query';
 import { requestsApi, ServiceRequestStatus } from '@/api/requests';
 import { AxiosError } from 'axios';
 
-export function useProfessionalRequests(params?: { status?: ServiceRequestStatus; page?: number; limit?: number }) {
+export function useProfessionalRequests(params?: { status?: ServiceRequestStatus; page?: number; limit?: number; enabled?: boolean }) {
+  const { enabled = true, ...queryParams } = params ?? {};
   return useQuery({
-    queryKey: ['pro-requests', params],
+    queryKey: ['pro-requests', queryParams],
     queryFn: async () => {
       try {
-        const { data } = await requestsApi.getAvailable(params);
+        const { data } = await requestsApi.getAvailable(queryParams);
         return { requests: data.data, total: data.total };
       } catch (err) {
         if (err instanceof AxiosError && err.response?.status === 404) {
@@ -16,6 +17,7 @@ export function useProfessionalRequests(params?: { status?: ServiceRequestStatus
         throw err;
       }
     },
+    enabled,
   });
 }
 

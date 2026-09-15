@@ -192,15 +192,18 @@ export default function OnboardingScreen() {
       }
       router.replace('/(professional)/(tabs)/dashboard');
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { status?: number; data?: { message?: string | string[] } }; isAxiosError?: boolean };
+      const axiosErr = err as { response?: { status?: number; data?: { message?: string | string[]; errors?: string[] } }; isAxiosError?: boolean };
       let msg = "Impossible d'enregistrer votre profil professionnel. Veuillez réessayer.";
 
       if (axiosErr?.isAxiosError && !axiosErr?.response) {
         msg = 'Vérifiez votre connexion internet et réessayez.';
       } else if (axiosErr?.response?.status === 400) {
+        const errors = axiosErr.response.data?.errors;
         const raw = axiosErr.response.data?.message;
-        const detail = Array.isArray(raw) ? raw[0] : raw;
-        msg = detail
+        const detail = Array.isArray(errors) && errors.length > 0
+          ? errors[0]
+          : Array.isArray(raw) ? raw[0] : raw;
+        msg = detail && detail !== 'Erreur de validation'
           ? `Données invalides : ${detail}`
           : 'Certaines données sont invalides. Vérifiez vos informations et réessayez.';
       } else if (axiosErr?.response?.status === 401) {

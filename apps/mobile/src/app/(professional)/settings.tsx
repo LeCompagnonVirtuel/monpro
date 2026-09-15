@@ -129,6 +129,12 @@ export default function SettingsScreen() {
               label={messages.profile.myAvailability}
               onPress={() => router.push('/(professional)/availability')}
             />
+            <View style={styles.divider} />
+            <MenuItem
+              icon="shield-checkmark-outline"
+              label="Vérification d'identité"
+              onPress={() => router.push('/(professional)/kyc')}
+            />
           </View>
         </View>
 

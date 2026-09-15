@@ -4,11 +4,13 @@ import { CustomTabBar, DEFAULT_PRO_TABS } from '@/components/navigation/CustomTa
 import { useConversations } from '@/hooks/use-conversations';
 import { useUnreadNotificationCount } from '@/hooks/use-notifications';
 import { useProfessionalRequests } from '@/hooks/use-professional-requests';
+import { useMyProfessionalProfile } from '@/hooks/use-professional-profile';
 
 export default function ProfessionalTabsLayout() {
+  const { data: profile } = useMyProfessionalProfile();
   const { data: conversations } = useConversations();
   const { data: unreadNotifCount } = useUnreadNotificationCount();
-  const { data: requestsData } = useProfessionalRequests({ limit: 1 });
+  const { data: requestsData } = useProfessionalRequests({ limit: 1, enabled: !!profile });
 
   const unreadMsgCount = Array.isArray(conversations)
     ? conversations.reduce((sum, c) => sum + (c.unreadCount ?? 0), 0)
