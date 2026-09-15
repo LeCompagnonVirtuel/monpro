@@ -18,6 +18,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import { Conversation } from '@/api/messaging';
 import { formatRelativeDate } from '@/lib/format';
 import { getErrorMessage } from '@/lib/api-errors';
+import { messages } from '@/constants/messages';
 
 type FilterTab = 'all' | 'unread' | 'clients' | 'notifications';
 
@@ -127,7 +128,7 @@ export default function ProfessionalMessagesScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <ErrorState
-          message={getErrorMessage(error, 'Impossible de charger vos conversations.')}
+          message={getErrorMessage(error, messages.errors.loadConversations)}
           onRetry={refetch}
         />
       </SafeAreaView>
@@ -139,7 +140,7 @@ export default function ProfessionalMessagesScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text variant="h2">Messages</Text>
+          <Text variant="h2">{messages.messages.title}</Text>
           <Text variant="bodySmall" color={colors.textSecondary}>
             Échangez avec vos clients et gérez vos conversations.
           </Text>
@@ -148,7 +149,7 @@ export default function ProfessionalMessagesScreen() {
           <Pressable
             style={styles.iconBtn}
             onPress={() => setSearchVisible(!searchVisible)}
-            accessibilityLabel="Rechercher"
+            accessibilityLabel={messages.search.clear}
             accessibilityRole="button"
           >
             <Ionicons name={searchVisible ? 'close-outline' : 'search-outline'} size={20} color={colors.text} />
@@ -179,13 +180,13 @@ export default function ProfessionalMessagesScreen() {
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Rechercher..."
+            placeholder={messages.search.placeholder}
             placeholderTextColor={colors.textTertiary}
             autoFocus
-            accessibilityLabel="Rechercher des conversations"
+            accessibilityLabel={messages.search.placeholder}
           />
           {searchQuery.length > 0 && (
-            <Pressable onPress={() => setSearchQuery('')} accessibilityLabel="Effacer">
+            <Pressable onPress={() => setSearchQuery('')} accessibilityLabel={messages.search.clear}>
               <Ionicons name="close-circle" size={16} color={colors.textTertiary} />
             </Pressable>
           )}
@@ -194,10 +195,10 @@ export default function ProfessionalMessagesScreen() {
 
       {/* Tabs */}
       <View style={styles.tabsRow}>
-        <FilterTabBtn label="Tous" count={clientsCount} active={filter === 'all'} onPress={() => setFilter('all')} />
-        <FilterTabBtn label="Non lus" count={unreadMsgCount} active={filter === 'unread'} onPress={() => setFilter('unread')} />
-        <FilterTabBtn label="Clients" count={clientsCount} active={filter === 'clients'} onPress={() => setFilter('clients')} />
-        <FilterTabBtn label="Notifications" count={unreadNotifCount} active={filter === 'notifications'} onPress={() => setFilter('notifications')} />
+        <FilterTabBtn label={messages.messages.all} count={clientsCount} active={filter === 'all'} onPress={() => setFilter('all')} />
+        <FilterTabBtn label={messages.messages.unread} count={unreadMsgCount} active={filter === 'unread'} onPress={() => setFilter('unread')} />
+        <FilterTabBtn label={messages.messages.clients} count={clientsCount} active={filter === 'clients'} onPress={() => setFilter('clients')} />
+        <FilterTabBtn label={messages.messages.notifications} count={unreadNotifCount} active={filter === 'notifications'} onPress={() => setFilter('notifications')} />
       </View>
 
       {/* Banner */}
@@ -207,9 +208,9 @@ export default function ProfessionalMessagesScreen() {
             <Ionicons name="chatbubble-ellipses-outline" size={22} color={colors.primary} />
           </View>
           <View style={styles.bannerContent}>
-            <Text variant="bodyMedium">Répondez rapidement !</Text>
+            <Text variant="bodyMedium">{messages.messages.respondFast}</Text>
             <Text variant="caption" color={colors.textSecondary}>
-              Une bonne communication renforce la confiance et augmente vos chances d'obtenir plus d'interventions.
+              {messages.messages.respondFastDesc}
             </Text>
           </View>
         </View>
@@ -220,8 +221,8 @@ export default function ProfessionalMessagesScreen() {
         filteredNotifications.length === 0 ? (
           <EmptyState
             icon="notifications-off-outline"
-            title="Aucune notification"
-            description="Vos notifications apparaîtront ici."
+            title={messages.empty.noNotifications}
+            description={messages.messages.emptyNotifications}
           />
         ) : (
           <FlatList
@@ -237,11 +238,11 @@ export default function ProfessionalMessagesScreen() {
       ) : filteredConversations.length === 0 ? (
         <EmptyState
           icon="chatbubbles-outline"
-          title={filter === 'unread' ? 'Aucun message non lu' : 'Aucune conversation'}
+          title={filter === 'unread' ? messages.empty.noUnreadMessages : messages.empty.noConversations}
           description={
             filter === 'unread'
-              ? 'Tous vos messages ont été lus.'
-              : 'Vos échanges avec les clients apparaîtront ici.'
+              ? messages.messages.emptyUnread
+              : messages.messages.emptyProConversation
           }
         />
       ) : (
@@ -316,7 +317,7 @@ function ConversationRow({ conversation, currentUserId }: { conversation: Conver
             numberOfLines={1}
             style={styles.preview}
           >
-            {conversation.lastMessage?.content || 'Nouvelle conversation'}
+            {conversation.lastMessage?.content || messages.messages.newConversation}
           </Text>
           <View style={styles.rightIndicators}>
             {hasUnread && (

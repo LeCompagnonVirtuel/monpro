@@ -22,6 +22,7 @@ import { authApi } from '@/api/auth';
 import { extractApiError } from '@/api/errors';
 import { useAuthStore } from '@/stores/auth.store';
 import { formatPhone } from '@/lib/format';
+import { messages } from '@/constants/messages';
 
 const OTP_LENGTH = 6;
 const RESEND_DELAY = 60;
@@ -184,10 +185,10 @@ export default function OtpScreen() {
           <View style={styles.main}>
             <View style={styles.titleBlock}>
               <Text variant="h1" style={styles.title}>
-                Vérification
+                {messages.auth.otp.title}
               </Text>
               <Text variant="body" color={colors.textSecondary}>
-                {'Entrez le code à 6 chiffres envoyé au\n'}
+                {messages.auth.otp.subtitlePrefix}
                 <Text variant="bodyMedium" color={colors.text}>
                   {phone ? formatPhone(phone) : ''}
                 </Text>
@@ -245,7 +246,7 @@ export default function OtpScreen() {
             <View style={styles.resendRow}>
               {resendTimer > 0 ? (
                 <Text variant="bodySmall" color={colors.textTertiary}>
-                  Renvoyer dans {resendTimer}s
+                  {messages.auth.otp.resendTimer.replace('{seconds}', String(resendTimer))}
                 </Text>
               ) : (
                 <Pressable
@@ -260,7 +261,7 @@ export default function OtpScreen() {
                     color={colors.primary}
                     style={styles.resendLink}
                   >
-                    {isResending ? 'Envoi...' : 'Renvoyer le code'}
+                  {isResending ? messages.auth.phone.sendingCode : messages.auth.otp.resend}
                   </Text>
                 </Pressable>
               )}
@@ -292,7 +293,7 @@ export default function OtpScreen() {
               }}
             >
               <Text variant="button" color={colors.primary}>
-                {isLoading ? 'Vérification...' : 'Vérifier'}
+                {isLoading ? messages.auth.otp.verifying : messages.auth.otp.verify}
               </Text>
               {isLoading && <ActivityIndicator size="small" color={colors.primary} style={{ marginLeft: 8 }} />}
             </Pressable>
@@ -310,7 +311,7 @@ export default function OtpScreen() {
                 align="center"
                 style={styles.changeLink}
               >
-                Modifier le numéro
+                {messages.auth.otp.changeNumber}
               </Text>
             </Pressable>
           </View>

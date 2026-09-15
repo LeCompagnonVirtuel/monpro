@@ -12,14 +12,15 @@ import { useProfessionalBooking } from '@/hooks/use-professional-bookings';
 import { getErrorMessage } from '@/lib/api-errors';
 import { useCreateIntervention } from '@/hooks/use-professional-interventions';
 import { formatDate, formatCurrency, formatRelativeDate } from '@/lib/format';
+import { messages } from '@/constants/messages';
 
 const STATUS_CONFIG: Record<string, { color: string; label: string; icon: keyof typeof Ionicons.glyphMap; nextAction?: string }> = {
-  PENDING: { color: colors.warning, label: 'En attente', icon: 'hourglass-outline' },
-  CONFIRMED: { color: colors.info, label: 'Confirmée', icon: 'checkmark-circle-outline', nextAction: 'Démarrer l\'intervention' },
-  ARRIVING: { color: colors.warning, label: 'En route', icon: 'navigate-outline', nextAction: 'Indiquer votre arrivée' },
-  IN_PROGRESS: { color: colors.primary, label: 'En cours', icon: 'construct-outline', nextAction: 'Terminer l\'intervention' },
-  COMPLETED: { color: colors.success, label: 'Terminée', icon: 'checkmark-done-outline' },
-  CANCELLED: { color: colors.error, label: 'Annulée', icon: 'close-circle-outline' },
+  PENDING: { color: colors.warning, label: messages.status.pending, icon: 'hourglass-outline' },
+  CONFIRMED: { color: colors.info, label: messages.status.confirmed, icon: 'checkmark-circle-outline', nextAction: messages.intervention.startTitle },
+  ARRIVING: { color: colors.warning, label: messages.status.enRoute, icon: 'navigate-outline', nextAction: messages.intervention.arrived },
+  IN_PROGRESS: { color: colors.primary, label: messages.status.inProgress, icon: 'construct-outline', nextAction: messages.intervention.completeTitle },
+  COMPLETED: { color: colors.success, label: messages.status.completed, icon: 'checkmark-done-outline' },
+  CANCELLED: { color: colors.error, label: messages.status.cancelled, icon: 'close-circle-outline' },
 };
 
 export default function ProfessionalBookingDetailScreen() {
@@ -43,7 +44,7 @@ export default function ProfessionalBookingDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message={getErrorMessage(error, 'Impossible de charger la réservation')} onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, messages.errors.loadBooking)} onRetry={refetch} />
       </SafeAreaView>
     );
   }
@@ -55,7 +56,7 @@ export default function ProfessionalBookingDetailScreen() {
       await createIntervention.mutateAsync(booking.id);
       router.push({ pathname: '/(professional)/intervention', params: { bookingId: booking.id } });
     } catch {
-      Alert.alert('Erreur', 'Impossible de créer l\'intervention. Veuillez réessayer.');
+      Alert.alert(messages.common.error, messages.errors.createIntervention);
     }
   };
 
@@ -76,7 +77,7 @@ export default function ProfessionalBookingDetailScreen() {
 
         {/* Amount */}
         <View style={styles.amountCard}>
-          <Text variant="caption" color={colors.textInverse}>MONTANT</Text>
+          <Text variant="caption" color={colors.textInverse}>{messages.booking.amountLabel}</Text>
           <Text variant="h1" color={colors.textInverse}>{formatCurrency(booking.totalAmount)}</Text>
         </View>
 
@@ -87,7 +88,7 @@ export default function ProfessionalBookingDetailScreen() {
               <Ionicons name="calendar-outline" size={18} color={colors.primary} />
             </View>
             <View style={styles.detailInfo}>
-              <Text variant="caption" color={colors.textSecondary}>Date prévue</Text>
+              <Text variant="caption" color={colors.textSecondary}>{messages.booking.dateScheduled}</Text>
               <Text variant="bodyMedium">{formatDate(booking.scheduledDate)}</Text>
             </View>
           </View>
@@ -98,7 +99,7 @@ export default function ProfessionalBookingDetailScreen() {
                 <Ionicons name="time-outline" size={18} color={colors.primary} />
               </View>
               <View style={styles.detailInfo}>
-                <Text variant="caption" color={colors.textSecondary}>Heure</Text>
+                <Text variant="caption" color={colors.textSecondary}>{messages.booking.time}</Text>
                 <Text variant="bodyMedium">{booking.scheduledTime}</Text>
               </View>
             </View>
@@ -109,7 +110,7 @@ export default function ProfessionalBookingDetailScreen() {
               <Ionicons name="time-outline" size={18} color={colors.primary} />
             </View>
             <View style={styles.detailInfo}>
-              <Text variant="caption" color={colors.textSecondary}>Créée</Text>
+              <Text variant="caption" color={colors.textSecondary}>{messages.booking.created}</Text>
               <Text variant="bodyMedium">{formatRelativeDate(booking.createdAt)}</Text>
             </View>
           </View>
@@ -120,7 +121,7 @@ export default function ProfessionalBookingDetailScreen() {
                 <Ionicons name="location-outline" size={18} color={colors.primary} />
               </View>
               <View style={styles.detailInfo}>
-                <Text variant="caption" color={colors.textSecondary}>Adresse</Text>
+                <Text variant="caption" color={colors.textSecondary}>{messages.booking.address}</Text>
                 <Text variant="bodyMedium">{booking.address.fullAddress}</Text>
               </View>
             </View>
@@ -131,7 +132,7 @@ export default function ProfessionalBookingDetailScreen() {
       {booking.status === 'CONFIRMED' && (
         <View style={styles.footer}>
           <Button
-            title={createIntervention.isPending ? 'Création...' : "Démarrer l'intervention"}
+            title={createIntervention.isPending ? messages.common.loading : `${messages.intervention.startTitle} ${messages.intervention.title.toLowerCase()}`}
             onPress={handleStartIntervention}
             disabled={createIntervention.isPending}
           />
@@ -141,7 +142,7 @@ export default function ProfessionalBookingDetailScreen() {
       {booking.status === 'ARRIVING' && (
         <View style={styles.footer}>
           <Button
-            title="Indiquer mon arrivée"
+            title={messages.intervention.arrived}
             onPress={() => router.push({ pathname: '/(professional)/intervention', params: { bookingId: booking.id } })}
           />
         </View>
@@ -150,7 +151,7 @@ export default function ProfessionalBookingDetailScreen() {
       {booking.status === 'IN_PROGRESS' && (
         <View style={styles.footer}>
           <Button
-            title="Terminer l'intervention"
+            title={`${messages.intervention.completeTitle} ${messages.intervention.title.toLowerCase()}`}
             onPress={() => router.push({ pathname: '/(professional)/intervention', params: { bookingId: booking.id } })}
           />
         </View>
@@ -165,7 +166,7 @@ function Header() {
       <Pressable onPress={() => router.back()} accessibilityLabel="Retour" accessibilityRole="button" style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
-      <Text variant="h3" style={styles.headerTitle}>Réservation</Text>
+      <Text variant="h3" style={styles.headerTitle}>{messages.booking.title}</Text>
       <View style={styles.backBtn} />
     </View>
   );

@@ -21,6 +21,7 @@ import { useConversations } from '@/hooks/use-conversations';
 import { useUpdateProfile } from '@/hooks/use-update-profile';
 import { useAuthStore } from '@/stores/auth.store';
 import { uploadsApi } from '@/api/uploads';
+import { messages } from '@/constants/messages';
 
 export default function ProfileScreen() {
   const logout = useAuthStore((s) => s.logout);
@@ -46,7 +47,7 @@ export default function ProfileScreen() {
 
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission requise', 'Veuillez autoriser l\'accès à la galerie pour modifier votre photo.');
+      Alert.alert(messages.profile.permissionTitle, messages.profile.permissionMessage);
       return;
     }
 
@@ -69,7 +70,7 @@ export default function ProfileScreen() {
       const { data: uploadResponse } = await uploadsApi.uploadImage({ uri, name, type }, 'avatars');
       await updateProfile.mutateAsync({ avatarUrl: uploadResponse.data.url });
     } catch {
-      Alert.alert('Erreur', 'Impossible de mettre à jour votre photo. Veuillez réessayer.');
+      Alert.alert(messages.common.error, messages.errors.uploadPhoto);
     } finally {
       setIsUploading(false);
     }
@@ -92,7 +93,7 @@ export default function ProfileScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <ProfileHeader />
-        <ErrorState message={getErrorMessage(me.error, 'Impossible de charger votre profil')} onRetry={() => me.refetch()} />
+        <ErrorState message={getErrorMessage(me.error, messages.errors.loadProfile)} onRetry={() => me.refetch()} />
       </SafeAreaView>
     );
   }

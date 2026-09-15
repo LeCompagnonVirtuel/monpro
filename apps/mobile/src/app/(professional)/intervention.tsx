@@ -14,13 +14,14 @@ import { useProfessionalIntervention, useMarkArrived, useStartIntervention, useC
 import { getErrorMessage } from '@/lib/api-errors';
 import { uploadsApi } from '@/api/uploads';
 import { formatDate } from '@/lib/format';
+import { messages } from '@/constants/messages';
 
 const STEPS = [
-  { key: 'created', label: 'Créée', icon: 'checkmark-circle-outline' as const },
-  { key: 'arrived', label: 'Arrivé', icon: 'navigate-outline' as const },
-  { key: 'started', label: 'En cours', icon: 'construct-outline' as const },
-  { key: 'completed', label: 'Terminée', icon: 'checkmark-done-outline' as const },
-  { key: 'confirmed', label: 'Confirmée', icon: 'shield-checkmark-outline' as const },
+  { key: 'created', label: messages.intervention.steps.created, icon: 'checkmark-circle-outline' as const },
+  { key: 'arrived', label: messages.intervention.steps.arrived, icon: 'navigate-outline' as const },
+  { key: 'started', label: messages.intervention.steps.inProgress, icon: 'construct-outline' as const },
+  { key: 'completed', label: messages.intervention.steps.completed, icon: 'checkmark-done-outline' as const },
+  { key: 'confirmed', label: messages.intervention.steps.confirmed, icon: 'shield-checkmark-outline' as const },
 ];
 
 function getStep(intervention: { arrivedAt?: string; startedAt?: string; completedAt?: string; clientConfirmedAt?: string }) {
@@ -44,7 +45,7 @@ export default function ProfessionalInterventionScreen() {
   const pickImages = async (type: 'before' | 'after') => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert('Permission requise', 'Autorisez l\'accès à vos photos pour continuer.');
+      Alert.alert(messages.intervention.permissionTitle, messages.intervention.permissionMessage);
       return;
     }
 
@@ -74,7 +75,7 @@ export default function ProfessionalInterventionScreen() {
         setAfterPhotos((prev) => [...prev, ...urls]);
       }
     } catch {
-      Alert.alert('Erreur', 'Impossible d\'uploader les photos.');
+      Alert.alert(messages.common.error, messages.errors.uploadPhotos);
     } finally {
       setUploading(false);
     }
@@ -95,7 +96,7 @@ export default function ProfessionalInterventionScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message={getErrorMessage(error, "Impossible de charger l'intervention")} onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, messages.errors.loadIntervention)} onRetry={refetch} />
       </SafeAreaView>
     );
   }
@@ -103,15 +104,15 @@ export default function ProfessionalInterventionScreen() {
   const currentStep = getStep(intervention);
 
   const handleMarkArrived = () => {
-    Alert.alert('Confirmer', 'Confirmer votre arrivée sur le lieu ?', [
-      { text: 'Annuler', style: 'cancel' },
+    Alert.alert(messages.intervention.confirmArrivalTitle, messages.intervention.confirmArrivalMessage, [
+      { text: messages.common.cancel, style: 'cancel' },
       {
-        text: 'Confirmer',
+        text: messages.common.confirm,
         onPress: async () => {
           try {
             await markArrived.mutateAsync(bookingId!);
           } catch {
-            Alert.alert('Erreur', 'Impossible de confirmer votre arrivée. Veuillez réessayer.');
+            Alert.alert(messages.common.error, messages.errors.confirmArrival);
           }
         },
       },
@@ -120,18 +121,18 @@ export default function ProfessionalInterventionScreen() {
 
   const handleStart = () => {
     if (beforePhotos.length === 0) {
-      Alert.alert('Photos requises', 'Veuillez ajouter au moins une photo avant de démarrer l\'intervention.');
+      Alert.alert(messages.intervention.photosRequiredTitle, messages.intervention.photosRequiredBefore);
       return;
     }
-    Alert.alert('Démarrer', "Démarrer l'intervention ?", [
-      { text: 'Annuler', style: 'cancel' },
+    Alert.alert(messages.intervention.startTitle, messages.intervention.startMessage, [
+      { text: messages.common.cancel, style: 'cancel' },
       {
-        text: 'Démarrer',
+        text: messages.intervention.startTitle,
         onPress: async () => {
           try {
             await startIntervention.mutateAsync({ bookingId: bookingId!, beforePhotos });
           } catch {
-            Alert.alert('Erreur', 'Impossible de démarrer l\'intervention. Veuillez réessayer.');
+            Alert.alert(messages.common.error, messages.errors.startIntervention);
           }
         },
       },
@@ -140,18 +141,18 @@ export default function ProfessionalInterventionScreen() {
 
   const handleComplete = () => {
     if (afterPhotos.length === 0) {
-      Alert.alert('Photos requises', 'Veuillez ajouter au moins une photo après pour terminer l\'intervention.');
+      Alert.alert(messages.intervention.photosRequiredTitle, messages.intervention.photosRequiredAfter);
       return;
     }
-    Alert.alert('Terminer', "Marquer l'intervention comme terminée ?", [
-      { text: 'Annuler', style: 'cancel' },
+    Alert.alert(messages.intervention.completeTitle, messages.intervention.completeMessage, [
+      { text: messages.common.cancel, style: 'cancel' },
       {
-        text: 'Terminer',
+        text: messages.intervention.completeTitle,
         onPress: async () => {
           try {
             await completeIntervention.mutateAsync({ bookingId: bookingId!, afterPhotos });
           } catch {
-            Alert.alert('Erreur', 'Impossible de terminer l\'intervention. Veuillez réessayer.');
+            Alert.alert(messages.common.error, messages.errors.completeIntervention);
           }
         },
       },
@@ -198,7 +199,7 @@ export default function ProfessionalInterventionScreen() {
 
         {intervention.completionNotes && (
           <View style={styles.notesSection}>
-            <Text variant="bodySmall" color={colors.textSecondary}>Notes</Text>
+            <Text variant="bodySmall" color={colors.textSecondary}>{messages.intervention.notes}</Text>
             <Text variant="body">{intervention.completionNotes}</Text>
           </View>
         )}
@@ -206,9 +207,9 @@ export default function ProfessionalInterventionScreen() {
         {currentStep === 1 && (
           <View style={styles.photosSection}>
             <View style={styles.photosHeader}>
-              <Text variant="h3">Photos avant intervention</Text>
+              <Text variant="h3">{messages.intervention.photosBefore}</Text>
               <Button
-                title={uploading ? 'Upload...' : 'Ajouter'}
+                title={uploading ? messages.intervention.uploading : messages.intervention.add}
                 onPress={() => pickImages('before')}
                 variant="outline"
                 size="sm"
@@ -225,7 +226,7 @@ export default function ProfessionalInterventionScreen() {
               </ScrollView>
             ) : (
               <Text variant="bodySmall" color={colors.textSecondary}>
-                {"Ajoutez des photos de l'état avant l'intervention"}
+                {messages.intervention.addBeforeDesc}
               </Text>
             )}
           </View>
@@ -234,9 +235,9 @@ export default function ProfessionalInterventionScreen() {
         {currentStep === 2 && (
           <View style={styles.photosSection}>
             <View style={styles.photosHeader}>
-              <Text variant="h3">Photos après intervention</Text>
+              <Text variant="h3">{messages.intervention.photosAfter}</Text>
               <Button
-                title={uploading ? 'Upload...' : 'Ajouter'}
+                title={uploading ? messages.intervention.uploading : messages.intervention.add}
                 onPress={() => pickImages('after')}
                 variant="outline"
                 size="sm"
@@ -253,7 +254,7 @@ export default function ProfessionalInterventionScreen() {
               </ScrollView>
             ) : (
               <Text variant="bodySmall" color={colors.textSecondary}>
-                {"Ajoutez des photos de l'état après l'intervention"}
+                {messages.intervention.addAfterDesc}
               </Text>
             )}
           </View>
@@ -262,19 +263,19 @@ export default function ProfessionalInterventionScreen() {
 
       {currentStep === 0 && (
         <View style={styles.footer}>
-          <Button title={markArrived.isPending ? 'Envoi...' : 'Je suis arrivé'} onPress={handleMarkArrived} disabled={markArrived.isPending} />
+          <Button title={markArrived.isPending ? messages.common.loading : messages.intervention.arrived} onPress={handleMarkArrived} disabled={markArrived.isPending} />
         </View>
       )}
 
       {currentStep === 1 && (
         <View style={styles.footer}>
-          <Button title={startIntervention.isPending ? 'Envoi...' : "Démarrer l'intervention"} onPress={handleStart} disabled={startIntervention.isPending} />
+          <Button title={startIntervention.isPending ? messages.common.loading : `${messages.intervention.startTitle} ${messages.intervention.title.toLowerCase()}`} onPress={handleStart} disabled={startIntervention.isPending} />
         </View>
       )}
 
       {currentStep === 2 && (
         <View style={styles.footer}>
-          <Button title={completeIntervention.isPending ? 'Envoi...' : "Terminer l'intervention"} onPress={handleComplete} disabled={completeIntervention.isPending} />
+          <Button title={completeIntervention.isPending ? messages.common.loading : `${messages.intervention.completeTitle} ${messages.intervention.title.toLowerCase()}`} onPress={handleComplete} disabled={completeIntervention.isPending} />
         </View>
       )}
 
@@ -283,7 +284,7 @@ export default function ProfessionalInterventionScreen() {
           <View style={styles.completedBanner}>
             <Ionicons name="checkmark-circle" size={20} color={colors.success} />
             <Text variant="body" color={colors.success}>
-              {currentStep === 4 ? 'Intervention confirmée par le client' : 'En attente de confirmation client'}
+              {currentStep === 4 ? messages.intervention.confirmedByClient : messages.intervention.pendingConfirmation}
             </Text>
           </View>
         </View>
@@ -298,7 +299,7 @@ function Header() {
       <Pressable onPress={() => router.back()} accessibilityLabel="Retour" accessibilityRole="button" style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
-      <Text variant="h3" style={styles.headerTitle}>Intervention</Text>
+      <Text variant="h3" style={styles.headerTitle}>{messages.intervention.title}</Text>
       <View style={styles.backBtn} />
     </View>
   );

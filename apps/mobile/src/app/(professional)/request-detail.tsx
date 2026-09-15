@@ -11,25 +11,26 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { useProfessionalRequest } from '@/hooks/use-professional-requests';
 import { getErrorMessage } from '@/lib/api-errors';
 import { formatDate, formatRelativeDate } from '@/lib/format';
+import { messages } from '@/constants/messages';
 
 const URGENCY_CONFIG: Record<string, { color: string; label: string; icon: keyof typeof Ionicons.glyphMap }> = {
-  LOW: { color: colors.textTertiary, label: 'Basse', icon: 'arrow-down-outline' },
-  NORMAL: { color: colors.info, label: 'Normale', icon: 'remove-outline' },
-  HIGH: { color: colors.warning, label: 'Haute', icon: 'arrow-up-outline' },
-  URGENT: { color: colors.error, label: 'Urgente', icon: 'alert-circle-outline' },
+  LOW: { color: colors.textTertiary, label: messages.urgency.low, icon: 'arrow-down-outline' },
+  NORMAL: { color: colors.info, label: messages.urgency.normalF, icon: 'remove-outline' },
+  HIGH: { color: colors.warning, label: messages.urgency.high, icon: 'arrow-up-outline' },
+  URGENT: { color: colors.error, label: messages.urgency.urgentF, icon: 'alert-circle-outline' },
 };
 
 const STATUS_LABELS: Record<string, { color: string; label: string }> = {
-  DRAFT: { color: colors.textTertiary, label: 'Brouillon' },
-  SUBMITTED: { color: colors.info, label: 'Soumise' },
-  MATCHING: { color: colors.info, label: 'Recherche' },
-  QUOTED: { color: colors.warning, label: 'Devis envoyés' },
-  ACCEPTED: { color: colors.success, label: 'Acceptée' },
-  SCHEDULED: { color: colors.primary, label: 'Planifiée' },
-  IN_PROGRESS: { color: colors.primary, label: 'En cours' },
-  COMPLETED: { color: colors.success, label: 'Terminée' },
-  CANCELLED: { color: colors.error, label: 'Annulée' },
-  DISPUTED: { color: colors.error, label: 'Litige' },
+  DRAFT: { color: colors.textTertiary, label: messages.status.draft },
+  SUBMITTED: { color: colors.info, label: messages.status.submitted },
+  MATCHING: { color: colors.info, label: messages.status.matching },
+  QUOTED: { color: colors.warning, label: messages.status.quotesSent },
+  ACCEPTED: { color: colors.success, label: messages.status.accepted },
+  SCHEDULED: { color: colors.primary, label: messages.status.planned },
+  IN_PROGRESS: { color: colors.primary, label: messages.status.inProgress },
+  COMPLETED: { color: colors.success, label: messages.status.completed },
+  CANCELLED: { color: colors.error, label: messages.status.cancelled },
+  DISPUTED: { color: colors.error, label: messages.status.dispute },
 };
 
 export default function ProfessionalRequestDetailScreen() {
@@ -53,7 +54,7 @@ export default function ProfessionalRequestDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message={getErrorMessage(error, 'Impossible de charger la demande')} onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, messages.errors.loadRequest)} onRetry={refetch} />
       </SafeAreaView>
     );
   }
@@ -103,7 +104,7 @@ export default function ProfessionalRequestDetailScreen() {
                 <Ionicons name="calendar-outline" size={18} color={colors.primary} />
               </View>
               <View style={styles.detailInfo}>
-                <Text variant="caption" color={colors.textSecondary}>Date souhaitée</Text>
+                <Text variant="caption" color={colors.textSecondary}>{messages.requests.detailLabels.desiredDate}</Text>
                 <Text variant="bodyMedium">{formatDate(request.preferredDate)}</Text>
               </View>
             </View>
@@ -115,7 +116,7 @@ export default function ProfessionalRequestDetailScreen() {
                 <Ionicons name="time-outline" size={18} color={colors.primary} />
               </View>
               <View style={styles.detailInfo}>
-                <Text variant="caption" color={colors.textSecondary}>Créneau horaire</Text>
+                <Text variant="caption" color={colors.textSecondary}>{messages.requests.detailLabels.schedule}</Text>
                 <Text variant="bodyMedium">{request.preferredTimeStart} — {request.preferredTimeEnd}</Text>
               </View>
             </View>
@@ -126,7 +127,7 @@ export default function ProfessionalRequestDetailScreen() {
               <Ionicons name="time-outline" size={18} color={colors.primary} />
             </View>
             <View style={styles.detailInfo}>
-              <Text variant="caption" color={colors.textSecondary}>Créée</Text>
+              <Text variant="caption" color={colors.textSecondary}>{messages.requests.detailLabels.created}</Text>
               <Text variant="bodyMedium">{formatRelativeDate(request.createdAt)}</Text>
             </View>
           </View>
@@ -137,7 +138,7 @@ export default function ProfessionalRequestDetailScreen() {
                 <Ionicons name="location-outline" size={18} color={colors.primary} />
               </View>
               <View style={styles.detailInfo}>
-                <Text variant="caption" color={colors.textSecondary}>Adresse</Text>
+                <Text variant="caption" color={colors.textSecondary}>{messages.requests.detailLabels.address}</Text>
                 <Text variant="bodyMedium">{request.address.fullAddress}</Text>
               </View>
             </View>
@@ -147,7 +148,7 @@ export default function ProfessionalRequestDetailScreen() {
 
       <View style={styles.footer}>
         <Button
-          title="Créer un devis"
+          title={messages.professionalRequests.viewAndRespond}
           onPress={() => router.push({ pathname: '/(professional)/create-quote', params: { requestId: request.id, serviceName: request.service?.name || '' } })}
         />
       </View>
@@ -161,7 +162,7 @@ function Header() {
       <Pressable onPress={() => router.back()} accessibilityLabel="Retour" accessibilityRole="button" style={styles.backBtn}>
         <Ionicons name="arrow-back" size={24} color={colors.text} />
       </Pressable>
-      <Text variant="h3" style={styles.headerTitle}>Demande</Text>
+      <Text variant="h3" style={styles.headerTitle}>{messages.requests.title}</Text>
       <View style={styles.backBtn} />
     </View>
   );

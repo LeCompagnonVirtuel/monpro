@@ -21,6 +21,7 @@ import { Text } from '@/components/ui';
 import { authApi } from '@/api/auth';
 import { extractApiError } from '@/api/errors';
 import { useAuthStore } from '@/stores/auth.store';
+import { messages } from '@/constants/messages';
 
 type RoleType = 'CLIENT' | 'PROFESSIONAL';
 
@@ -42,13 +43,13 @@ export default function EmailRegisterScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const validate = (): string | null => {
-    if (!firstName.trim()) return 'Veuillez renseigner votre prénom.';
-    if (!lastName.trim()) return 'Veuillez renseigner votre nom.';
+    if (!firstName.trim()) return messages.auth.register.firstNameRequired;
+    if (!lastName.trim()) return messages.auth.register.lastNameRequired;
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
-      return 'Adresse email invalide.';
-    if (password.length < 8) return 'Le mot de passe doit contenir au moins 8 caractères.';
+      return messages.auth.email.emailInvalid;
+    if (password.length < 8) return messages.auth.email.passwordMin;
     if (!termsAccepted)
-      return "Veuillez accepter les Conditions d'utilisation et la Politique de confidentialité.";
+      return messages.auth.register.termsRequired;
     return null;
   };
 
@@ -122,17 +123,17 @@ export default function EmailRegisterScreen() {
             {/* Title */}
             <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.titleBlock}>
               <Text variant="h1" style={styles.title}>
-                Créez votre compte
+                {messages.auth.email.registerTitle}
               </Text>
               <Text variant="body" color={colors.textSecondary}>
-                Inscrivez-vous avec votre adresse email.
+                {messages.auth.email.registerSubtitle}
               </Text>
             </Animated.View>
 
             {/* Role selector */}
             <Animated.View entering={FadeInDown.delay(250).duration(500)} style={styles.section}>
               <Text variant="bodyMedium" style={styles.sectionLabel}>
-                Vous êtes
+                {messages.auth.register.roleLabel}
               </Text>
 
               <Pressable
@@ -141,7 +142,7 @@ export default function EmailRegisterScreen() {
                   role === 'CLIENT' && styles.roleCardActive,
                 ]}
                 onPress={() => setRole('CLIENT')}
-                accessibilityLabel="Client, je recherche un professionnel"
+                accessibilityLabel={`${messages.auth.register.client}, ${messages.auth.register.clientDesc}`}
                 accessibilityRole="radio"
                 accessibilityState={{ selected: role === 'CLIENT' }}
               >
@@ -161,10 +162,10 @@ export default function EmailRegisterScreen() {
                 </View>
                 <View style={styles.roleText}>
                   <Text variant="bodyMedium" style={styles.roleName}>
-                    Client
+                    {messages.auth.register.client}
                   </Text>
                   <Text variant="caption" color={colors.textSecondary}>
-                    Je recherche un professionnel
+                    {messages.auth.register.clientDesc}
                   </Text>
                 </View>
                 <View
@@ -189,7 +190,7 @@ export default function EmailRegisterScreen() {
                   role === 'PROFESSIONAL' && styles.roleCardActive,
                 ]}
                 onPress={() => setRole('PROFESSIONAL')}
-                accessibilityLabel="Professionnel, je propose mes services"
+                accessibilityLabel={`${messages.auth.register.professional}, ${messages.auth.register.professionalDesc}`}
                 accessibilityRole="radio"
                 accessibilityState={{ selected: role === 'PROFESSIONAL' }}
               >
@@ -211,10 +212,10 @@ export default function EmailRegisterScreen() {
                 </View>
                 <View style={styles.roleText}>
                   <Text variant="bodyMedium" style={styles.roleName}>
-                    Professionnel
+                    {messages.auth.register.professional}
                   </Text>
                   <Text variant="caption" color={colors.textSecondary}>
-                    Je propose mes services
+                    {messages.auth.register.professionalDesc}
                   </Text>
                 </View>
                 <View
@@ -237,14 +238,14 @@ export default function EmailRegisterScreen() {
             {/* Name fields */}
             <View style={styles.section}>
               <Text variant="bodyMedium" style={styles.sectionLabel}>
-                Informations
+                {messages.auth.register.sectionInfo}
               </Text>
 
               <View style={styles.nameRow}>
                 <View style={[styles.inputCard, styles.nameField]}>
                   <TextInput
                     style={styles.input}
-                    placeholder="Prénom"
+                    placeholder={messages.auth.register.firstNamePlaceholder}
                     placeholderTextColor={colors.textTertiary}
                     value={firstName}
                     onChangeText={(t) => {
@@ -261,7 +262,7 @@ export default function EmailRegisterScreen() {
                   <TextInput
                     ref={lastNameRef}
                     style={styles.input}
-                    placeholder="Nom"
+                    placeholder={messages.auth.register.lastNamePlaceholder}
                     placeholderTextColor={colors.textTertiary}
                     value={lastName}
                     onChangeText={(t) => {
@@ -282,7 +283,7 @@ export default function EmailRegisterScreen() {
                 <TextInput
                   ref={emailRef}
                   style={styles.input}
-                  placeholder="Adresse email"
+                  placeholder={messages.auth.email.emailPlaceholder}
                   placeholderTextColor={colors.textTertiary}
                   value={email}
                   onChangeText={(t) => {
@@ -305,7 +306,7 @@ export default function EmailRegisterScreen() {
                 <TextInput
                   ref={passwordRef}
                   style={styles.input}
-                  placeholder="Mot de passe (8 caractères min.)"
+                  placeholder={messages.auth.email.passwordPlaceholderMin}
                   placeholderTextColor={colors.textTertiary}
                   value={password}
                   onChangeText={(t) => {
@@ -323,7 +324,7 @@ export default function EmailRegisterScreen() {
                 <Pressable
                   onPress={() => setShowPassword(!showPassword)}
                   hitSlop={8}
-                  accessibilityLabel={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                  accessibilityLabel={showPassword ? messages.auth.email.hidePassword : messages.auth.email.showPassword}
                   accessibilityRole="button"
                 >
                   <Ionicons
@@ -361,23 +362,23 @@ export default function EmailRegisterScreen() {
                 )}
               </View>
               <Text variant="caption" style={styles.termsText}>
-                {"J'accepte les "}
+                {messages.auth.register.termsPrefix}
                 <Text
                   variant="caption"
                   color={colors.secondary}
                   style={styles.termsLink}
                   onPress={() => router.push('/(client)/terms')}
                 >
-                  {"Conditions d'utilisation"}
+                  {messages.auth.register.termsLink}
                 </Text>
-                {' et la '}
+                {messages.auth.register.termsMiddle}
                 <Text
                   variant="caption"
                   color={colors.secondary}
                   style={styles.termsLink}
                   onPress={() => router.push('/(client)/privacy-policy')}
                 >
-                  Politique de confidentialité
+                  {messages.auth.register.privacyLink}
                 </Text>
               </Text>
             </Pressable>
@@ -409,7 +410,7 @@ export default function EmailRegisterScreen() {
               accessibilityState={{ disabled: isLoading }}
             >
               <Text variant="button" color={colors.primary}>
-                {isLoading ? 'Création...' : 'Créer mon compte'}
+                {isLoading ? messages.auth.register.creating : messages.auth.register.createAccount}
               </Text>
               {isLoading ? (
                 <ActivityIndicator size="small" color={colors.primary} />
@@ -430,9 +431,9 @@ export default function EmailRegisterScreen() {
               hitSlop={8}
             >
               <Text variant="bodySmall" color={colors.textSecondary} align="center">
-                {"J'ai déjà un compte ? "}
+                {messages.auth.email.hasAccount}
                 <Text variant="bodySmall" color={colors.primary} style={styles.link}>
-                  Se connecter
+                  {messages.auth.email.login}
                 </Text>
               </Text>
             </Pressable>

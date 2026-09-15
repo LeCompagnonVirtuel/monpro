@@ -19,6 +19,7 @@ import { useProfessionalWallet } from '@/hooks/use-professional-revenue';
 import { useProfessionalAvailability } from '@/hooks/use-professional-availability';
 import { useUnreadNotificationCount } from '@/hooks/use-notifications';
 import { formatCurrency, formatRelativeDate } from '@/lib/format';
+import { messages } from '@/constants/messages';
 
 function getTodayString(): string {
   const d = new Date();
@@ -31,9 +32,9 @@ function getDayName(dayOfWeek: number): string {
 
 function getGreeting(): string {
   const h = new Date().getHours();
-  if (h < 12) return 'Bonjour';
-  if (h < 18) return 'Bon après-midi';
-  return 'Bonsoir';
+  if (h < 12) return messages.dashboard.greeting.morning;
+  if (h < 18) return messages.dashboard.greeting.afternoon;
+  return messages.dashboard.greeting.evening;
 }
 
 function compactCurrency(amount: number): string {
@@ -88,7 +89,7 @@ export default function DashboardScreen() {
     if (!profile) return;
     updateProfile.mutate(
       { id: profile.id, isAvailable: !profile.isAvailable },
-      { onError: () => Alert.alert('Erreur', 'Impossible de changer votre disponibilité. Veuillez réessayer.') },
+      { onError: () => Alert.alert(messages.common.error, messages.errors.changeAvailability) },
     );
   }, [profile, updateProfile]);
 
@@ -129,7 +130,7 @@ export default function DashboardScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <ErrorState
-          message="Impossible de charger votre tableau de bord."
+          message={messages.errors.loadDashboard}
           onRetry={() => { refetchProfile(); refetchUser(); }}
         />
       </SafeAreaView>
@@ -155,9 +156,9 @@ export default function DashboardScreen() {
               <Ionicons name="person-add-outline" size={28} color={colors.primary} />
             </View>
             <View style={styles.onboardingText}>
-              <Text variant="bodyMedium">Créez votre profil professionnel</Text>
+              <Text variant="bodyMedium">{messages.dashboard.createProfile}</Text>
               <Text variant="caption" color={colors.textSecondary}>
-                Recevez des demandes et développez votre activité.
+                {messages.dashboard.createProfileDesc}
               </Text>
             </View>
             <Pressable
@@ -166,7 +167,7 @@ export default function DashboardScreen() {
               accessibilityLabel="Créer mon profil professionnel"
               accessibilityRole="button"
             >
-              <Text variant="buttonSmall" color={colors.textInverse}>Créer</Text>
+              <Text variant="buttonSmall" color={colors.textInverse}>{messages.dashboard.create}</Text>
             </Pressable>
           </Card>
         </ScrollView>
@@ -239,7 +240,7 @@ export default function DashboardScreen() {
           >
             <View style={[styles.statusDot, { backgroundColor: profile.isAvailable ? colors.success : colors.textTertiary }]} />
             <Text variant="bodySmall" color={profile.isAvailable ? colors.success : colors.textTertiary} style={styles.statusPillLabel}>
-              {profile.isAvailable ? 'En ligne' : 'Hors ligne'}
+              {profile.isAvailable ? messages.dashboard.online : messages.dashboard.offline}
             </Text>
             <Ionicons name={profile.isAvailable ? 'radio-button-on' : 'radio-button-off'} size={14} color={profile.isAvailable ? colors.success : colors.textTertiary} />
           </Pressable>
@@ -278,14 +279,14 @@ export default function DashboardScreen() {
           </View>
           <View style={styles.bannerContent}>
             <Text variant="bodyMedium" color={colors.textInverse} style={styles.bannerTitle}>
-              Continuez sur cette lancée !
+              {messages.dashboard.keepGoing}
             </Text>
             <Text variant="caption" color={colors.textInverseMuted}>
               {requestsLoading
-                ? 'Chargement...'
+                ? messages.common.loading
                 : newRequestCount > 0
                   ? `Vous avez ${newRequestCount} nouvelle${newRequestCount > 1 ? 's' : ''} demande${newRequestCount > 1 ? 's' : ''} aujourd'hui.`
-                  : 'Aucune nouvelle demande pour le moment.'}
+                  : messages.dashboard.noNewRequests}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.6)" />
@@ -299,7 +300,7 @@ export default function DashboardScreen() {
             iconBg={colors.infoLight}
             iconColor={colors.info}
             value={requestsLoading ? null : String(newRequestCount)}
-            label={'Nouvelles\ndemandes'}
+            label={messages.dashboard.stats.newRequests}
             showDot={newRequestCount > 0}
             onPress={() => router.push('/(professional)/(tabs)/requests')}
           />
@@ -308,7 +309,7 @@ export default function DashboardScreen() {
             iconBg={colors.successLight}
             iconColor={colors.success}
             value={bookingsLoading ? null : String(todayBookings.length)}
-            label={'Interventions\naujourd\'hui'}
+            label={messages.dashboard.stats.todayInterventions}
             onPress={() => router.push('/(professional)/(tabs)/interventions')}
           />
           <StatCard
@@ -316,7 +317,7 @@ export default function DashboardScreen() {
             iconBg={colors.warningLight}
             iconColor={colors.warning}
             value={profile.averageRating ? profile.averageRating.toFixed(1) : '-'}
-            label="Note moyenne"
+            label={messages.dashboard.stats.averageRating}
             subLabel={`(${profile.totalReviews || 0} avis)`}
             onPress={() => router.push('/(professional)/reviews')}
           />
@@ -326,22 +327,22 @@ export default function DashboardScreen() {
             iconColor={colors.secondary}
             value={walletLoading ? null : compactCurrency(wallet?.totalPaidOut ?? 0)}
             valueColor={colors.primary}
-            label="Total ce mois"
+            label={messages.dashboard.stats.monthTotal}
             onPress={() => router.push('/(professional)/revenue')}
           />
         </Animated.View>
 
         {/* ──────────── QUICK ACTIONS ──────────── */}
         <Animated.View entering={FadeInDown.delay(400).duration(400)} style={styles.quickGrid}>
-          <QuickAction icon="document-text-outline" label="Gérer mes services" onPress={() => router.push('/(professional)/services')} />
-          <QuickAction icon="calendar-outline" label="Mes disponibilités" onPress={() => router.push('/(professional)/availability')} />
-          <QuickAction icon="location-outline" label="Ma zone d'intervention" onPress={() => router.push('/(professional)/onboarding')} />
-          <QuickAction icon="bar-chart-outline" label="Mes revenus" onPress={() => router.push('/(professional)/revenue')} />
+          <QuickAction icon="document-text-outline" label={messages.dashboard.actions.manageServices} onPress={() => router.push('/(professional)/services')} />
+          <QuickAction icon="calendar-outline" label={messages.dashboard.actions.availability} onPress={() => router.push('/(professional)/availability')} />
+          <QuickAction icon="location-outline" label={messages.dashboard.actions.zone} onPress={() => router.push('/(professional)/onboarding')} />
+          <QuickAction icon="bar-chart-outline" label={messages.dashboard.actions.revenues} onPress={() => router.push('/(professional)/revenue')} />
         </Animated.View>
 
         {/* ──────────── NOUVELLES DEMANDES ──────────── */}
         <Animated.View entering={FadeInDown.delay(500).duration(400)} style={styles.section}>
-          <SectionHead title="Nouvelles demandes" actionLabel="Voir toutes" onAction={() => router.push('/(professional)/(tabs)/requests')} />
+          <SectionHead title={messages.dashboard.sections.newRequests} actionLabel={messages.dashboard.sections.viewAll} onAction={() => router.push('/(professional)/(tabs)/requests')} />
           {requestsLoading ? (
             <View style={styles.skeletonCol}>
               <Skeleton width="100%" height={80} borderRadius={radius.lg} />
@@ -379,13 +380,13 @@ export default function DashboardScreen() {
               </Pressable>
             ))
           ) : (
-            <EmptyBlock icon="file-tray-outline" text="Aucune nouvelle demande" />
+            <EmptyBlock icon="file-tray-outline" text={messages.empty.noNewRequests} />
           )}
         </Animated.View>
 
         {/* ──────────── PLANNING ──────────── */}
         <Animated.View entering={FadeInDown.delay(600).duration(400)} style={styles.section}>
-          <SectionHead title="Mon planning aujourd'hui" actionLabel="Voir tout" onAction={() => router.push('/(professional)/(tabs)/interventions')} />
+          <SectionHead title={messages.dashboard.sections.planning} actionLabel={messages.dashboard.sections.viewAllPlanning} onAction={() => router.push('/(professional)/(tabs)/interventions')} />
           {bookingsLoading ? (
             <Skeleton width="100%" height={68} borderRadius={radius.lg} />
           ) : todayBookings.length > 0 ? (
@@ -416,7 +417,7 @@ export default function DashboardScreen() {
               </Pressable>
             ))
           ) : (
-            <EmptyBlock icon="calendar-outline" text="Aucune intervention prévue aujourd'hui" />
+            <EmptyBlock icon="calendar-outline" text={messages.dashboard.emptyPlanning} />
           )}
         </Animated.View>
 
@@ -503,20 +504,20 @@ function EmptyBlock({ icon, text }: { icon: keyof typeof Ionicons.glyphMap; text
 
 function VerificationLabel({ status }: { status: string }) {
   const labels: Record<string, string> = {
-    VERIFIED: 'Professionnel vérifié',
-    PENDING: 'Vérification en cours',
-    REJECTED: 'Profil refusé',
-    SUSPENDED: 'Profil suspendu',
+    VERIFIED: messages.dashboard.verification.verified,
+    PENDING: messages.dashboard.verification.pending,
+    REJECTED: messages.dashboard.verification.rejected,
+    SUSPENDED: messages.dashboard.verification.suspended,
   };
-  return <>{labels[status] || 'Profil à compléter'}</>;
+  return <>{labels[status] || messages.dashboard.verification.incomplete}</>;
 }
 
 function UrgencyBadge({ urgency }: { urgency: string }) {
   const cfg: Record<string, { color: string; label: string }> = {
-    LOW: { color: colors.textTertiary, label: 'Basse' },
-    NORMAL: { color: colors.info, label: 'Normale' },
-    HIGH: { color: colors.warning, label: 'Haute' },
-    URGENT: { color: colors.error, label: 'Urgent' },
+    LOW: { color: colors.textTertiary, label: messages.urgency.low },
+    NORMAL: { color: colors.info, label: messages.urgency.normalF },
+    HIGH: { color: colors.warning, label: messages.urgency.high },
+    URGENT: { color: colors.error, label: messages.urgency.urgent },
   };
   const c = cfg[urgency] || cfg.NORMAL;
   return (
@@ -528,12 +529,12 @@ function UrgencyBadge({ urgency }: { urgency: string }) {
 
 function BookingStatusBadge({ status }: { status: string }) {
   const cfg: Record<string, { color: string; bg: string; label: string }> = {
-    PENDING: { color: colors.textTertiary, bg: colors.surfaceSecondary, label: 'En attente' },
-    CONFIRMED: { color: colors.info, bg: colors.infoLight, label: 'Confirmée' },
-    ARRIVING: { color: colors.warning, bg: colors.warningLight, label: 'En route' },
-    IN_PROGRESS: { color: colors.primary, bg: colors.primaryLight, label: 'En cours' },
-    COMPLETED: { color: colors.success, bg: colors.successLight, label: 'Terminée' },
-    CANCELLED: { color: colors.error, bg: colors.errorLight, label: 'Annulée' },
+    PENDING: { color: colors.textTertiary, bg: colors.surfaceSecondary, label: messages.status.pending },
+    CONFIRMED: { color: colors.info, bg: colors.infoLight, label: messages.status.confirmed },
+    ARRIVING: { color: colors.warning, bg: colors.warningLight, label: messages.status.enRoute },
+    IN_PROGRESS: { color: colors.primary, bg: colors.primaryLight, label: messages.status.inProgress },
+    COMPLETED: { color: colors.success, bg: colors.successLight, label: messages.status.completed },
+    CANCELLED: { color: colors.error, bg: colors.errorLight, label: messages.status.cancelled },
   };
   const c = cfg[status] || cfg.CONFIRMED;
   return (

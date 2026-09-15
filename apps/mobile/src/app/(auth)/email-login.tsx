@@ -24,10 +24,11 @@ import { Text } from '@/components/ui';
 import { authApi } from '@/api/auth';
 import { extractApiError } from '@/api/errors';
 import { useAuthStore } from '@/stores/auth.store';
+import { messages } from '@/constants/messages';
 
 const loginSchema = z.object({
-  email: z.string().email('Adresse email invalide.'),
-  password: z.string().min(1, 'Le mot de passe est requis.'),
+  email: z.string().email(messages.auth.email.emailInvalid),
+  password: z.string().min(1, messages.auth.email.passwordRequired),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -108,10 +109,10 @@ export default function EmailLoginScreen() {
           <View style={styles.main}>
             <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.titleBlock}>
               <Text variant="h1" style={styles.title}>
-                Connexion par{'\n'}email
+                {messages.auth.email.loginTitle.split('\n')[0]}{'\n'}{messages.auth.email.loginTitle.split('\n')[1]}
               </Text>
               <Text variant="body" color={colors.textSecondary}>
-                Entrez votre adresse email et mot de passe.
+                {messages.auth.email.loginSubtitle}
               </Text>
             </Animated.View>
 
@@ -125,7 +126,7 @@ export default function EmailLoginScreen() {
                   <Ionicons name="mail-outline" size={20} color={colors.textTertiary} />
                   <TextInput
                     style={styles.input}
-                    placeholder="Adresse email"
+                    placeholder={messages.auth.email.emailPlaceholder}
                     placeholderTextColor={colors.textTertiary}
                     value={value}
                     onChangeText={(t) => {
@@ -160,7 +161,7 @@ export default function EmailLoginScreen() {
                   <Ionicons name="lock-closed-outline" size={20} color={colors.textTertiary} />
                   <TextInput
                     style={styles.input}
-                    placeholder="Mot de passe"
+                    placeholder={messages.auth.email.passwordPlaceholder}
                     placeholderTextColor={colors.textTertiary}
                     value={value}
                     onChangeText={(t) => {
@@ -178,7 +179,7 @@ export default function EmailLoginScreen() {
                   <Pressable
                     onPress={() => setShowPassword(!showPassword)}
                     hitSlop={8}
-                    accessibilityLabel={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                    accessibilityLabel={showPassword ? messages.auth.email.hidePassword : messages.auth.email.showPassword}
                     accessibilityRole="button"
                   >
                     <Ionicons
@@ -224,7 +225,7 @@ export default function EmailLoginScreen() {
               accessibilityState={{ disabled: isLoading }}
             >
               <Text variant="button" color={colors.primary}>
-                {isLoading ? 'Connexion...' : 'Se connecter'}
+                {isLoading ? messages.auth.email.processing : messages.auth.email.login}
               </Text>
               {isLoading ? (
                 <ActivityIndicator size="small" color={colors.primary} />
@@ -245,9 +246,9 @@ export default function EmailLoginScreen() {
               hitSlop={8}
             >
               <Text variant="bodySmall" color={colors.textSecondary} align="center">
-                {"Pas encore de compte ? "}
+                {messages.auth.email.noAccount}
                 <Text variant="bodySmall" color={colors.primary} style={styles.link}>
-                  Créer un compte
+                  {messages.auth.email.createAccount}
                 </Text>
               </Text>
             </Pressable>
@@ -259,7 +260,7 @@ export default function EmailLoginScreen() {
                 color={colors.textTertiary}
               />
               <Text variant="caption" color={colors.textTertiary}>
-                Connexion sécurisée et chiffrée
+                {messages.common.securedConnection}
               </Text>
             </View>
           </View>

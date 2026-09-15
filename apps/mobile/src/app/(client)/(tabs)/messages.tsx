@@ -17,6 +17,7 @@ import { useConversations } from '@/hooks/use-conversations';
 import { useAuthStore } from '@/stores/auth.store';
 import { useProfessionals } from '@/hooks/use-professionals';
 import { Conversation } from '@/api/messaging';
+import { messages } from '@/constants/messages';
 
 type SortMode = 'recent' | 'unread';
 
@@ -64,7 +65,7 @@ export default function MessagesScreen() {
       {showBanner ? <SecurityBanner onDismiss={handleDismissBanner} /> : null}
 
       <View style={styles.sectionRow}>
-        <Text variant="h3" style={styles.sectionTitle}>Conversations</Text>
+        <Text variant="h3" style={styles.sectionTitle}>{messages.messages.conversations}</Text>
         <Pressable
           style={styles.sortButton}
           onPress={toggleSort}
@@ -72,7 +73,7 @@ export default function MessagesScreen() {
           accessibilityRole="button"
         >
           <Text variant="caption" color={sortMode === 'unread' ? colors.primary : colors.textSecondary} style={styles.sortText}>
-            {sortMode === 'recent' ? 'Récents' : 'Non lus'}
+            {sortMode === 'recent' ? messages.messages.recent : messages.messages.unread}
           </Text>
           <Ionicons name={sortMode === 'unread' ? 'mail-unread-outline' : 'time-outline'} size={16} color={sortMode === 'unread' ? colors.primary : colors.textSecondary} />
         </Pressable>
@@ -91,14 +92,14 @@ export default function MessagesScreen() {
     return (
       <View style={styles.suggestionsSection}>
         <View style={styles.suggestionsHeader}>
-          <Text variant="h3" style={styles.sectionTitle}>Suggestions de professionnels</Text>
+          <Text variant="h3" style={styles.sectionTitle}>{messages.messages.suggestions}</Text>
           <Pressable
             onPress={() => router.push('/(client)/(tabs)/search')}
             accessibilityLabel="Voir tous les professionnels"
             accessibilityRole="button"
           >
             <View style={styles.seeAllRow}>
-              <Text variant="caption" color={colors.textSecondary}>Voir tout</Text>
+              <Text variant="caption" color={colors.textSecondary}>{messages.messages.viewAll}</Text>
               <Ionicons name="chevron-forward" size={14} color={colors.textSecondary} />
             </View>
           </Pressable>
@@ -142,7 +143,7 @@ export default function MessagesScreen() {
     return (
       <View style={styles.container}>
         <MessagesHeader />
-        <ErrorState message={getErrorMessage(error, 'Impossible de charger vos conversations')} onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, messages.errors.loadConversations)} onRetry={refetch} />
       </View>
     );
   }
@@ -162,10 +163,10 @@ export default function MessagesScreen() {
           <View style={styles.emptyBlock}>
             <Ionicons name="chatbubbles-outline" size={56} color={colors.textTertiary} />
             <Text variant="h3" color={colors.textSecondary} align="center">
-              Aucune conversation
+              {messages.empty.noConversations}
             </Text>
             <Text variant="bodySmall" color={colors.textTertiary} align="center">
-              Vos conversations apparaîtront ici lorsque vous contacterez un professionnel.
+              {messages.messages.emptyConversation}
             </Text>
           </View>
           {renderFooter()}

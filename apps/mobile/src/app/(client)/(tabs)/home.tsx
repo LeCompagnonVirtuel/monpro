@@ -22,6 +22,7 @@ import { useCategories } from '@/hooks/use-categories';
 import { useProfessionals } from '@/hooks/use-professionals';
 import { useLocation } from '@/hooks/use-location';
 import { useServiceRequests } from '@/hooks/use-service-requests';
+import { messages } from '@/constants/messages';
 
 export default function HomeScreen() {
   const { data: user, isLoading: isLoadingUser, error: userError, refetch: refetchUser } = useMe();
@@ -59,7 +60,7 @@ export default function HomeScreen() {
   if (userError) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <ErrorState message={getErrorMessage(userError, 'Impossible de charger votre profil')} onRetry={() => refetchUser()} />
+        <ErrorState message={getErrorMessage(userError, messages.errors.loadProfile)} onRetry={() => refetchUser()} />
       </SafeAreaView>
     );
   }
@@ -93,7 +94,7 @@ export default function HomeScreen() {
               ))}
             </ScrollView>
           ) : categories.error ? (
-            <ErrorState message={getErrorMessage(categories.error, 'Erreur de chargement')} onRetry={() => categories.refetch()} />
+            <ErrorState message={getErrorMessage(categories.error, messages.errors.generic)} onRetry={() => categories.refetch()} />
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
               {categories.data?.filter((c) => c.isActive).slice(0, 5).map((cat, idx) => (
@@ -106,7 +107,7 @@ export default function HomeScreen() {
               ))}
               <CategoryCircle
                 key="see-more"
-                name="Voir plus"
+                name={messages.home.seeMore}
                 icon="ellipsis-horizontal"
                 onPress={() => router.push('/(client)/(tabs)/search')}
               />
@@ -122,7 +123,7 @@ export default function HomeScreen() {
         {/* ── Professionnels recommandés ── */}
         <Animated.View entering={FadeInDown.delay(300).duration(400)} style={styles.section}>
           <SectionHeader
-            title="Professionnels recommandés"
+            title={messages.home.recommendedPros}
             onSeeAll={() => router.push('/(client)/(tabs)/search')}
           />
           {nearbyPros.isLoading ? (
@@ -132,11 +133,11 @@ export default function HomeScreen() {
               ))}
             </ScrollView>
           ) : nearbyPros.error ? (
-            <ErrorState message={getErrorMessage(nearbyPros.error, 'Impossible de charger les professionnels')} onRetry={() => nearbyPros.refetch()} />
+            <ErrorState message={getErrorMessage(nearbyPros.error, messages.errors.loadProfessionals)} onRetry={() => nearbyPros.refetch()} />
           ) : (nearbyPros.data?.professionals || []).length === 0 ? (
             <View style={styles.emptyPad}>
               <Text variant="bodySmall" color={colors.textTertiary} align="center">
-                Aucun professionnel recommandé pour le moment.
+                {messages.empty.noProfessionals}
               </Text>
             </View>
           ) : (
@@ -154,7 +155,7 @@ export default function HomeScreen() {
         {/* ── Vos demandes récentes ── */}
         <Animated.View entering={FadeInDown.delay(400).duration(400)} style={styles.section}>
           <SectionHeader
-            title="Vos demandes récentes"
+            title={messages.home.recentRequests}
             onSeeAll={() => router.push('/(client)/(tabs)/requests')}
           />
           {recentRequests.isLoading ? (
@@ -164,11 +165,11 @@ export default function HomeScreen() {
               ))}
             </View>
           ) : recentRequests.error ? (
-            <ErrorState message={getErrorMessage(recentRequests.error, 'Impossible de charger vos demandes')} onRetry={() => recentRequests.refetch()} />
+            <ErrorState message={getErrorMessage(recentRequests.error, messages.errors.loadRequests)} onRetry={() => recentRequests.refetch()} />
           ) : (recentRequests.data?.requests || []).length === 0 ? (
             <View style={styles.emptyPad}>
               <Text variant="bodySmall" color={colors.textTertiary} align="center">
-                Aucune demande pour le moment.{'\n'}Publiez votre première demande !
+                {messages.home.emptyRequests}
               </Text>
             </View>
           ) : (

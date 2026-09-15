@@ -15,6 +15,7 @@ import { useServiceRequests } from '@/hooks/use-service-requests';
 import { getErrorMessage } from '@/lib/api-errors';
 import { ServiceRequest, ServiceRequestStatus } from '@/api/requests';
 import { formatRelativeDate } from '@/lib/format';
+import { messages } from '@/constants/messages';
 
 type FilterTab = 'all' | 'active' | 'completed' | 'cancelled';
 
@@ -23,23 +24,23 @@ const ACTIVE_STATUSES: ServiceRequestStatus[] = [
 ];
 
 const STATUS_LABELS: Partial<Record<ServiceRequestStatus, { label: string; color: string }>> = {
-  DRAFT: { label: 'Brouillon', color: colors.textTertiary },
-  SUBMITTED: { label: 'Envoyée', color: colors.info },
-  MATCHING: { label: 'Recherche', color: colors.warning },
-  QUOTED: { label: 'Devis reçu', color: colors.info },
-  ACCEPTED: { label: 'Acceptée', color: colors.success },
-  SCHEDULED: { label: 'Planifiée', color: colors.primary },
-  IN_PROGRESS: { label: 'En cours', color: colors.warning },
-  COMPLETED: { label: 'Terminée', color: colors.success },
-  CANCELLED: { label: 'Annulée', color: colors.error },
-  DISPUTED: { label: 'Litige', color: colors.error },
+  DRAFT: { label: messages.status.draft, color: colors.textTertiary },
+  SUBMITTED: { label: messages.status.sent, color: colors.info },
+  MATCHING: { label: messages.status.matching, color: colors.warning },
+  QUOTED: { label: messages.status.quoteReceived, color: colors.info },
+  ACCEPTED: { label: messages.status.accepted, color: colors.success },
+  SCHEDULED: { label: messages.status.planned, color: colors.primary },
+  IN_PROGRESS: { label: messages.status.inProgress, color: colors.warning },
+  COMPLETED: { label: messages.status.completed, color: colors.success },
+  CANCELLED: { label: messages.status.cancelled, color: colors.error },
+  DISPUTED: { label: messages.status.dispute, color: colors.error },
 };
 
 const URGENCY_CONFIG: Record<string, { color: string; label: string }> = {
-  LOW: { color: colors.textTertiary, label: 'Basse' },
-  NORMAL: { color: colors.success, label: 'Normal' },
-  HIGH: { color: colors.warning, label: 'Haute' },
-  URGENT: { color: colors.error, label: 'Urgent' },
+  LOW: { color: colors.textTertiary, label: messages.urgency.low },
+  NORMAL: { color: colors.success, label: messages.urgency.normal },
+  HIGH: { color: colors.warning, label: messages.urgency.high },
+  URGENT: { color: colors.error, label: messages.urgency.urgent },
 };
 
 export default function RequestsScreen() {
@@ -117,9 +118,9 @@ export default function RequestsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text variant="h2">Mes demandes</Text>
+          <Text variant="h2">{messages.requests.title}</Text>
           <Text variant="bodySmall" color={colors.textSecondary}>
-            Suivez l'avancement de vos demandes de service.
+            {messages.requests.subtitle}
           </Text>
         </View>
         <View style={styles.headerActions}>
@@ -150,7 +151,7 @@ export default function RequestsScreen() {
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Rechercher..."
+            placeholder={messages.search.placeholder}
             placeholderTextColor={colors.textTertiary}
             autoFocus
             accessibilityLabel="Rechercher des demandes"
@@ -165,10 +166,10 @@ export default function RequestsScreen() {
 
       {/* Tabs */}
       <View style={styles.tabsRow}>
-        <FilterTabBtn label="Toutes" count={tabCounts.all} active={filter === 'all'} onPress={() => setFilter('all')} />
-        <FilterTabBtn label="En cours" count={tabCounts.active} active={filter === 'active'} onPress={() => setFilter('active')} />
-        <FilterTabBtn label="Terminées" count={tabCounts.completed} active={filter === 'completed'} onPress={() => setFilter('completed')} />
-        <FilterTabBtn label="Annulées" count={tabCounts.cancelled} active={filter === 'cancelled'} onPress={() => setFilter('cancelled')} />
+        <FilterTabBtn label={messages.requests.filterAll} count={tabCounts.all} active={filter === 'all'} onPress={() => setFilter('all')} />
+        <FilterTabBtn label={messages.requests.filterActive} count={tabCounts.active} active={filter === 'active'} onPress={() => setFilter('active')} />
+        <FilterTabBtn label={messages.requests.filterCompleted} count={tabCounts.completed} active={filter === 'completed'} onPress={() => setFilter('completed')} />
+        <FilterTabBtn label={messages.requests.filterCancelled} count={tabCounts.cancelled} active={filter === 'cancelled'} onPress={() => setFilter('cancelled')} />
       </View>
 
       {/* Banner */}
@@ -177,23 +178,23 @@ export default function RequestsScreen() {
           <Ionicons name="document-text-outline" size={22} color={colors.primary} />
         </View>
         <View style={styles.bannerContent}>
-          <Text variant="bodyMedium">Publiez une demande !</Text>
+          <Text variant="bodyMedium">{messages.home.publishBanner}</Text>
           <Text variant="caption" color={colors.textSecondary}>
-            Décrivez votre besoin et recevez des devis de professionnels vérifiés.
+            {messages.home.publishCta}
           </Text>
         </View>
       </View>
 
       {/* List */}
       {error ? (
-        <ErrorState message={getErrorMessage(error, 'Impossible de charger vos demandes')} onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, messages.errors.loadRequests)} onRetry={refetch} />
       ) : filteredRequests.length === 0 ? (
         <EmptyState
           icon="document-text-outline"
-          title={filter === 'all' ? 'Aucune demande' : `Aucune demande ${filter === 'active' ? 'en cours' : filter === 'completed' ? 'terminée' : 'annulée'}`}
+          title={filter === 'all' ? messages.empty.noRequests : filter === 'active' ? messages.requests.emptyActive : filter === 'completed' ? messages.requests.emptyCompleted : messages.requests.emptyCancelled}
           description={filter === 'all'
-            ? "Vous n'avez pas encore créé de demande de service."
-            : 'Aucune demande dans cette catégorie.'}
+            ? messages.requests.emptyCreate
+            : messages.requests.emptyCategory}
         />
       ) : (
         <FlatList

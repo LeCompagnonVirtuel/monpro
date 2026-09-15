@@ -22,6 +22,7 @@ import { uploadsApi } from '@/api/uploads';
 import { formatCurrency } from '@/lib/format';
 import { useMemo, useState, useCallback } from 'react';
 import * as ImagePicker from 'expo-image-picker';
+import { messages } from '@/constants/messages';
 
 export default function ProfessionalProfileScreen() {
   const logout = useAuthStore((s) => s.logout);
@@ -39,7 +40,7 @@ export default function ProfessionalProfileScreen() {
 
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission requise', 'Veuillez autoriser l\'accès à la galerie pour modifier votre photo.');
+      Alert.alert(messages.profile.permissionTitle, messages.profile.permissionMessage);
       return;
     }
 
@@ -62,7 +63,7 @@ export default function ProfessionalProfileScreen() {
       const { data: uploadResponse } = await uploadsApi.uploadImage({ uri, name, type }, 'avatars');
       await updateUserProfile.mutateAsync({ avatarUrl: uploadResponse.data.url });
     } catch {
-      Alert.alert('Erreur', 'Impossible de mettre à jour votre photo. Veuillez réessayer.');
+      Alert.alert(messages.common.error, messages.errors.uploadPhoto);
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -98,9 +99,9 @@ export default function ProfessionalProfileScreen() {
   };
 
   const handleLogout = () => {
-    Alert.alert('Déconnexion', 'Voulez-vous vraiment vous déconnecter ?', [
-      { text: 'Annuler', style: 'cancel' },
-      { text: 'Déconnexion', style: 'destructive', onPress: () => logout() },
+    Alert.alert(messages.profile.logout, messages.profile.logoutConfirm, [
+      { text: messages.common.cancel, style: 'cancel' },
+      { text: messages.profile.logout, style: 'destructive', onPress: () => logout() },
     ]);
   };
 
@@ -141,7 +142,7 @@ export default function ProfessionalProfileScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <ErrorState
-          message={getErrorMessage(userError || profileError, 'Impossible de charger votre profil.')}
+          message={getErrorMessage(userError || profileError, messages.errors.loadProfile)}
           onRetry={() => { refetchUser(); refetchProfile(); }}
         />
       </SafeAreaView>
@@ -164,7 +165,7 @@ export default function ProfessionalProfileScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text variant="h2">Profil</Text>
+            <Text variant="h2">{messages.profile.title}</Text>
             <Text variant="bodySmall" color={colors.textSecondary}>
               Gérez vos informations personnelles et professionnelles.
             </Text>
@@ -232,7 +233,7 @@ export default function ProfessionalProfileScreen() {
             accessibilityRole="button"
           >
             <Ionicons name="create-outline" size={16} color={colors.primary} />
-            <Text variant="bodySmall" color={colors.primary}>Éditer</Text>
+            <Text variant="bodySmall" color={colors.primary}>{messages.profile.editShort}</Text>
           </Pressable>
         </Animated.View>
 
@@ -243,12 +244,12 @@ export default function ProfessionalProfileScreen() {
               <View style={[styles.statusDot, { backgroundColor: profile.isAvailable ? colors.success : colors.textTertiary }]} />
               <View>
                 <Text variant="bodyMedium">
-                  {profile.isAvailable ? 'En ligne' : 'Hors ligne'}
+                  {profile.isAvailable ? messages.dashboard.online : messages.dashboard.offline}
                 </Text>
                 <Text variant="caption" color={colors.textSecondary}>
                   {profile.isAvailable
-                    ? 'Vous recevez des demandes de clients'
-                    : 'Vous ne recevez pas actuellement de nouvelles demandes'}
+                    ? messages.dashboard.onlineDesc
+                    : messages.dashboard.offlineDesc}
                 </Text>
               </View>
             </View>
@@ -277,7 +278,7 @@ export default function ProfessionalProfileScreen() {
                 <Ionicons name="briefcase-outline" size={16} color={colors.info} />
               </View>
               <Text variant="h3" style={styles.statValue}>{profile.services?.length || 0}</Text>
-              <Text variant="caption" color={colors.textSecondary}>Services</Text>
+              <Text variant="caption" color={colors.textSecondary}>{messages.profile.statsServices}</Text>
             </Pressable>
 
             <Pressable
@@ -290,7 +291,7 @@ export default function ProfessionalProfileScreen() {
                 <Ionicons name="construct-outline" size={16} color={colors.success} />
               </View>
               <Text variant="h3" style={styles.statValue}>{completedCount}</Text>
-              <Text variant="caption" color={colors.textSecondary}>Interventions</Text>
+              <Text variant="caption" color={colors.textSecondary}>{messages.profile.statsInterventions}</Text>
             </Pressable>
 
             <Pressable
@@ -305,7 +306,7 @@ export default function ProfessionalProfileScreen() {
               <Text variant="h3" style={styles.statValue}>
                 {profile.averageRating ? profile.averageRating.toFixed(1) : '-'}
               </Text>
-              <Text variant="caption" color={colors.textSecondary}>Note</Text>
+              <Text variant="caption" color={colors.textSecondary}>{messages.profile.statsRating}</Text>
             </Pressable>
 
             <Pressable
@@ -320,7 +321,7 @@ export default function ProfessionalProfileScreen() {
               <Text variant="h3" color={colors.primary} style={styles.statValue}>
                 {formatCurrency(wallet?.totalPaidOut ?? 0)}
               </Text>
-              <Text variant="caption" color={colors.textSecondary}>Revenus</Text>
+              <Text variant="caption" color={colors.textSecondary}>{messages.profile.statsRevenues}</Text>
             </Pressable>
           </Animated.View>
         )}
@@ -337,9 +338,9 @@ export default function ProfessionalProfileScreen() {
               <Ionicons name="person-add-outline" size={24} color={colors.primary} />
             </View>
             <View style={styles.setupCardText}>
-              <Text variant="bodyMedium">Profil non configuré</Text>
+              <Text variant="bodyMedium">{messages.dashboard.profileNotConfigured}</Text>
               <Text variant="caption" color={colors.textSecondary}>
-                Complétez votre profil pour recevoir des demandes.
+                {messages.dashboard.profileNotConfiguredDesc}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={colors.primary} />
@@ -347,64 +348,64 @@ export default function ProfessionalProfileScreen() {
         )}
 
         {/* Mon compte */}
-        <MenuSection title="MON COMPTE">
+        <MenuSection title={messages.profile.sectionAccount}>
           <MenuItem
             icon="person-outline"
-            label="Informations personnelles"
+            label={messages.profile.personalInfo}
             onPress={() => router.push('/(professional)/onboarding')}
           />
           <MenuItem
             icon="shield-checkmark-outline"
-            label="Sécurité et confidentialité"
+            label={messages.profile.security}
             onPress={() => router.push('/(professional)/settings')}
           />
           <MenuItem
             icon="notifications-outline"
-            label="Notifications"
+            label={messages.profile.notifications}
             badge={unreadNotifCount}
             onPress={() => router.push('/(professional)/notifications')}
           />
         </MenuSection>
 
         {/* Mon activité professionnelle */}
-        <MenuSection title="MON ACTIVITÉ PROFESSIONNELLE">
+        <MenuSection title={messages.profile.sectionActivity}>
           <MenuItem
             icon="briefcase-outline"
-            label="Mes services"
+            label={messages.profile.myServices}
             onPress={() => router.push('/(professional)/services')}
           />
           <MenuItem
             icon="time-outline"
-            label="Mes disponibilités"
+            label={messages.profile.myAvailability}
             onPress={() => router.push('/(professional)/availability')}
           />
           <MenuItem
             icon="location-outline"
-            label="Ma zone d'intervention"
+            label={messages.profile.myZone}
             onPress={() => router.push('/(professional)/onboarding')}
           />
           <MenuItem
             icon="wallet-outline"
-            label="Mes revenus"
+            label={messages.profile.myRevenues}
             onPress={() => router.push('/(professional)/revenue')}
           />
           <MenuItem
             icon="star-outline"
-            label="Mes avis"
+            label={messages.profile.myReviews}
             onPress={() => router.push('/(professional)/reviews')}
           />
         </MenuSection>
 
         {/* Aide et support */}
-        <MenuSection title="AIDE ET SUPPORT">
+        <MenuSection title={messages.profile.sectionHelp}>
           <MenuItem
             icon="help-circle-outline"
-            label="Centre d'aide"
+            label={messages.profile.helpCenter}
             onPress={() => router.push('/(professional)/settings')}
           />
           <MenuItem
             icon="mail-outline"
-            label="Nous contacter"
+            label={messages.profile.contactUs}
             onPress={() => router.push('/(professional)/settings')}
           />
         </MenuSection>
@@ -418,7 +419,7 @@ export default function ProfessionalProfileScreen() {
             accessibilityRole="button"
           >
             <Ionicons name="log-out-outline" size={20} color={colors.error} />
-            <Text variant="body" color={colors.error}>Déconnexion</Text>
+            <Text variant="body" color={colors.error}>{messages.profile.logout}</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -430,10 +431,10 @@ export default function ProfessionalProfileScreen() {
 
 function VerificationStatus({ status }: { status: string }) {
   const config: Record<string, { color: string; label: string; icon: keyof typeof Ionicons.glyphMap }> = {
-    VERIFIED: { color: colors.success, label: 'Profil vérifié', icon: 'checkmark-circle' },
-    PENDING: { color: colors.warning, label: 'Vérification en cours', icon: 'time-outline' },
-    REJECTED: { color: colors.error, label: 'Vérification refusée', icon: 'close-circle' },
-    SUSPENDED: { color: colors.error, label: 'Compte suspendu', icon: 'ban' },
+    VERIFIED: { color: colors.success, label: messages.profile.verification.verified, icon: 'checkmark-circle' },
+    PENDING: { color: colors.warning, label: messages.profile.verification.pending, icon: 'time-outline' },
+    REJECTED: { color: colors.error, label: messages.profile.verification.rejected, icon: 'close-circle' },
+    SUSPENDED: { color: colors.error, label: messages.profile.verification.suspended, icon: 'ban' },
   };
   const c = config[status] || config.PENDING;
 

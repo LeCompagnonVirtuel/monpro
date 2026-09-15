@@ -18,17 +18,18 @@ import { useProfessionalBookings } from '@/hooks/use-professional-bookings';
 import { Booking, BookingStatus } from '@/api/bookings';
 import { formatCurrency, formatRelativeDate } from '@/lib/format';
 import { getErrorMessage } from '@/lib/api-errors';
+import { messages } from '@/constants/messages';
 
 type FilterTab = 'all' | 'upcoming' | 'active' | 'done';
 
 const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
-  PENDING: { color: colors.textTertiary, label: 'En attente' },
-  CONFIRMED: { color: colors.info, label: 'Confirmée' },
-  ARRIVING: { color: colors.warning, label: 'En route' },
-  IN_PROGRESS: { color: colors.primary, label: 'En cours' },
-  COMPLETED: { color: colors.success, label: 'Terminée' },
-  CANCELLED: { color: colors.error, label: 'Annulée' },
-  DISPUTED: { color: colors.error, label: 'Litige' },
+  PENDING: { color: colors.textTertiary, label: messages.status.pending },
+  CONFIRMED: { color: colors.info, label: messages.status.confirmed },
+  ARRIVING: { color: colors.warning, label: messages.status.enRoute },
+  IN_PROGRESS: { color: colors.primary, label: messages.status.inProgress },
+  COMPLETED: { color: colors.success, label: messages.status.completed },
+  CANCELLED: { color: colors.error, label: messages.status.cancelled },
+  DISPUTED: { color: colors.error, label: messages.status.dispute },
 };
 
 function getDateKey(dateStr: string): string {
@@ -80,22 +81,22 @@ function getEmptyMessage(tab: FilterTab): { title: string; description: string }
   switch (tab) {
     case 'upcoming':
       return {
-        title: 'Aucune intervention à venir',
+        title: messages.empty.noInterventions,
         description: 'Vos interventions confirmées et planifiées apparaîtront ici.',
       };
     case 'active':
       return {
-        title: 'Aucune intervention en cours',
+        title: messages.empty.noInterventions,
         description: 'Les interventions en cours de réalisation apparaîtront ici.',
       };
     case 'done':
       return {
-        title: 'Aucune intervention terminée',
+        title: messages.empty.noInterventions,
         description: 'Vos interventions terminées apparaîtront ici.',
       };
     default:
       return {
-        title: 'Aucune intervention',
+        title: messages.empty.noInterventions,
         description: 'Vos interventions apparaîtront ici après acceptation de vos devis.',
       };
   }
@@ -249,7 +250,7 @@ export default function InterventionsScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <ErrorState
-          message={getErrorMessage(error, 'Impossible de charger vos interventions.')}
+          message={getErrorMessage(error, messages.errors.loadIntervention)}
           onRetry={refetch}
         />
       </SafeAreaView>
@@ -261,7 +262,7 @@ export default function InterventionsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text variant="h2">Interventions</Text>
+          <Text variant="h2">{messages.tabs.interventions}</Text>
           <Text variant="bodySmall" color={colors.textSecondary}>
             Gérez vos interventions planifiées, en cours et terminées.
           </Text>
@@ -270,7 +271,7 @@ export default function InterventionsScreen() {
           <Pressable
             style={styles.iconBtn}
             onPress={() => setSearchVisible(!searchVisible)}
-            accessibilityLabel="Rechercher"
+            accessibilityLabel={messages.search.clear}
             accessibilityRole="button"
           >
             <Ionicons name={searchVisible ? 'close-outline' : 'search-outline'} size={20} color={colors.text} />
@@ -286,13 +287,13 @@ export default function InterventionsScreen() {
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Rechercher..."
+            placeholder={messages.search.placeholder}
             placeholderTextColor={colors.textTertiary}
             autoFocus
-            accessibilityLabel="Rechercher des interventions"
+            accessibilityLabel={messages.search.placeholder}
           />
           {searchQuery.length > 0 && (
-            <Pressable onPress={() => setSearchQuery('')} accessibilityLabel="Effacer">
+            <Pressable onPress={() => setSearchQuery('')} accessibilityLabel={messages.search.clear}>
               <Ionicons name="close-circle" size={16} color={colors.textTertiary} />
             </Pressable>
           )}
@@ -301,10 +302,10 @@ export default function InterventionsScreen() {
 
       {/* Tabs */}
       <View style={styles.tabsRow}>
-        <FilterTabBtn label="Toutes" count={allBookings.length} active={filter === 'all'} onPress={() => setFilter('all')} />
-        <FilterTabBtn label="À venir" count={upcomingCount} active={filter === 'upcoming'} onPress={() => setFilter('upcoming')} />
-        <FilterTabBtn label="En cours" count={activeCount} active={filter === 'active'} onPress={() => setFilter('active')} />
-        <FilterTabBtn label="Terminées" count={doneCount} active={filter === 'done'} onPress={() => setFilter('done')} />
+        <FilterTabBtn label={messages.requests.filterAll} count={allBookings.length} active={filter === 'all'} onPress={() => setFilter('all')} />
+        <FilterTabBtn label={messages.requests.filterActive} count={upcomingCount} active={filter === 'upcoming'} onPress={() => setFilter('upcoming')} />
+        <FilterTabBtn label={messages.requests.filterActive} count={activeCount} active={filter === 'active'} onPress={() => setFilter('active')} />
+        <FilterTabBtn label={messages.requests.filterCompleted} count={doneCount} active={filter === 'done'} onPress={() => setFilter('done')} />
       </View>
 
       {/* Banner */}
@@ -313,7 +314,7 @@ export default function InterventionsScreen() {
           <Ionicons name="calendar-outline" size={22} color={colors.primary} />
         </View>
         <View style={styles.bannerContent}>
-          <Text variant="bodyMedium">Restez organisé !</Text>
+          <Text variant="bodyMedium">{messages.dashboard.keepGoing}</Text>
           <Text variant="caption" color={colors.textSecondary}>
             Consultez votre planning, préparez vos interventions et offrez un service de qualité à vos clients.
           </Text>

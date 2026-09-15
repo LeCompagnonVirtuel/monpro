@@ -12,15 +12,16 @@ import { useQuotesForRequest } from '@/hooks/use-quotes';
 import { BookingStatus, CreateBookingPayload } from '@/api/bookings';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { getErrorMessage } from '@/lib/api-errors';
+import { messages } from '@/constants/messages';
 
 const STATUS_LABELS: Record<BookingStatus, { label: string; variant: 'success' | 'warning' | 'info' | 'error' }> = {
-  PENDING: { label: 'En attente', variant: 'warning' },
-  CONFIRMED: { label: 'Confirmée', variant: 'success' },
-  ARRIVING: { label: 'En route', variant: 'info' },
-  IN_PROGRESS: { label: 'En cours', variant: 'warning' },
-  COMPLETED: { label: 'Terminée', variant: 'success' },
-  CANCELLED: { label: 'Annulée', variant: 'error' },
-  DISPUTED: { label: 'Litige', variant: 'error' },
+  PENDING: { label: messages.status.pending, variant: 'warning' },
+  CONFIRMED: { label: messages.status.confirmed, variant: 'success' },
+  ARRIVING: { label: messages.status.enRoute, variant: 'info' },
+  IN_PROGRESS: { label: messages.status.inProgress, variant: 'warning' },
+  COMPLETED: { label: messages.status.completed, variant: 'success' },
+  CANCELLED: { label: messages.status.cancelled, variant: 'error' },
+  DISPUTED: { label: messages.status.dispute, variant: 'error' },
 };
 
 export default function BookingDetailScreen() {
@@ -52,19 +53,19 @@ export default function BookingDetailScreen() {
   const handleCancelBooking = () => {
     if (!booking) return;
     Alert.alert(
-      'Annuler la réservation',
-      'Êtes-vous sûr de vouloir annuler cette réservation ? Un remboursement sera automatiquement initié si le paiement a été effectué.',
+      messages.booking.cancelTitle,
+      messages.booking.cancelMessage,
       [
-        { text: 'Non', style: 'cancel' },
+        { text: messages.common.no, style: 'cancel' },
         {
-          text: 'Oui, annuler',
+          text: messages.booking.cancelYes,
           style: 'destructive',
           onPress: async () => {
             try {
               await cancelBooking.mutateAsync({ bookingId: booking.id });
               refetch();
             } catch {
-              Alert.alert('Erreur', "Impossible d'annuler la réservation.");
+              Alert.alert(messages.common.error, messages.errors.cancelBooking);
             }
           },
         },
@@ -90,7 +91,7 @@ export default function BookingDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
-        <ErrorState message={getErrorMessage(bookingError, 'Réservation introuvable')} onRetry={refetch} />
+        <ErrorState message={getErrorMessage(bookingError, `${messages.booking.title}${messages.errors.notFound}`)} onRetry={refetch} />
       </SafeAreaView>
     );
   }
@@ -103,21 +104,21 @@ export default function BookingDetailScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
           <View style={styles.confirmationBanner}>
             <Ionicons name="checkmark-circle" size={48} color={colors.success} />
-            <Text variant="h2" align="center">Réservation confirmée</Text>
+            <Text variant="h2" align="center">{messages.booking.confirmed}</Text>
             <Badge label={statusInfo.label} variant={statusInfo.variant} />
           </View>
 
           <Divider />
 
           <View style={styles.detailSection}>
-            <DetailRow label="Référence" value={booking.id.slice(0, 8).toUpperCase()} />
-            <DetailRow label="Professionnel" value={booking.professional?.user?.fullName || booking.professional?.businessName || '-'} />
-            <DetailRow label="Date" value={formatDate(booking.scheduledDate)} />
-            {booking.scheduledTime && <DetailRow label="Heure" value={booking.scheduledTime} />}
-            <DetailRow label="Montant" value={formatCurrency(booking.totalAmount)} />
-            <DetailRow label="Statut" value={statusInfo.label} />
+            <DetailRow label={messages.booking.reference} value={booking.id.slice(0, 8).toUpperCase()} />
+            <DetailRow label={messages.booking.professional} value={booking.professional?.user?.fullName || booking.professional?.businessName || '-'} />
+            <DetailRow label={messages.booking.date} value={formatDate(booking.scheduledDate)} />
+            {booking.scheduledTime && <DetailRow label={messages.booking.time} value={booking.scheduledTime} />}
+            <DetailRow label={messages.booking.amount} value={formatCurrency(booking.totalAmount)} />
+            <DetailRow label={messages.booking.status} value={statusInfo.label} />
             {booking.address?.fullAddress && (
-              <DetailRow label="Adresse" value={booking.address.fullAddress} />
+              <DetailRow label={messages.booking.address} value={booking.address.fullAddress} />
             )}
           </View>
 
@@ -127,12 +128,12 @@ export default function BookingDetailScreen() {
             {booking.status === 'CONFIRMED' && (
               <>
                 <Button
-                  title="Voir l'intervention"
+                  title={messages.booking.viewIntervention}
                   onPress={() => router.push({ pathname: '/(client)/intervention', params: { bookingId: booking.id } })}
                   size="lg"
                 />
                 <Button
-                  title="Annuler"
+                  title={messages.common.cancel}
                   onPress={handleCancelBooking}
                   variant="outline"
                   size="lg"
@@ -142,7 +143,7 @@ export default function BookingDetailScreen() {
             )}
             {(booking.status === 'IN_PROGRESS' || booking.status === 'ARRIVING') && (
               <Button
-                title="Suivre l'intervention"
+                title={messages.booking.followIntervention}
                 onPress={() => router.push({ pathname: '/(client)/intervention', params: { bookingId: booking.id } })}
                 size="lg"
               />
@@ -150,12 +151,12 @@ export default function BookingDetailScreen() {
             {booking.status === 'COMPLETED' && (
               <>
                 <Button
-                  title="Procéder au paiement"
+                  title={messages.booking.pay}
                   onPress={() => router.push({ pathname: '/(client)/payment', params: { bookingId: booking.id } })}
                   size="lg"
                 />
                 <Button
-                  title="Laisser un avis"
+                  title={messages.booking.review}
                   onPress={() => router.push({ pathname: '/(client)/review', params: { bookingId: booking.id } })}
                   variant="outline"
                   size="lg"
@@ -274,10 +275,10 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 
 function BookingTimeline({ status }: { status: BookingStatus }) {
   const steps: { key: BookingStatus; label: string }[] = [
-    { key: 'CONFIRMED', label: 'Réservation confirmée' },
-    { key: 'ARRIVING', label: 'Professionnel en route' },
-    { key: 'IN_PROGRESS', label: 'Intervention en cours' },
-    { key: 'COMPLETED', label: 'Intervention terminée' },
+    { key: 'CONFIRMED', label: messages.booking.timeline.confirmed },
+    { key: 'ARRIVING', label: messages.booking.timeline.enRoute },
+    { key: 'IN_PROGRESS', label: messages.booking.timeline.inProgress },
+    { key: 'COMPLETED', label: messages.booking.timeline.completed },
   ];
 
   const statusOrder: BookingStatus[] = ['PENDING', 'CONFIRMED', 'ARRIVING', 'IN_PROGRESS', 'COMPLETED'];

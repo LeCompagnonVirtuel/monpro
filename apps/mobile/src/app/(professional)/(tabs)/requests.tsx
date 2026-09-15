@@ -15,14 +15,16 @@ import { useProfessionalRequests } from '@/hooks/use-professional-requests';
 import { useMyProfessionalProfile } from '@/hooks/use-professional-profile';
 import { ServiceRequest, ServiceRequestStatus, UrgencyLevel } from '@/api/requests';
 import { formatRelativeDate } from '@/lib/format';
+import { getErrorMessage } from '@/lib/api-errors';
+import { messages } from '@/constants/messages';
 
 type FilterTab = 'all' | 'new' | 'active' | 'done';
 
 const URGENCY_CONFIG: Record<string, { color: string; label: string }> = {
-  LOW: { color: colors.textTertiary, label: 'Basse' },
-  NORMAL: { color: colors.success, label: 'Normal' },
-  HIGH: { color: colors.warning, label: 'Haute' },
-  URGENT: { color: colors.error, label: 'Urgent' },
+  LOW: { color: colors.textTertiary, label: messages.urgency.low },
+  NORMAL: { color: colors.success, label: messages.urgency.normal },
+  HIGH: { color: colors.warning, label: messages.urgency.high },
+  URGENT: { color: colors.error, label: messages.urgency.urgent },
 };
 
 const ACTIONABLE_STATUSES: ServiceRequestStatus[] = ['SUBMITTED', 'MATCHING', 'QUOTED'];
@@ -35,13 +37,13 @@ function getLocationText(req: ServiceRequest): string | null {
 function getEmptyMessage(tab: FilterTab): { title: string; description: string } {
   switch (tab) {
     case 'new':
-      return { title: 'Aucune nouvelle demande', description: 'Les nouvelles demandes correspondant à vos services apparaîtront ici.' };
+      return { title: messages.empty.noNewRequests, description: messages.professionalRequests.emptyNew };
     case 'active':
-      return { title: 'Aucune demande en cours', description: 'Les demandes en cours de traitement apparaîtront ici.' };
+      return { title: messages.requests.emptyActive, description: messages.professionalRequests.emptyActive };
     case 'done':
-      return { title: 'Aucune demande traitée', description: 'Les demandes terminées ou annulées apparaîtront ici.' };
+      return { title: messages.requests.emptyCompleted, description: messages.professionalRequests.emptyProcessed };
     default:
-      return { title: 'Aucune demande', description: 'Les demandes correspondant à vos services apparaîtront ici.' };
+      return { title: messages.empty.noRequests, description: messages.professionalRequests.emptyDefault };
   }
 }
 
@@ -105,24 +107,24 @@ export default function ProfessionalRequestsScreen() {
     if (!hasServices) {
       return {
         icon: 'briefcase-outline' as const,
-        title: 'Configurez vos services',
-        description: 'Ajoutez vos services pour recevoir des demandes pertinentes.',
+        title: messages.professionalRequests.configServices,
+        description: messages.professionalRequests.configServicesDesc,
         route: '/(professional)/services' as const,
       };
     }
     if (!hasZone) {
       return {
         icon: 'location-outline' as const,
-        title: 'Définissez votre zone',
-        description: 'Indiquez votre zone d\'intervention pour être trouvé par les clients proches.',
+        title: messages.professionalRequests.setZone,
+        description: messages.professionalRequests.setZoneDesc,
         route: '/(professional)/onboarding' as const,
       };
     }
     if (!isVerified) {
       return {
         icon: 'shield-checkmark-outline' as const,
-        title: 'Profil en vérification',
-        description: 'Votre profil est en cours de vérification. Vous recevrez des demandes une fois approuvé.',
+        title: messages.professionalRequests.verificationPending,
+        description: messages.professionalRequests.verificationPendingDesc,
         route: '/(professional)/(tabs)/profile' as const,
       };
     }
@@ -180,7 +182,7 @@ export default function ProfessionalRequestsScreen() {
   if (error) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <ErrorState message="Impossible de charger les demandes." onRetry={refetch} />
+        <ErrorState message={getErrorMessage(error, messages.errors.loadRequests)} onRetry={refetch} />
       </SafeAreaView>
     );
   }
@@ -190,16 +192,16 @@ export default function ProfessionalRequestsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text variant="h1" style={styles.headerTitle}>Demandes</Text>
+          <Text variant="h1" style={styles.headerTitle}>{messages.professionalRequests.title}</Text>
           <Text variant="bodySmall" color={colors.textSecondary}>
-            Trouvez et répondez aux demandes de clients près de chez vous.
+            {messages.professionalRequests.subtitle}
           </Text>
         </View>
         <View style={styles.headerActions}>
           <Pressable
             style={styles.iconBtn}
             onPress={() => setSearchVisible(!searchVisible)}
-            accessibilityLabel="Rechercher"
+            accessibilityLabel={messages.search.clear}
             accessibilityRole="button"
           >
             <Ionicons name={searchVisible ? 'close-outline' : 'search-outline'} size={22} color={colors.text} />
@@ -207,7 +209,7 @@ export default function ProfessionalRequestsScreen() {
           <Pressable
             style={styles.iconBtn}
             onPress={() => setFilterModalVisible(true)}
-            accessibilityLabel="Filtrer"
+            accessibilityLabel={messages.search.filters}
             accessibilityRole="button"
           >
             <Ionicons name="funnel-outline" size={20} color={colors.text} />
@@ -228,13 +230,13 @@ export default function ProfessionalRequestsScreen() {
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Rechercher..."
+            placeholder={messages.search.placeholder}
             placeholderTextColor={colors.textTertiary}
             autoFocus
-            accessibilityLabel="Rechercher des demandes"
+            accessibilityLabel={messages.search.professionalPlaceholder}
           />
           {searchQuery.length > 0 && (
-            <Pressable onPress={() => setSearchQuery('')} accessibilityLabel="Effacer">
+            <Pressable onPress={() => setSearchQuery('')} accessibilityLabel={messages.search.clear}>
               <Ionicons name="close-circle" size={16} color={colors.textTertiary} />
             </Pressable>
           )}
@@ -243,10 +245,10 @@ export default function ProfessionalRequestsScreen() {
 
       {/* Tabs */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsRow}>
-        <FilterTabBtn label="Toutes" count={tabCounts.all} active={filter === 'all'} onPress={() => setFilter('all')} />
-        <FilterTabBtn label="Nouvelles" count={tabCounts.new} active={filter === 'new'} onPress={() => setFilter('new')} isNew />
-        <FilterTabBtn label="En cours" count={tabCounts.active} active={filter === 'active'} onPress={() => setFilter('active')} />
-        <FilterTabBtn label="Traitées" count={tabCounts.done} active={filter === 'done'} onPress={() => setFilter('done')} />
+        <FilterTabBtn label={messages.professionalRequests.filterAll} count={tabCounts.all} active={filter === 'all'} onPress={() => setFilter('all')} />
+        <FilterTabBtn label={messages.professionalRequests.filterNew} count={tabCounts.new} active={filter === 'new'} onPress={() => setFilter('new')} isNew />
+        <FilterTabBtn label={messages.professionalRequests.filterActive} count={tabCounts.active} active={filter === 'active'} onPress={() => setFilter('active')} />
+        <FilterTabBtn label={messages.professionalRequests.filterProcessed} count={tabCounts.done} active={filter === 'done'} onPress={() => setFilter('done')} />
       </ScrollView>
 
       {/* Banner */}
@@ -279,9 +281,9 @@ export default function ProfessionalRequestsScreen() {
       >
         <Pressable style={styles.modalOverlay} onPress={() => setFilterModalVisible(false)}>
           <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
-            <Text variant="h3" style={styles.modalTitle}>Filtrer par urgence</Text>
+            <Text variant="h3" style={styles.modalTitle}>{messages.professionalRequests.filterUrgency}</Text>
             <View style={styles.modalOptions}>
-              <FilterOption label="Toutes" active={urgencyFilter === null} onPress={() => setUrgencyFilter(null)} />
+              <FilterOption label={messages.professionalRequests.filterAll} active={urgencyFilter === null} onPress={() => setUrgencyFilter(null)} />
               {Object.entries(URGENCY_CONFIG).map(([key, cfg]) => (
                 <FilterOption
                   key={key}
@@ -298,7 +300,7 @@ export default function ProfessionalRequestsScreen() {
               accessibilityLabel="Appliquer"
               accessibilityRole="button"
             >
-              <Text variant="buttonSmall" color={colors.textInverse}>Appliquer</Text>
+              <Text variant="buttonSmall" color={colors.textInverse}>{messages.common.apply}</Text>
             </Pressable>
           </View>
         </Pressable>
@@ -434,10 +436,10 @@ function RequestCard({ request }: { request: ServiceRequest }) {
               pathname: '/(professional)/create-quote',
               params: { requestId: request.id, serviceName: request.service?.name || '' },
             })}
-            accessibilityLabel="Voir et répondre"
+            accessibilityLabel={messages.professionalRequests.viewAndRespond}
             accessibilityRole="button"
           >
-            <Text variant="caption" color={colors.textInverse} style={styles.viewBtnText}>Voir et répondre</Text>
+            <Text variant="caption" color={colors.textInverse} style={styles.viewBtnText}>{messages.professionalRequests.viewAndRespond}</Text>
             <Ionicons name="arrow-forward" size={12} color={colors.textInverse} />
           </Pressable>
         )}

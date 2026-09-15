@@ -23,6 +23,7 @@ import { shadows } from '@/theme/shadows';
 import { Text } from '@/components/ui';
 import { authApi } from '@/api/auth';
 import { extractApiError } from '@/api/errors';
+import { messages } from '@/constants/messages';
 
 const phoneSchema = z.object({
   phone: z
@@ -30,7 +31,7 @@ const phoneSchema = z.object({
     .transform((val) => val.replace(/\D/g, ''))
     .refine(
       (val) => val.length >= 8 && val.length <= 12,
-      'Numéro de téléphone invalide.',
+      messages.auth.phone.invalid,
     ),
 });
 
@@ -69,7 +70,7 @@ export default function PhoneScreen() {
       const msg = apiError.message.toLowerCase();
       if (msg.includes('envoyer le code') || msg.includes('vérification')) {
         setSmsUnavailable(true);
-        setError('Le service SMS est temporairement indisponible.');
+        setError(messages.auth.phone.smsUnavailable);
       } else {
         setError(apiError.message);
       }
@@ -105,10 +106,10 @@ export default function PhoneScreen() {
           <View style={styles.main}>
             <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.titleBlock}>
               <Text variant="h1" style={styles.title}>
-                Quel est votre{'\n'}numéro ?
+                {messages.auth.phone.title.split('\n')[0]}{'\n'}{messages.auth.phone.title.split('\n')[1]}
               </Text>
               <Text variant="body" color={colors.textSecondary}>
-                Nous vous enverrons un code de vérification par SMS.
+                {messages.auth.phone.subtitle}
               </Text>
             </Animated.View>
 
@@ -133,7 +134,7 @@ export default function PhoneScreen() {
                     <View style={styles.divider} />
                     <TextInput
                       style={styles.phoneInput}
-                      placeholder="07 00 00 00 00"
+                      placeholder={messages.auth.phone.placeholder}
                       placeholderTextColor={colors.textTertiary}
                       value={value}
                       onChangeText={(t) => {
@@ -165,11 +166,11 @@ export default function PhoneScreen() {
                 <View style={styles.fallbackHeader}>
                   <Ionicons name="mail-outline" size={20} color={colors.secondary} />
                   <Text variant="bodyMedium" style={styles.fallbackTitle}>
-                    Utilisez plutôt votre email
+                    {messages.auth.phone.useEmail}
                   </Text>
                 </View>
                 <Text variant="bodySmall" color={colors.textSecondary} style={styles.fallbackText}>
-                  Inscrivez-vous ou connectez-vous avec votre adresse email en attendant le rétablissement du service SMS.
+                  {messages.auth.phone.smsUnavailableDesc}
                 </Text>
                 <View style={styles.fallbackActions}>
                   <Pressable
@@ -177,7 +178,7 @@ export default function PhoneScreen() {
                     onPress={() => router.replace('/(auth)/email-register')}
                   >
                     <Text variant="bodySmall" color={colors.primary} style={{ fontWeight: '600' }}>
-                      Créer un compte
+                      {messages.auth.phone.createAccount}
                     </Text>
                   </Pressable>
                   <Pressable
@@ -185,7 +186,7 @@ export default function PhoneScreen() {
                     onPress={() => router.replace('/(auth)/email-login')}
                   >
                     <Text variant="bodySmall" color={colors.secondary} style={{ fontWeight: '600' }}>
-                      Se connecter
+                      {messages.auth.phone.login}
                     </Text>
                   </Pressable>
                 </View>
@@ -213,7 +214,7 @@ export default function PhoneScreen() {
               accessibilityState={{ disabled: isLoading }}
             >
               <Text variant="button" color={colors.primary}>
-                {isLoading ? 'Envoi...' : 'Continuer'}
+                {isLoading ? messages.auth.phone.sendingCode : messages.common.continue}
               </Text>
               {isLoading ? (
                 <ActivityIndicator size="small" color={colors.primary} />
@@ -233,7 +234,7 @@ export default function PhoneScreen() {
                 color={colors.textTertiary}
               />
               <Text variant="caption" color={colors.textTertiary}>
-                Connexion sécurisée et chiffrée
+                {messages.common.securedConnection}
               </Text>
             </View>
           </View>
