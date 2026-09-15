@@ -13,7 +13,7 @@ import { completeOnboarding } from '@/lib/onboarding';
 
 const { width } = Dimensions.get('window');
 
-type IllustrationType = 'discover' | 'services' | 'request' | 'messaging' | 'quotes' | 'security' | 'ai' | 'professional';
+type IllustrationType = 'welcome' | 'discover' | 'services' | 'request' | 'messaging' | 'quotes' | 'security' | 'ai' | 'professional';
 
 interface Slide {
   id: string;
@@ -23,6 +23,13 @@ interface Slide {
 }
 
 const SLIDES: Slide[] = [
+  {
+    id: '0',
+    title: 'Bienvenue sur MONPRO',
+    description:
+      "Votre assistant intelligent pour trouver le professionnel idéal en Côte d'Ivoire. Rapide, fiable et sécurisé.",
+    illustration: 'welcome',
+  },
   {
     id: '1',
     title: 'Trouvez le bon professionnel',

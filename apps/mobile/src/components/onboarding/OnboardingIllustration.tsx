@@ -1,13 +1,14 @@
 import { View, StyleSheet } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+import LottieView from 'lottie-react-native';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
 import { Text } from '@/components/ui';
 
-type IllustrationType = 'discover' | 'services' | 'request' | 'messaging' | 'quotes' | 'security' | 'ai' | 'professional';
+type IllustrationType = 'welcome' | 'discover' | 'services' | 'request' | 'messaging' | 'quotes' | 'security' | 'ai' | 'professional';
 
 interface OnboardingIllustrationProps {
   type: IllustrationType;
@@ -29,6 +30,21 @@ function FloatingCard({
     >
       {children}
     </Animated.View>
+  );
+}
+
+function WelcomeIllustration() {
+  return (
+    <View style={styles.illustrationContainer}>
+      <Animated.View entering={FadeInDown.delay(200).duration(600).springify()} style={styles.lottieWrap}>
+        <LottieView
+          source={require('../../../lotties/Live chatbot.json')}
+          autoPlay
+          loop
+          style={styles.lottie}
+        />
+      </Animated.View>
+    </View>
   );
 }
 
@@ -281,6 +297,8 @@ function AiIllustration() {
 
 export function OnboardingIllustration({ type }: OnboardingIllustrationProps) {
   switch (type) {
+    case 'welcome':
+      return <WelcomeIllustration />;
     case 'discover':
       return <DiscoverIllustration />;
     case 'services':
@@ -578,5 +596,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 30,
     left: 16,
+  },
+  lottieWrap: {
+    width: 260,
+    height: 260,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lottie: {
+    width: '100%',
+    height: '100%',
   },
 });
