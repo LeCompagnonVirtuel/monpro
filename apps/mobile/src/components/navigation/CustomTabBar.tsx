@@ -28,6 +28,7 @@ interface CustomTabBarProps extends BottomTabBarProps {
 const DEFAULT_CLIENT_TABS: TabConfig[] = [
   { key: 'home', icon: 'home-outline', iconActive: 'home', label: 'Accueil' },
   { key: 'search', icon: 'search-outline', iconActive: 'search', label: 'Rechercher' },
+  { key: 'requests', icon: 'add-circle-outline', iconActive: 'add-circle', label: 'Publier' },
   { key: 'messages', icon: 'chatbubbles-outline', iconActive: 'chatbubbles', label: 'Messages' },
   { key: 'profile', icon: 'person-outline', iconActive: 'person', label: 'Profil' },
 ];
