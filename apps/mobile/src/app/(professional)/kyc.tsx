@@ -4,7 +4,7 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import LottieView from 'lottie-react-native';
+import { LottieAnimation } from '@/components/ui/LottieAnimation';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
 import { colors } from '@/theme/colors';
@@ -492,7 +492,7 @@ export default function KycScreen() {
         {currentStepKey === 'success' && (
           <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.stepContent}>
             <View style={styles.successContainer}>
-              <LottieView source={require('../../../lotties/Validate button.json')} autoPlay loop={false} style={{ width: 140, height: 140 }} />
+              <LottieAnimation source={require('../../../lotties/Validate button.json')} autoPlay loop={false} style={{ width: 140, height: 140 }} fallbackIcon="checkmark-circle" fallbackSize={48} fallbackColor={colors.success} />
               <Text variant="h2" align="center">Dossier envoyé</Text>
               <Text variant="body" color={colors.textSecondary} align="center">
                 Votre dossier est maintenant en cours de vérification par notre équipe.

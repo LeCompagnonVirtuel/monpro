@@ -1,14 +1,13 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import LottieView from 'lottie-react-native';
-import type { AnimationObject } from 'lottie-react-native';
+import { LottieAnimation } from '@/components/ui/LottieAnimation';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { Text } from '../ui/Text';
 
 interface EmptyStateProps {
   icon?: keyof typeof Ionicons.glyphMap;
-  lottie?: string | AnimationObject | { uri: string };
+  lottie?: any;
   title: string;
   description?: string;
   action?: { label: string; onPress: () => void };
@@ -18,7 +17,7 @@ export function EmptyState({ icon = 'file-tray-outline', lottie, title, descript
   return (
     <View style={styles.container}>
       {lottie ? (
-        <LottieView source={lottie} autoPlay loop style={styles.lottie} />
+        <LottieAnimation source={lottie} autoPlay loop style={styles.lottie} fallbackIcon={icon} fallbackSize={56} />
       ) : (
         <Ionicons name={icon} size={56} color={colors.textTertiary} />
       )}

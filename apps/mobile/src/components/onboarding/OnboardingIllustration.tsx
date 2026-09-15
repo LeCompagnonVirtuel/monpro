@@ -1,7 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import LottieView from 'lottie-react-native';
+import { LottieAnimation } from '@/components/ui/LottieAnimation';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
@@ -37,11 +37,13 @@ function WelcomeIllustration() {
   return (
     <View style={styles.illustrationContainer}>
       <Animated.View entering={FadeInDown.delay(200).duration(600).springify()} style={styles.lottieWrap}>
-        <LottieView
+        <LottieAnimation
           source={require('../../../lotties/Live chatbot.json')}
           autoPlay
           loop
           style={styles.lottie}
+          fallbackIcon="chatbubbles-outline"
+          fallbackSize={64}
         />
       </Animated.View>
     </View>

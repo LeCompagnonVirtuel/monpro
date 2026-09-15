@@ -3,7 +3,7 @@ import { StyleSheet, View, ScrollView, Pressable, TextInput, Alert, KeyboardAvoi
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import LottieView from 'lottie-react-native';
+import { LottieAnimation } from '@/components/ui/LottieAnimation';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
@@ -108,7 +108,7 @@ export default function ReviewScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header />
         <View style={styles.successContent}>
-          <LottieView source={require('../../../lotties/Validate button.json')} autoPlay loop={false} style={{ width: 120, height: 120 }} />
+          <LottieAnimation source={require('../../../lotties/Validate button.json')} autoPlay loop={false} style={{ width: 120, height: 120 }} fallbackIcon="checkmark-circle" fallbackSize={48} fallbackColor={colors.success} />
           <Text variant="h2" align="center">Merci pour votre avis !</Text>
           <Text variant="body" color={colors.textSecondary} align="center">
             Votre retour aide les autres clients à faire leur choix.

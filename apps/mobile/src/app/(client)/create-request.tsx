@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { StyleSheet, View, ScrollView, Pressable, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import LottieView from 'lottie-react-native';
+import { LottieAnimation } from '@/components/ui/LottieAnimation';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -549,7 +549,7 @@ export default function CreateRequestScreen() {
               {/* AI Diagnosis */}
               {diagnosisLoading && (
                 <View style={styles.diagnosisBanner}>
-                  <LottieView source={require('../../../lotties/Settings.json')} autoPlay loop style={styles.inlineLottie} />
+                  <LottieAnimation source={require('../../../lotties/Settings.json')} autoPlay loop style={styles.inlineLottie} fallbackIcon="hourglass-outline" fallbackSize={24} />
                   <Text variant="bodySmall" color={colors.textSecondary}>Analyse de votre photo en cours...</Text>
                 </View>
               )}
@@ -928,7 +928,7 @@ export default function CreateRequestScreen() {
               )}
               {locationLoading && !detectedAddress && (
                 <View style={styles.detectedLocation}>
-                  <LottieView source={require('../../../lotties/Settings.json')} autoPlay loop style={styles.inlineLottie} />
+                  <LottieAnimation source={require('../../../lotties/Settings.json')} autoPlay loop style={styles.inlineLottie} fallbackIcon="hourglass-outline" fallbackSize={24} />
                   <Text variant="bodySmall" color={colors.textTertiary}>Détection de votre position...</Text>
                 </View>
               )}
@@ -1340,7 +1340,7 @@ export default function CreateRequestScreen() {
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
         {uploadProgress && (
           <View style={styles.uploadProgressBar}>
-            <LottieView source={require('../../../lotties/Settings.json')} autoPlay loop style={styles.inlineLottie} />
+            <LottieAnimation source={require('../../../lotties/Settings.json')} autoPlay loop style={styles.inlineLottie} fallbackIcon="hourglass-outline" fallbackSize={24} />
             <Text variant="caption" color={colors.textSecondary}>{uploadProgress}</Text>
           </View>
         )}

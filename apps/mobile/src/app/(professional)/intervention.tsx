@@ -4,7 +4,7 @@ import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import LottieView from 'lottie-react-native';
+import { LottieAnimation } from '@/components/ui/LottieAnimation';
 import * as ImagePicker from 'expo-image-picker';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -284,7 +284,7 @@ export default function ProfessionalInterventionScreen() {
         <View style={styles.footer}>
           <View style={styles.completedBanner}>
             {currentStep === 4 ? (
-              <LottieView source={require('../../../lotties/Validate button.json')} autoPlay loop={false} style={{ width: 28, height: 28 }} />
+              <LottieAnimation source={require('../../../lotties/Validate button.json')} autoPlay loop={false} style={{ width: 28, height: 28 }} fallbackIcon="checkmark-circle" fallbackSize={28} fallbackColor={colors.success} />
             ) : (
               <Ionicons name="hourglass-outline" size={20} color={colors.warning} />
             )}

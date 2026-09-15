@@ -1,5 +1,5 @@
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import LottieView from 'lottie-react-native';
+import { LottieAnimation } from './LottieAnimation';
 import { colors } from '@/theme/colors';
 
 const WAITING_LOTTIE = require('../../../lotties/Settings.json');
@@ -16,7 +16,7 @@ export function Spinner({ size = 'large', color = colors.primary, fullScreen = f
     return (
       <View style={styles.fullScreen}>
         {lottie ? (
-          <LottieView source={WAITING_LOTTIE} autoPlay loop style={styles.lottie} />
+          <LottieAnimation source={WAITING_LOTTIE} autoPlay loop style={styles.lottie} fallbackIcon="hourglass-outline" />
         ) : (
           <ActivityIndicator size={size} color={color} />
         )}
@@ -24,7 +24,7 @@ export function Spinner({ size = 'large', color = colors.primary, fullScreen = f
     );
   }
   if (lottie) {
-    return <LottieView source={WAITING_LOTTIE} autoPlay loop style={styles.lottieInline} />;
+    return <LottieAnimation source={WAITING_LOTTIE} autoPlay loop style={styles.lottieInline} fallbackIcon="hourglass-outline" fallbackSize={32} />;
   }
   return <ActivityIndicator size={size} color={color} />;
 }
