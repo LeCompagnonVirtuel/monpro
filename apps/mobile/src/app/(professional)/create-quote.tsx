@@ -64,6 +64,7 @@ export default function CreateQuoteScreen() {
                 estimatedDuration: estimatedDuration.trim() || undefined,
                 validUntil,
               });
+              Alert.alert(messages.quote.sentSuccess, messages.quote.sentSuccessMessage);
               router.back();
             } catch {
               Alert.alert(

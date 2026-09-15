@@ -3,6 +3,7 @@ import { StyleSheet, View, ScrollView, Pressable, Alert, TextInput, KeyboardAvoi
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import LottieView from 'lottie-react-native';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
@@ -118,11 +119,15 @@ export default function PaymentScreen() {
         <Header />
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.statusBanner}>
-            <Ionicons
-              name={existingPayment.status === 'COMPLETED' ? 'checkmark-circle' : existingPayment.status === 'FAILED' ? 'close-circle' : 'hourglass'}
-              size={48}
-              color={existingPayment.status === 'COMPLETED' ? colors.success : existingPayment.status === 'FAILED' ? colors.error : colors.warning}
-            />
+            {existingPayment.status === 'COMPLETED' ? (
+              <LottieView source={require('../../../lotties/Validate button.json')} autoPlay loop={false} style={{ width: 100, height: 100 }} />
+            ) : (
+              <Ionicons
+                name={existingPayment.status === 'FAILED' ? 'close-circle' : 'hourglass'}
+                size={48}
+                color={existingPayment.status === 'FAILED' ? colors.error : colors.warning}
+              />
+            )}
             <Text variant="h2" align="center">
               {existingPayment.status === 'COMPLETED' ? 'Paiement réussi' : existingPayment.status === 'FAILED' ? 'Paiement échoué' : 'Paiement en cours'}
             </Text>

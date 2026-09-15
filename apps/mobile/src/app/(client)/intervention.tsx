@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import LottieView from 'lottie-react-native';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
@@ -76,11 +77,15 @@ export default function InterventionScreen() {
       <Header />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
         <View style={styles.statusBanner}>
-          <Ionicons
-            name={isConfirmed ? 'checkmark-circle' : isCompleted ? 'hourglass' : 'construct'}
-            size={40}
-            color={isConfirmed ? colors.success : isCompleted ? colors.warning : colors.primary}
-          />
+          {isConfirmed ? (
+            <LottieView source={require('../../../lotties/Validate button.json')} autoPlay loop={false} style={{ width: 80, height: 80 }} />
+          ) : (
+            <Ionicons
+              name={isCompleted ? 'hourglass' : 'construct'}
+              size={40}
+              color={isCompleted ? colors.warning : colors.primary}
+            />
+          )}
           <Text variant="h2" align="center">
             {isConfirmed ? 'Intervention confirmée' : isCompleted ? 'En attente de confirmation' : 'Intervention en cours'}
           </Text>

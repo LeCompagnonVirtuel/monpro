@@ -3,6 +3,7 @@ import { StyleSheet, View, ScrollView, Pressable, Alert, RefreshControl } from '
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import LottieView from 'lottie-react-native';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { Text, Badge, Button, Skeleton, Divider } from '@/components/ui';
@@ -103,7 +104,7 @@ export default function BookingDetailScreen() {
         <Header />
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
           <View style={styles.confirmationBanner}>
-            <Ionicons name="checkmark-circle" size={48} color={colors.success} />
+            <LottieView source={require('../../../lotties/Validate button.json')} autoPlay loop={false} style={{ width: 100, height: 100 }} />
             <Text variant="h2" align="center">{messages.booking.confirmed}</Text>
             <Badge label={statusInfo.label} variant={statusInfo.variant} />
           </View>
@@ -175,7 +176,7 @@ export default function BookingDetailScreen() {
         <Header />
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}>
           <View style={styles.confirmationBanner}>
-            <Ionicons name="checkmark-circle" size={48} color={colors.success} />
+            <LottieView source={require('../../../lotties/Validate button.json')} autoPlay loop={false} style={{ width: 100, height: 100 }} />
             <Text variant="h2" align="center">{messages.booking.quoteAccepted}</Text>
             <Text variant="body" color={colors.textSecondary} align="center">
               {messages.booking.createPrompt}

@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import LottieView from 'lottie-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -282,8 +283,12 @@ export default function ProfessionalInterventionScreen() {
       {currentStep >= 3 && (
         <View style={styles.footer}>
           <View style={styles.completedBanner}>
-            <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-            <Text variant="body" color={colors.success}>
+            {currentStep === 4 ? (
+              <LottieView source={require('../../../lotties/Validate button.json')} autoPlay loop={false} style={{ width: 28, height: 28 }} />
+            ) : (
+              <Ionicons name="hourglass-outline" size={20} color={colors.warning} />
+            )}
+            <Text variant="body" color={currentStep === 4 ? colors.success : colors.warning}>
               {currentStep === 4 ? messages.intervention.confirmedByClient : messages.intervention.pendingConfirmation}
             </Text>
           </View>
