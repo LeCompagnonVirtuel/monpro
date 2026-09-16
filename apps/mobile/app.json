@@ -2,7 +2,7 @@
   "expo": {
     "name": "MONPRO",
     "slug": "monpro",
-    "owner": "harounaecom01",
+    "owner": "dev-2007",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -47,7 +47,7 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "63590adc-649c-4986-8c03-fdc815e6deac"
+        "projectId": "d960d447-441b-45e2-a720-6531725e7b8f"
       },
       "router": {
         "origin": false
