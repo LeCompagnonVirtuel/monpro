@@ -43,13 +43,10 @@ export default function PaymentMethodsScreen() {
 
         <View style={styles.methodsList}>
           {PAYMENT_METHODS.map((method) => (
-            <Pressable
+            <View
               key={method.id}
               style={[styles.methodCard, !method.available && styles.methodCardDisabled]}
-              onPress={() => method.available && {}}
-              disabled={!method.available}
-              accessibilityLabel={method.name}
-              accessibilityRole="button"
+              accessibilityLabel={`${method.name}${method.available ? ', disponible' : ', bientôt disponible'}`}
             >
               <View style={[styles.methodIcon, { backgroundColor: method.color + '15' }]}>
                 <Ionicons name={method.icon as any} size={24} color={method.color} />
@@ -63,11 +60,11 @@ export default function PaymentMethodsScreen() {
                 )}
               </View>
               {method.available ? (
-                <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+                <Ionicons name="checkmark-circle" size={20} color={colors.success} />
               ) : (
                 <Ionicons name="lock-closed-outline" size={18} color={colors.textTertiary} />
               )}
-            </Pressable>
+            </View>
           ))}
         </View>
 

@@ -223,6 +223,7 @@ export const messages = {
     title: 'Mes demandes',
     subtitle: "Suivez l'avancement de vos demandes de service.",
     filterAll: 'Toutes',
+    filterUpcoming: 'À venir',
     filterActive: 'En cours',
     filterCompleted: 'Terminées',
     filterCancelled: 'Annulées',

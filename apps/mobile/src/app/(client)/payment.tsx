@@ -277,6 +277,7 @@ export default function PaymentScreen() {
 }
 
 function DevNotice() {
+  if (!__DEV__) return null;
   return (
     <View style={styles.devNotice}>
       <Ionicons name="information-circle" size={16} color={colors.warning} />

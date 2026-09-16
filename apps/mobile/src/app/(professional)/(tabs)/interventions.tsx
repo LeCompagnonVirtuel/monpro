@@ -303,7 +303,7 @@ export default function InterventionsScreen() {
       {/* Tabs */}
       <View style={styles.tabsRow}>
         <FilterTabBtn label={messages.requests.filterAll} count={allBookings.length} active={filter === 'all'} onPress={() => setFilter('all')} />
-        <FilterTabBtn label={messages.requests.filterActive} count={upcomingCount} active={filter === 'upcoming'} onPress={() => setFilter('upcoming')} />
+        <FilterTabBtn label={messages.requests.filterUpcoming} count={upcomingCount} active={filter === 'upcoming'} onPress={() => setFilter('upcoming')} />
         <FilterTabBtn label={messages.requests.filterActive} count={activeCount} active={filter === 'active'} onPress={() => setFilter('active')} />
         <FilterTabBtn label={messages.requests.filterCompleted} count={doneCount} active={filter === 'done'} onPress={() => setFilter('done')} />
       </View>

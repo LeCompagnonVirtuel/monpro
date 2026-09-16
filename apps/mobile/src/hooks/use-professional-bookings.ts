@@ -1,12 +1,20 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { bookingsApi, BookingStatus } from '@/api/bookings';
+import { AxiosError } from 'axios';
 
 export function useProfessionalBookings(professionalId: string | undefined, params?: { status?: BookingStatus; page?: number; limit?: number }) {
   return useQuery({
     queryKey: ['pro-bookings', professionalId, params],
     queryFn: async () => {
-      const { data } = await bookingsApi.listByProfessional(professionalId!, params);
-      return { bookings: data.data, total: data.total };
+      try {
+        const { data } = await bookingsApi.listByProfessional(professionalId!, params);
+        return { bookings: data.data, total: data.total };
+      } catch (err) {
+        if (err instanceof AxiosError && (err.response?.status === 404 || err.response?.status === 403)) {
+          return { bookings: [], total: 0 };
+        }
+        throw err;
+      }
     },
     enabled: !!professionalId,
   });

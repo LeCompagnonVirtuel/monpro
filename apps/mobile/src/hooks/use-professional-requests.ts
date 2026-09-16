@@ -11,7 +11,7 @@ export function useProfessionalRequests(params?: { status?: ServiceRequestStatus
         const { data } = await requestsApi.getAvailable(queryParams);
         return { requests: data.data, total: data.total };
       } catch (err) {
-        if (err instanceof AxiosError && err.response?.status === 404) {
+        if (err instanceof AxiosError && (err.response?.status === 404 || err.response?.status === 403)) {
           return { requests: [], total: 0 };
         }
         throw err;

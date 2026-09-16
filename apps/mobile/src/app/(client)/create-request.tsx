@@ -275,7 +275,7 @@ export default function CreateRequestScreen() {
             const uploadResult = await uploadsApi.uploadImage(photos[i], 'service-requests');
             mediaUrls.push(uploadResult.data.data.url);
           } catch (uploadErr) {
-            console.warn(`Failed to upload photo ${i + 1}:`, uploadErr);
+            if (__DEV__) console.warn(`Failed to upload photo ${i + 1}:`, uploadErr);
             failedCount++;
           }
         }

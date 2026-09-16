@@ -48,12 +48,24 @@ function validateEnvironment(): void {
       logger.warn('EXPO_ACCESS_TOKEN is not set. Push notifications may fail.');
     }
 
-    if (process.env.PAYMENT_MODE === 'production') {
-      logger.warn('PAYMENT_MODE=production but real payment providers are not yet implemented.');
+    const otpProv = process.env.OTP_PROVIDER || 'dev';
+    if (otpProv === 'dev') {
+      logger.warn('OTP_PROVIDER=dev in production — OTP codes are logged, NOT sent via SMS. Set OTP_PROVIDER=africas_talking for real SMS.');
     }
 
-    if (process.env.JWT_SECRET === 'CHANGE_ME_IN_PRODUCTION') {
-      logger.fatal('JWT_SECRET is still the default value. Set a secure secret in production.');
+    const pushProv = process.env.PUSH_NOTIFICATION_PROVIDER || 'dev';
+    if (pushProv === 'dev') {
+      logger.warn('PUSH_NOTIFICATION_PROVIDER=dev in production — push notifications are NOT delivered. Set to "expo" for real push.');
+    }
+
+    const paymentMode = process.env.PAYMENT_MODE || 'dev';
+    if (paymentMode === 'dev') {
+      logger.warn('PAYMENT_MODE=dev in production — payments are simulated, NO real transactions. Set PAYMENT_MODE=live for real payments.');
+    }
+
+    const jwtSecret = process.env.JWT_SECRET || '';
+    if (jwtSecret.length < 32 || /^change/i.test(jwtSecret)) {
+      logger.fatal('JWT_SECRET is insecure. Use a random string of at least 32 characters (openssl rand -hex 32).');
       process.exit(1);
     }
   }

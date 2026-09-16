@@ -42,7 +42,7 @@ export function OnboardingFooter({
           accessibilityRole="button"
           accessibilityLabel="Commencer avec MONPRO"
         >
-          <Text variant="button" color={colors.textInverse}>
+          <Text variant="button" color={colors.textInverse} numberOfLines={1}>
             Commencer
           </Text>
           <Ionicons name="arrow-forward" size={20} color={colors.textInverse} />
@@ -109,8 +109,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
-    paddingHorizontal: spacing.xxl,
-    flex: 1,
+    paddingHorizontal: spacing.xl,
+    minWidth: 180,
     ...shadows.sm,
   },
   secondaryButton: {
@@ -118,9 +118,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.lg,
     borderWidth: 1.5,
     borderColor: colors.primary,
+    flexShrink: 1,
   },
   nextButton: {
     flexDirection: 'row',

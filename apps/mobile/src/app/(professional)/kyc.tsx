@@ -145,7 +145,7 @@ export default function KycScreen() {
 
       setUploading(false);
 
-      await kycApi.submit({
+      const kycRes = await kycApi.submit({
         documentType,
         documentNumber: documentNumber.trim(),
         frontUrl,
@@ -153,16 +153,7 @@ export default function KycScreen() {
         selfieUrl,
       });
 
-      setExistingKyc({
-        id: 'temp',
-        documentType,
-        documentNumber: documentNumber.trim(),
-        frontUrl,
-        backUrl,
-        selfieUrl,
-        status: 'PENDING',
-        submittedAt: new Date().toISOString(),
-      });
+      setExistingKyc(kycRes.data.data);
       setStep(totalSteps - 1);
     } catch {
       Alert.alert(messages.common.error, messages.errors.submitKYC);

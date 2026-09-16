@@ -159,7 +159,11 @@ async function main() {
     }
   }
 
-  // ─── DEMO USERS ─────────────────────────────────────────────────────────
+  // ─── DEMO USERS (skipped in production) ──────────────────────────────────
+  if (process.env.NODE_ENV === 'production') {
+    console.log('Production mode — skipping demo/test users');
+  } else {
+
   const adminUser = await prisma.user.upsert({
     where: { phone: '+2250100000000' },
     update: {},
@@ -238,6 +242,8 @@ async function main() {
     }
   }
 
+  } // end demo users block
+
   // ─── COMMISSION CONFIG (global default) ─────────────────────────────────
   const existingConfig = await prisma.commissionConfig.findFirst({ where: { isDefault: true } });
   if (!existingConfig) {
@@ -246,34 +252,36 @@ async function main() {
     });
   }
 
-  // ─── EMAIL TEST ACCOUNTS ────────────────────────────────────────────────
-  const testPassword = await bcrypt.hash('TestPass123!', 10);
+  // ─── EMAIL TEST ACCOUNTS (skipped in production) ────────────────────────
+  if (process.env.NODE_ENV !== 'production') {
+    const testPassword = await bcrypt.hash('TestPass123!', 10);
 
-  const emailClient = await prisma.user.upsert({
-    where: { email: 'client@test.monpro.com' },
-    update: {},
-    create: {
-      email: 'client@test.monpro.com',
-      passwordHash: testPassword,
-      fullName: '[TEST] Client Email',
-      role: UserRole.CLIENT,
-      countryId: ci.id,
-      cityId: abidjan.id,
-    },
-  });
+    await prisma.user.upsert({
+      where: { email: 'client@test.monpro.com' },
+      update: {},
+      create: {
+        email: 'client@test.monpro.com',
+        passwordHash: testPassword,
+        fullName: '[TEST] Client Email',
+        role: UserRole.CLIENT,
+        countryId: ci.id,
+        cityId: abidjan.id,
+      },
+    });
 
-  const emailPro = await prisma.user.upsert({
-    where: { email: 'pro@test.monpro.com' },
-    update: {},
-    create: {
-      email: 'pro@test.monpro.com',
-      passwordHash: testPassword,
-      fullName: '[TEST] Pro Email',
-      role: UserRole.PROFESSIONAL,
-      countryId: ci.id,
-      cityId: abidjan.id,
-    },
-  });
+    await prisma.user.upsert({
+      where: { email: 'pro@test.monpro.com' },
+      update: {},
+      create: {
+        email: 'pro@test.monpro.com',
+        passwordHash: testPassword,
+        fullName: '[TEST] Pro Email',
+        role: UserRole.PROFESSIONAL,
+        countryId: ci.id,
+        cityId: abidjan.id,
+      },
+    });
+  }
 
   console.log('Seed completed successfully (idempotent)');
 }
