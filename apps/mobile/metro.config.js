@@ -9,25 +9,31 @@ const config = getDefaultConfig(projectRoot);
 config.watchFolders = [...(config.watchFolders || []), monorepoRoot];
 
 config.resolver.nodeModulesPaths = [
-  path.resolve(projectRoot, 'node_modules'),
   path.resolve(monorepoRoot, 'node_modules'),
+  path.resolve(projectRoot, 'node_modules'),
 ];
 
-const singletonPackages = {
-  react: path.resolve(monorepoRoot, 'node_modules/react'),
-  'react-native': path.resolve(monorepoRoot, 'node_modules/react-native'),
-};
+const singletonPkgs = ['react', 'react-native'];
 
-config.resolver.extraNodeModules = singletonPackages;
+config.resolver.extraNodeModules = Object.fromEntries(
+  singletonPkgs.map((pkg) => [pkg, path.resolve(monorepoRoot, 'node_modules', pkg)]),
+);
 
 const originalResolveRequest = config.resolver.resolveRequest;
 config.resolver.resolveRequest = (context, moduleName, platform) => {
-  if (singletonPackages[moduleName]) {
-    return {
-      type: 'sourceFile',
-      filePath: require.resolve(moduleName, { paths: [monorepoRoot] }),
-    };
+  const pkgName = moduleName.startsWith('@')
+    ? moduleName.split('/').slice(0, 2).join('/')
+    : moduleName.split('/')[0];
+
+  if (singletonPkgs.includes(pkgName)) {
+    try {
+      return {
+        type: 'sourceFile',
+        filePath: require.resolve(moduleName, { paths: [monorepoRoot] }),
+      };
+    } catch {}
   }
+
   if (originalResolveRequest) {
     return originalResolveRequest(context, moduleName, platform);
   }
