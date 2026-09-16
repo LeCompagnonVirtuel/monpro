@@ -24,6 +24,7 @@ export default function ClientTabsLayout() {
     >
       <Tabs.Screen name="home" options={{ title: 'Accueil' }} />
       <Tabs.Screen name="search" options={{ title: 'Rechercher' }} />
+      <Tabs.Screen name="map" options={{ title: 'Carte' }} />
       <Tabs.Screen name="requests" options={{ href: null }} />
       <Tabs.Screen name="messages" options={{ title: 'Messages' }} />
       <Tabs.Screen name="profile" options={{ title: 'Profil' }} />

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ServiceRequestStatus, UrgencyLevel } from '@prisma/client';
+import { Prisma, ServiceRequestStatus, UrgencyLevel } from '@prisma/client';
 import { validateServiceRequestTransition } from '../common/state-machines';
 import { paginate } from '../common/utils/pagination';
 
@@ -169,6 +169,86 @@ export class ServiceRequestsService {
     ]);
 
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  async findNearbyForProfessional(
+    userId: string,
+    latitude: number,
+    longitude: number,
+    radiusKm = 15,
+    page = 1,
+    limit = 20,
+  ) {
+    const pro = await this.prisma.professional.findUnique({
+      where: { userId },
+      include: { services: true },
+    });
+    if (!pro) throw new NotFoundException('Profil professionnel non trouvé');
+
+    const serviceIds = pro.services.map((s) => s.serviceId);
+    const skip = (page - 1) * limit;
+
+    const nearbyRequestIds = await this.prisma.$queryRaw<{ id: string; distance_km: number }[]>(
+      Prisma.sql`
+        SELECT id, distance_km FROM (
+          SELECT id,
+            6371 * acos(
+              LEAST(1.0, cos(radians(${latitude})) * cos(radians(latitude))
+              * cos(radians(longitude) - radians(${longitude}))
+              + sin(radians(${latitude})) * sin(radians(latitude)))
+            ) AS distance_km
+          FROM service_requests
+          WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+          AND "serviceId" IN (${Prisma.join(serviceIds)})
+          AND status IN ('SUBMITTED', 'MATCHING')
+        ) sub
+        WHERE distance_km <= ${radiusKm}
+        ORDER BY distance_km ASC
+      `,
+    );
+
+    if (nearbyRequestIds.length === 0) {
+      return { data: [], total: 0, page, limit, totalPages: 0 };
+    }
+
+    const ids = nearbyRequestIds.map((r) => r.id);
+    const distances = new Map(nearbyRequestIds.map((r) => [r.id, r.distance_km]));
+
+    const data = await this.prisma.serviceRequest.findMany({
+      where: { id: { in: ids } },
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        service: { include: { subcategory: { include: { category: true } } } },
+        address: { select: { fullAddress: true, district: { select: { name: true } }, neighborhood: { select: { name: true } } } },
+        media: true,
+      },
+    });
+
+    const total = nearbyRequestIds.length;
+
+    const enriched = data.map((req) => ({
+      id: req.id,
+      serviceId: req.serviceId,
+      title: req.title,
+      description: req.description,
+      urgency: req.urgency,
+      status: req.status,
+      preferredDate: req.preferredDate,
+      latitude: req.latitude,
+      longitude: req.longitude,
+      createdAt: req.createdAt,
+      distanceKm: Math.round(distances.get(req.id)! * 10) / 10,
+      serviceName: req.service?.name,
+      categoryName: req.service?.subcategory?.category?.name,
+      districtName: req.address?.district?.name,
+      neighborhoodName: req.address?.neighborhood?.name,
+      addressLabel: req.address?.fullAddress,
+      media: req.media,
+    }));
+
+    return { data: enriched, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async updateStatus(id: string, status: ServiceRequestStatus, userId: string) {

@@ -36,6 +36,7 @@ export default function ProfessionalTabsLayout() {
     >
       <Tabs.Screen name="dashboard" options={{ title: 'Accueil' }} />
       <Tabs.Screen name="requests" options={{ title: 'Demandes' }} />
+      <Tabs.Screen name="map" options={{ title: 'Carte' }} />
       <Tabs.Screen name="interventions" options={{ title: 'Interventions' }} />
       <Tabs.Screen name="messages" options={{ title: 'Messages' }} />
       <Tabs.Screen name="profile" options={{ title: 'Profil' }} />

@@ -84,4 +84,11 @@ export const requestsApi = {
   updateStatus(id: string, status: ServiceRequestStatus) {
     return apiClient.patch(`/service-requests/${id}/status`, { status });
   },
+
+  getNearby(params: { latitude: number; longitude: number; radiusKm?: number; page?: number; limit?: number }) {
+    return apiClient.get<{ success: boolean; data: (ServiceRequest & { distanceKm: number; serviceName?: string; categoryName?: string; districtName?: string; neighborhoodName?: string })[]; total: number }>(
+      '/service-requests/nearby',
+      { params },
+    );
+  },
 };

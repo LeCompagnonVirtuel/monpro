@@ -123,15 +123,26 @@ export default function SearchScreen() {
 
       {hasSearchCriteria && !professionals.isLoading && (
         <View style={styles.resultsBar}>
-          <Text variant="body" style={styles.resultsTitle} numberOfLines={1}>
-            {'Résultats pour '}
-            <Text variant="body" color={colors.primary} style={styles.resultsHighlight}>
-              {`"${resultsLabel}"`}
+          <View style={styles.resultsLeft}>
+            <Text variant="body" style={styles.resultsTitle} numberOfLines={1}>
+              {'Résultats pour '}
+              <Text variant="body" color={colors.primary} style={styles.resultsHighlight}>
+                {`"${resultsLabel}"`}
+              </Text>
             </Text>
-          </Text>
-          <Text variant="caption" color={colors.textSecondary}>
-            {`${totalCount} résultat${totalCount !== 1 ? 's' : ''}`}
-          </Text>
+            <Text variant="caption" color={colors.textSecondary}>
+              {`${totalCount} résultat${totalCount !== 1 ? 's' : ''}`}
+            </Text>
+          </View>
+          <Pressable
+            style={styles.mapToggle}
+            onPress={() => router.push('/(client)/map' as any)}
+            accessibilityLabel="Voir sur la carte"
+            accessibilityRole="button"
+          >
+            <Ionicons name="map-outline" size={18} color={colors.primary} />
+            <Text variant="caption" color={colors.primary}>Carte</Text>
+          </Pressable>
         </View>
       )}
     </>
@@ -364,16 +375,31 @@ const styles = StyleSheet.create({
   },
   resultsBar: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.xxl,
     paddingBottom: spacing.md,
   },
+  resultsLeft: {
+    flex: 1,
+    gap: 2,
+  },
   resultsTitle: {
     flex: 1,
   },
   resultsHighlight: {},
+  mapToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: colors.goldTint,
+    borderWidth: 1,
+    borderColor: colors.primary + '20',
+  },
   loadingList: {
     padding: spacing.xl,
     gap: spacing.lg,

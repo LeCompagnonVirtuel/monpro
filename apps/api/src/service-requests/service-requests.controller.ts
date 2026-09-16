@@ -41,6 +41,19 @@ export class ServiceRequestsController {
     return this.serviceRequestsService.findForProfessionalByUserId(userId, page, limit, status);
   }
 
+  @Get('nearby')
+  @ApiOperation({ summary: 'Demandes à proximité (professionnel, carte)' })
+  async findNearby(
+    @CurrentUser('id') userId: string,
+    @Query('latitude') latitude: number,
+    @Query('longitude') longitude: number,
+    @Query('radiusKm') radiusKm?: number,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    return this.serviceRequestsService.findNearbyForProfessional(userId, latitude, longitude, radiusKm, page, limit);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Détail d\'une demande' })
   findOne(@Param('id') id: string, @CurrentUser('id') userId: string) {
