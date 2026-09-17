@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "MONPRO",
-    "slug": "monpro",
+    "slug": "labs-dev",
     "owner": "compagnon-labs-dev",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -35,12 +35,7 @@
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.RECORD_AUDIO"
-      ],
-      "config": {
-        "googleMaps": {
-          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
-        }
-      }
+      ]
     },
     "plugins": [
       "expo-router",
@@ -48,7 +43,13 @@
       "expo-location",
       "expo-image-picker",
       "expo-notifications",
-      "expo-font"
+      "expo-font",
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsVersion": "11.16.2"
+        }
+      ]
     ],
     "extra": {
       "eas": {
