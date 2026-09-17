@@ -28,14 +28,28 @@ import { useAuthStore } from '@/stores/auth.store';
 import { usePriceEstimate } from '@/hooks/use-price-estimate';
 import { useAddresses } from '@/hooks/use-addresses';
 
-type WizardStep = 'details' | 'category' | 'informations' | 'confirmation';
+type WizardStep = 'service' | 'details' | 'location' | 'confirmation';
 
-const STEPS: { key: WizardStep; label: string }[] = [
-  { key: 'details', label: 'Détails' },
-  { key: 'category', label: 'Catégorie' },
-  { key: 'informations', label: 'Informations' },
-  { key: 'confirmation', label: 'Confirmation' },
+const STEPS: { key: WizardStep; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { key: 'service', label: 'Service', icon: 'construct-outline' },
+  { key: 'details', label: 'Détails', icon: 'document-text-outline' },
+  { key: 'location', label: 'Lieu', icon: 'location-outline' },
+  { key: 'confirmation', label: 'Confirmer', icon: 'checkmark-circle-outline' },
 ];
+
+const STEP_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
+  'Maison & Habitat': 'home-outline',
+  'Électronique & Technologie': 'phone-portrait-outline',
+  'Automobile': 'car-outline',
+  'Entretien': 'sparkles-outline',
+  'BTP': 'hammer-outline',
+  'Transport & Logistique': 'bicycle-outline',
+  'Événementiel': 'ribbon-outline',
+  'Beauté & Bien-être': 'color-palette-outline',
+  'Éducation': 'school-outline',
+  'Services professionnels': 'briefcase-outline',
+  'Services aux entreprises': 'business-outline',
+};
 
 const BUDGET_RANGES = [
   { label: 'Moins de 10 000 FCFA', value: '0-10000' },
@@ -46,12 +60,12 @@ const BUDGET_RANGES = [
 ];
 
 const DATE_OPTIONS = [
-  { key: 'today', label: "Aujourd'hui" },
-  { key: 'tomorrow', label: 'Demain' },
-  { key: '3days', label: 'Dans 3 jours' },
-  { key: 'thisweek', label: 'Cette semaine' },
-  { key: 'free', label: 'Libre' },
-  { key: 'custom', label: 'Autre date' },
+  { key: 'today', label: "Aujourd'hui", icon: 'sunny-outline' as const },
+  { key: 'tomorrow', label: 'Demain', icon: 'moon-outline' as const },
+  { key: '3days', label: 'Dans 3 jours', icon: 'calendar-outline' as const },
+  { key: 'thisweek', label: 'Cette semaine', icon: 'calendar-outline' as const },
+  { key: 'free', label: 'Libre', icon: 'time-outline' as const },
+  { key: 'custom', label: 'Autre date', icon: 'create-outline' as const },
 ] as const;
 
 type DateOptionKey = typeof DATE_OPTIONS[number]['key'];
@@ -86,11 +100,9 @@ export default function CreateRequestScreen() {
   const [error, setError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<string | null>(null);
 
-  // Step 2 state
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>(undefined);
   const [selectedServiceId, setSelectedServiceId] = useState<string | undefined>(serviceId);
 
-  // Step 3 state
   const [selectedCountryId, setSelectedCountryId] = useState<string | undefined>(undefined);
   const [selectedRegionId, setSelectedRegionId] = useState<string | undefined>(undefined);
   const [selectedCityId, setSelectedCityId] = useState<string | undefined>(undefined);
@@ -98,11 +110,9 @@ export default function CreateRequestScreen() {
   const [preferredTimeStart, setPreferredTimeStart] = useState('');
   const [preferredTimeEnd, setPreferredTimeEnd] = useState('');
 
-  // AI photo diagnosis
   const [diagnosis, setDiagnosis] = useState<DiagnosisResult | null>(null);
   const [diagnosisLoading, setDiagnosisLoading] = useState(false);
 
-  // Saved addresses
   const { data: savedAddresses } = useAddresses();
   const [selectedAddressId, setSelectedAddressId] = useState<string | undefined>(undefined);
 
@@ -117,7 +127,7 @@ export default function CreateRequestScreen() {
         if (!description.trim()) setDescription(res.data.issue);
       }
     } catch {
-      // Silent fail — diagnosis is optional, client can always write manually
+      // Silent fail — diagnosis is optional
     } finally {
       setDiagnosisLoading(false);
     }
@@ -138,7 +148,6 @@ export default function CreateRequestScreen() {
     }
   }, [title, runDiagnosis]);
 
-  // AI price estimate
   const { data: priceEstimate } = usePriceEstimate(
     selectedServiceId || serviceId || null,
     description,
@@ -146,19 +155,16 @@ export default function CreateRequestScreen() {
     _location?.longitude,
   );
 
-  // Step 2 hooks
   const { data: categories, isLoading: categoriesLoading, isError: categoriesError, refetch: refetchCategories } = useCategories();
   const { data: services, isLoading: servicesLoading } = useServices(
     selectedCategoryId ? { categoryId: selectedCategoryId } : undefined,
   );
 
-  // Step 3 hooks
   const { data: countries, isLoading: countriesLoading } = useCountries();
   const { data: regions, isLoading: regionsLoading } = useRegions(selectedCountryId);
   const { data: cities, isLoading: citiesLoading } = useCities(selectedRegionId);
   const { data: districts, isLoading: districtsLoading } = useDistricts(selectedCityId);
 
-  // Resolve display names for confirmation
   const selectedCategory = categories?.find((c) => c.id === selectedCategoryId);
   const selectedService = services?.find((s) => s.id === selectedServiceId) || preselectedService;
   const selectedCountry = countries?.find((c) => c.id === selectedCountryId);
@@ -166,7 +172,6 @@ export default function CreateRequestScreen() {
   const selectedCity = cities?.find((c) => c.id === selectedCityId);
   const selectedDistrict = districts?.find((d) => d.id === selectedDistrictId);
 
-  // Compute actual date string from date option
   const computedDate = useMemo(() => {
     if (dateOption === 'custom' || dateOption === 'free') return preferredDate || undefined;
     const now = new Date();
@@ -206,7 +211,6 @@ export default function CreateRequestScreen() {
       quality: 0.7,
       selectionLimit: 5 - photos.length,
     });
-
     if (!result.canceled) {
       const newPhotos = result.assets.map((asset) => ({
         uri: asset.uri,
@@ -225,38 +229,23 @@ export default function CreateRequestScreen() {
   };
 
   const canProceed = () => {
-    if (currentStep === 0) {
-      return title.trim().length >= 5 && description.trim().length >= 10;
-    }
-    if (currentStep === 1) {
-      return !!selectedServiceId;
-    }
-    if (currentStep === 2) {
-      return true;
-    }
-    if (currentStep === 3) {
-      return !!selectedServiceId && title.trim().length >= 5 && description.trim().length >= 10;
-    }
+    if (currentStep === 0) return !!selectedServiceId;
+    if (currentStep === 1) return title.trim().length >= 5 && description.trim().length >= 10;
+    if (currentStep === 2) return true;
+    if (currentStep === 3) return !!selectedServiceId && title.trim().length >= 5 && description.trim().length >= 10;
     return true;
   };
 
   const goNext = () => {
-    if (currentStep < STEPS.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
+    if (currentStep < STEPS.length - 1) setCurrentStep(currentStep + 1);
   };
 
   const goBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    } else {
-      router.back();
-    }
+    if (currentStep > 0) setCurrentStep(currentStep - 1);
+    else router.back();
   };
 
-  const goToStep = (step: number) => {
-    setCurrentStep(step);
-  };
+  const goToStep = (step: number) => setCurrentStep(step);
 
   const handleSubmit = async () => {
     const finalServiceId = selectedServiceId || serviceId;
@@ -266,7 +255,6 @@ export default function CreateRequestScreen() {
 
     try {
       let mediaUrls: string[] = [];
-
       if (photos.length > 0) {
         let failedCount = 0;
         for (let i = 0; i < photos.length; i++) {
@@ -274,28 +262,22 @@ export default function CreateRequestScreen() {
           try {
             const uploadResult = await uploadsApi.uploadImage(photos[i], 'service-requests');
             mediaUrls.push(uploadResult.data.data.url);
-          } catch (uploadErr) {
-            if (__DEV__) console.warn(`Failed to upload photo ${i + 1}:`, uploadErr);
+          } catch {
             failedCount++;
           }
         }
         if (failedCount > 0 && mediaUrls.length === 0) {
-          Alert.alert('Erreur d\'upload', `${failedCount} photo(s) n\'ont pas pu être envoyées. Vérifiez votre connexion et réessayez.`);
+          Alert.alert('Erreur', 'Les photos n\'ont pas pu être envoyées.');
           setIsSubmitting(false);
           setUploadProgress(null);
           return;
         }
-        if (failedCount > 0) {
-          Alert.alert('Upload partiel', `${failedCount} photo(s) sur ${photos.length} n\'ont pas pu être envoyées. La demande sera créée avec les photos restantes.`);
-        }
         setUploadProgress(null);
       }
 
-      setUploadProgress('Publication de votre demande...');
-
+      setUploadProgress('Publication...');
       const urgencyFromDate: UrgencyLevel = dateMode === 'asap' ? 'HIGH' : urgency;
 
-      // Resolve address: selected saved address > geography selection > GPS
       let resolvedAddressId: string | undefined;
       let resolvedLatitude: number | undefined;
       let resolvedLongitude: number | undefined;
@@ -327,7 +309,6 @@ export default function CreateRequestScreen() {
       });
 
       setUploadProgress(null);
-
       if (result?.id) {
         router.replace({ pathname: '/(client)/request-detail', params: { id: result.id } });
       } else {
@@ -367,38 +348,65 @@ export default function CreateRequestScreen() {
             accessibilityRole="button"
           >
             <Ionicons name="calendar-outline" size={14} color={colors.primary} />
-            <Text variant="caption" color={colors.primary} style={styles.proChipText}>En tant que pro</Text>
+            <Text variant="caption" color={colors.primary}>Pro</Text>
           </Pressable>
         )}
       </View>
 
-      {/* Stepper */}
+      {/* Improved Stepper */}
       <View style={styles.stepper}>
-        {STEPS.map((step, i) => (
-          <View key={step.key} style={styles.stepItem}>
-            <View style={styles.stepRow}>
-              <View style={[styles.stepCircle, i <= currentStep && styles.stepCircleActive]}>
-                <Text
-                  variant="caption"
-                  color={i <= currentStep ? colors.textInverse : colors.textTertiary}
-                  style={styles.stepNumber}
+        {STEPS.map((step, i) => {
+          const isActive = i === currentStep;
+          const isCompleted = i < currentStep;
+          const isLast = i === STEPS.length - 1;
+          return (
+            <View key={step.key} style={styles.stepItem}>
+              <View style={styles.stepRow}>
+                <Pressable
+                  style={[
+                    styles.stepCircle,
+                    isActive && styles.stepCircleActive,
+                    isCompleted && styles.stepCircleCompleted,
+                  ]}
+                  onPress={() => isCompleted && goToStep(i)}
+                  disabled={!isCompleted}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${step.label}${isCompleted ? ' (terminé)' : isActive ? ' (en cours)' : ''}`}
                 >
-                  {i + 1}
-                </Text>
+                  {isCompleted ? (
+                    <Ionicons name="checkmark" size={14} color={colors.textInverse} />
+                  ) : (
+                    <Ionicons
+                      name={step.icon}
+                      size={14}
+                      color={isActive ? colors.textInverse : colors.textTertiary}
+                    />
+                  )}
+                </Pressable>
+                {!isLast && (
+                  <View style={[styles.stepLine, isCompleted && styles.stepLineActive]} />
+                )}
               </View>
-              {i < STEPS.length - 1 && (
-                <View style={[styles.stepLine, i < currentStep && styles.stepLineActive]} />
-              )}
+              <Text
+                variant="caption"
+                color={isActive ? colors.primary : isCompleted ? colors.success : colors.textTertiary}
+                style={[styles.stepLabel, isActive && styles.stepLabelActive]}
+              >
+                {step.label}
+              </Text>
             </View>
-            <Text
-              variant="caption"
-              color={i <= currentStep ? colors.primary : colors.textTertiary}
-              style={styles.stepLabel}
-            >
-              {step.label}
-            </Text>
-          </View>
-        ))}
+          );
+        })}
+      </View>
+
+      {/* Progress Bar */}
+      <View style={styles.progressBarContainer}>
+        <View style={styles.progressBarBg}>
+          <View style={[styles.progressBarFill, { width: `${((currentStep + 1) / STEPS.length) * 100}%` }]} />
+        </View>
+        <Text variant="caption" color={colors.textTertiary} style={styles.progressText}>
+          {currentStep + 1} sur {STEPS.length}
+        </Text>
       </View>
 
       <KeyboardAvoidingView
@@ -407,9 +415,151 @@ export default function CreateRequestScreen() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} onScrollBeginDrag={() => showBudgetDropdown && setShowBudgetDropdown(false)}>
+
+        {/* ============================================================ */}
+        {/* STEP 1 — SERVICE / CATÉGORIE                                  */}
+        {/* ============================================================ */}
         {currentStep === 0 && (
           <>
-            {/* Info Banner */}
+            <View style={styles.infoBanner}>
+              <View style={styles.infoBannerIcon}>
+                <Ionicons name="construct-outline" size={22} color={colors.primary} />
+              </View>
+              <View style={styles.infoBannerText}>
+                <Text variant="bodyMedium">Quel service recherchez-vous ?</Text>
+                <Text variant="bodySmall" color={colors.textSecondary}>
+                  Sélectionnez la catégorie puis le service.
+                </Text>
+              </View>
+            </View>
+
+            {/* Categories */}
+            <View style={styles.section}>
+              <Text variant="bodyMedium" style={styles.sectionLabel}>Catégorie</Text>
+              {categoriesLoading ? (
+                <View style={styles.skeletonGrid}>
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <Skeleton key={i} width="48%" height={56} style={styles.skeletonCard} />
+                  ))}
+                </View>
+              ) : categoriesError ? (
+                <View style={styles.inlineError}>
+                  <Ionicons name="alert-circle-outline" size={20} color={colors.error} />
+                  <Text variant="bodySmall" color={colors.error}>Impossible de charger les catégories</Text>
+                  <Pressable onPress={() => refetchCategories()} accessibilityRole="button">
+                    <Text variant="bodySmall" color={colors.primary} style={styles.retryLink}>Réessayer</Text>
+                  </Pressable>
+                </View>
+              ) : categories && categories.length > 0 ? (
+                <View style={styles.categoryGrid}>
+                  {categories.filter((c) => c.isActive).map((cat) => (
+                    <Pressable
+                      key={cat.id}
+                      style={[styles.categoryCard, selectedCategoryId === cat.id && styles.categoryCardActive]}
+                      onPress={() => handleCategorySelect(cat.id)}
+                      accessibilityRole="radio"
+                      accessibilityState={{ selected: selectedCategoryId === cat.id }}
+                      accessibilityLabel={cat.name}
+                    >
+                      <Ionicons
+                        name={(STEP_ICONS[cat.name] || 'folder-outline') as any}
+                        size={22}
+                        color={selectedCategoryId === cat.id ? colors.secondary : colors.textSecondary}
+                      />
+                      <Text
+                        variant="caption"
+                        color={selectedCategoryId === cat.id ? colors.primary : colors.text}
+                        numberOfLines={2}
+                        style={styles.categoryCardText}
+                      >
+                        {cat.name}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              ) : null}
+            </View>
+
+            {/* Services for selected category */}
+            {selectedCategoryId && (
+              <View style={styles.section}>
+                <Text variant="bodyMedium" style={styles.sectionLabel}>Service</Text>
+                {servicesLoading ? (
+                  <View style={styles.servicesList}>
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} width="100%" height={52} style={styles.skeletonServiceRow} />
+                    ))}
+                  </View>
+                ) : services && services.length > 0 ? (
+                  <View style={styles.servicesList}>
+                    {services.filter((s) => s.isActive).map((svc) => (
+                      <Pressable
+                        key={svc.id}
+                        style={[styles.serviceRow, selectedServiceId === svc.id && styles.serviceRowActive]}
+                        onPress={() => handleServiceSelect(svc.id)}
+                        accessibilityRole="radio"
+                        accessibilityState={{ selected: selectedServiceId === svc.id }}
+                        accessibilityLabel={svc.name}
+                      >
+                        <View style={styles.serviceRowLeft}>
+                          <Ionicons
+                            name="construct-outline"
+                            size={18}
+                            color={selectedServiceId === svc.id ? colors.primary : colors.textSecondary}
+                          />
+                          <View style={styles.serviceRowInfo}>
+                            <Text variant="body" color={selectedServiceId === svc.id ? colors.primary : colors.text} numberOfLines={1}>
+                              {svc.name}
+                            </Text>
+                            {svc.description && (
+                              <Text variant="caption" color={colors.textTertiary} numberOfLines={1}>
+                                {svc.description}
+                              </Text>
+                            )}
+                          </View>
+                        </View>
+                        <View style={[styles.serviceRadio, selectedServiceId === svc.id && styles.serviceRadioActive]}>
+                          {selectedServiceId === svc.id && <View style={styles.serviceRadioInner} />}
+                        </View>
+                      </Pressable>
+                    ))}
+                  </View>
+                ) : (
+                  <View style={styles.inlineEmpty}>
+                    <Ionicons name="file-tray-outline" size={24} color={colors.textTertiary} />
+                    <Text variant="bodySmall" color={colors.textTertiary}>{messages.empty.noCategoryServices}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Pre-selected service info */}
+            {serviceId && preselectedService && !selectedCategoryId && (
+              <View style={styles.section}>
+                <View style={styles.preselectedBanner}>
+                  <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+                  <View style={styles.preselectedInfo}>
+                    <Text variant="bodySmall" color={colors.textSecondary}>Service pré-sélectionné</Text>
+                    <Text variant="bodyMedium" color={colors.text}>{preselectedService.name}</Text>
+                  </View>
+                </View>
+                <Pressable
+                  style={styles.changeServiceBtn}
+                  onPress={() => setSelectedCategoryId(preselectedService.subcategory?.categoryId)}
+                  accessibilityRole="button"
+                >
+                  <Text variant="bodySmall" color={colors.primary}>Changer de service</Text>
+                </Pressable>
+              </View>
+            )}
+          </>
+        )}
+
+        {/* ============================================================ */}
+        {/* STEP 2 — DÉTAILS (Titre, Description, Photos, Date, Budget)  */}
+        {/* ============================================================ */}
+        {currentStep === 1 && (
+          <>
             <View style={styles.infoBanner}>
               <View style={styles.infoBannerIcon}>
                 <Ionicons name="document-text-outline" size={22} color={colors.primary} />
@@ -417,12 +567,12 @@ export default function CreateRequestScreen() {
               <View style={styles.infoBannerText}>
                 <Text variant="bodyMedium">Décrivez votre besoin</Text>
                 <Text variant="bodySmall" color={colors.textSecondary}>
-                  Plus votre demande est précise, plus vous recevez des offres adaptées.
+                  Plus c'est précis, plus les devis seront adaptés.
                 </Text>
               </View>
             </View>
 
-            {/* Title Section */}
+            {/* Title */}
             <View style={styles.section}>
               <Text variant="bodyMedium" style={styles.sectionLabel}>Titre de votre demande</Text>
               <TextInput
@@ -432,14 +582,14 @@ export default function CreateRequestScreen() {
                 value={title}
                 onChangeText={setTitle}
                 maxLength={80}
-                accessibilityLabel="Titre de votre demande"
+                accessibilityLabel="Titre"
               />
               <Text variant="caption" color={colors.textTertiary} style={styles.charCount}>
                 {title.length}/80
               </Text>
             </View>
 
-            {/* Description Section */}
+            {/* Description */}
             <View style={styles.section}>
               <Text variant="bodyMedium" style={styles.sectionLabel}>Description détaillée</Text>
               <TextInput
@@ -451,7 +601,7 @@ export default function CreateRequestScreen() {
                 multiline
                 maxLength={500}
                 textAlignVertical="top"
-                accessibilityLabel="Description détaillée"
+                accessibilityLabel="Description"
               />
               <Text variant="caption" color={colors.textTertiary} style={styles.charCount}>
                 {description.length}/500
@@ -476,7 +626,7 @@ export default function CreateRequestScreen() {
               </View>
             )}
 
-            {/* Photos Section */}
+            {/* Photos */}
             <View style={styles.section}>
               <View style={styles.sectionTitleRow}>
                 <Text variant="bodyMedium">Photos</Text>
@@ -485,59 +635,32 @@ export default function CreateRequestScreen() {
               <Text variant="bodySmall" color={colors.textSecondary} style={styles.sectionSubtitle}>
                 Ajoutez des photos pour aider les professionnels à mieux comprendre.
               </Text>
-
-              {/* Photo upload area */}
               {photos.length === 0 ? (
-                <Pressable
-                  style={styles.photoUploadArea}
-                  onPress={pickImages}
-                  accessibilityLabel="Ajouter des photos"
-                  accessibilityRole="button"
-                >
+                <Pressable style={styles.photoUploadArea} onPress={pickImages} accessibilityLabel="Ajouter des photos" accessibilityRole="button">
                   <Ionicons name="images-outline" size={32} color={colors.textTertiary} />
-                  <Text variant="body" color={colors.text} style={styles.photoUploadTitle}>Ajouter des photos</Text>
-                  <Text variant="caption" color={colors.textTertiary}>
-                    Jusqu{"'"}à 5 photos • JPG, PNG (5Mo max)
-                  </Text>
+                  <Text variant="body" color={colors.text}>Ajouter des photos</Text>
+                  <Text variant="caption" color={colors.textTertiary}>Jusqu'à 5 photos • JPG, PNG (5Mo max)</Text>
                 </Pressable>
               ) : (
                 <View style={styles.photoGrid}>
                   {photos.map((photo, i) => (
                     <View key={i} style={styles.photoItem}>
                       <Image source={{ uri: photo.uri }} style={styles.photoThumb} />
-                      <Pressable
-                        style={styles.removePhotoBtn}
-                        onPress={() => removePhoto(i)}
-                        accessibilityLabel="Supprimer la photo"
-                        accessibilityRole="button"
-                      >
+                      <Pressable style={styles.removePhotoBtn} onPress={() => removePhoto(i)} accessibilityLabel="Supprimer" accessibilityRole="button">
                         <Ionicons name="close-circle" size={20} color={colors.error} />
                       </Pressable>
                     </View>
                   ))}
                   {photos.length < 5 && (
-                    <Pressable
-                      style={styles.addMorePhotoBtn}
-                      onPress={pickImages}
-                      accessibilityLabel="Ajouter plus de photos"
-                      accessibilityRole="button"
-                    >
+                    <Pressable style={styles.addMorePhotoBtn} onPress={pickImages} accessibilityLabel="Ajouter" accessibilityRole="button">
                       <Ionicons name="add" size={24} color={colors.primary} />
                     </Pressable>
                   )}
                 </View>
               )}
-
-              {/* Photo tags */}
               <View style={styles.photoTags}>
                 {PHOTO_TAGS.map((tag) => (
-                  <Pressable
-                    key={tag.label}
-                    style={styles.photoTag}
-                    onPress={() => handleTagPress(tag.label)}
-                    accessibilityLabel={`Photographier : ${tag.label}`}
-                    accessibilityRole="button"
-                  >
+                  <Pressable key={tag.label} style={styles.photoTag} onPress={() => handleTagPress(tag.label)} accessibilityLabel={tag.label} accessibilityRole="button">
                     <View style={styles.photoTagIcon}>
                       <Ionicons name={tag.icon} size={20} color={colors.primary} />
                     </View>
@@ -545,46 +668,27 @@ export default function CreateRequestScreen() {
                   </Pressable>
                 ))}
               </View>
-
-              {/* AI Diagnosis */}
               {diagnosisLoading && (
                 <View style={styles.diagnosisBanner}>
                   <LottieAnimation source={require('../../../lotties/Settings.json')} autoPlay loop style={styles.inlineLottie} fallbackIcon="hourglass-outline" fallbackSize={24} />
-                  <Text variant="bodySmall" color={colors.textSecondary}>Analyse de votre photo en cours...</Text>
+                  <Text variant="bodySmall" color={colors.textSecondary}>Analyse de votre photo...</Text>
                 </View>
               )}
               {diagnosis && !diagnosisLoading && diagnosis.confidence > 0 && (
                 <View style={styles.diagnosisBanner}>
                   <Ionicons name="sparkles" size={18} color={colors.primary} />
                   <View style={{ flex: 1, gap: spacing.xs }}>
-                    <Text variant="bodySmall" color={colors.primary}>Suggestion générée à partir de votre photo</Text>
+                    <Text variant="bodySmall" color={colors.primary}>Suggestion IA</Text>
                     <Text variant="bodySmall" color={colors.text}>{diagnosis.issue}</Text>
                     <Text variant="caption" color={colors.textTertiary}>
                       {diagnosis.category} • Confiance {Math.round(diagnosis.confidence * 100)}%
-                    </Text>
-                    <Text variant="caption" color={colors.textTertiary}>
-                      Vous pouvez modifier cette suggestion avant de publier.
-                    </Text>
-                  </View>
-                </View>
-              )}
-              {diagnosis && !diagnosisLoading && diagnosis.confidence === 0 && diagnosis.issue && (
-                <View style={styles.diagnosisBanner}>
-                  <Ionicons name="alert-circle-outline" size={18} color={colors.textTertiary} />
-                  <View style={{ flex: 1, gap: spacing.xs }}>
-                    <Text variant="bodySmall" color={colors.textSecondary}>Analyse non conclusive</Text>
-                    <Text variant="bodySmall" color={colors.textSecondary}>
-                      {diagnosis.issue}
-                    </Text>
-                    <Text variant="caption" color={colors.textTertiary}>
-                      Vous pouvez décrire votre besoin manuellement ci-dessus.
                     </Text>
                   </View>
                 </View>
               )}
             </View>
 
-            {/* Date Section */}
+            {/* Date */}
             <View style={styles.section}>
               <Text variant="bodyMedium" style={styles.sectionLabel}>Quand avez-vous besoin du service ?</Text>
               <View style={styles.dateToggleRow}>
@@ -593,9 +697,8 @@ export default function CreateRequestScreen() {
                   onPress={() => { setDateMode('asap'); setPreferredDate(''); }}
                   accessibilityRole="radio"
                   accessibilityState={{ selected: dateMode === 'asap' }}
-                  accessibilityLabel="Dès que possible"
                 >
-                  <Ionicons name="calendar-outline" size={18} color={dateMode === 'asap' ? colors.secondary : colors.textSecondary} />
+                  <Ionicons name="flash-outline" size={18} color={dateMode === 'asap' ? colors.secondary : colors.textSecondary} />
                   <Text variant="bodySmall" color={dateMode === 'asap' ? colors.text : colors.textSecondary}>
                     Dès que possible
                   </Text>
@@ -605,7 +708,6 @@ export default function CreateRequestScreen() {
                   onPress={() => setDateMode('choose')}
                   accessibilityRole="radio"
                   accessibilityState={{ selected: dateMode === 'choose' }}
-                  accessibilityLabel="Choisir une date"
                 >
                   <Ionicons name="calendar-outline" size={18} color={dateMode === 'choose' ? colors.secondary : colors.textSecondary} />
                   <Text variant="bodySmall" color={dateMode === 'choose' ? colors.text : colors.textSecondary}>
@@ -620,39 +722,21 @@ export default function CreateRequestScreen() {
                       <Pressable
                         key={opt.key}
                         style={[styles.dateChip, dateOption === opt.key && styles.dateChipActive]}
-                        onPress={() => {
-                          setDateOption(opt.key);
-                          if (opt.key !== 'custom' && opt.key !== 'free') {
-                            setPreferredDate('');
-                          }
-                        }}
+                        onPress={() => { setDateOption(opt.key); if (opt.key !== 'custom' && opt.key !== 'free') setPreferredDate(''); }}
                         accessibilityRole="radio"
                         accessibilityState={{ selected: dateOption === opt.key }}
-                        accessibilityLabel={opt.label}
                       >
-                        <Text
-                          variant="bodySmall"
-                          color={dateOption === opt.key ? colors.primary : colors.textSecondary}
-                        >
+                        <Ionicons name={opt.icon} size={14} color={dateOption === opt.key ? colors.primary : colors.textTertiary} />
+                        <Text variant="caption" color={dateOption === opt.key ? colors.primary : colors.textSecondary}>
                           {opt.label}
                         </Text>
                       </Pressable>
                     ))}
                   </ScrollView>
-                  {dateOption === 'custom' && (
+                  {(dateOption === 'custom' || dateOption === 'free') && (
                     <TextInput
                       style={[styles.input, { marginTop: spacing.md }]}
-                      placeholder="AAAA-MM-JJ (ex: 2026-09-01)"
-                      placeholderTextColor={colors.textTertiary}
-                      value={preferredDate}
-                      onChangeText={setPreferredDate}
-                      accessibilityLabel="Date préférée"
-                    />
-                  )}
-                  {dateOption === 'free' && (
-                    <TextInput
-                      style={[styles.input, { marginTop: spacing.md }]}
-                      placeholder="AAAA-MM-JJ (optionnel)"
+                      placeholder="AAAA-MM-JJ"
                       placeholderTextColor={colors.textTertiary}
                       value={preferredDate}
                       onChangeText={setPreferredDate}
@@ -663,7 +747,7 @@ export default function CreateRequestScreen() {
               )}
             </View>
 
-            {/* Budget Section */}
+            {/* Budget */}
             <View style={styles.section}>
               <View style={styles.budgetHeader}>
                 <View style={styles.budgetIconWrap}>
@@ -674,19 +758,9 @@ export default function CreateRequestScreen() {
                   <Text variant="bodySmall" color={colors.textTertiary}> (optionnel)</Text>
                 </View>
               </View>
-              <Pressable
-                style={styles.dropdown}
-                onPress={() => setShowBudgetDropdown(!showBudgetDropdown)}
-                accessibilityRole="button"
-                accessibilityLabel="Sélectionner une plage de budget"
-              >
-                <Text
-                  variant="body"
-                  color={budgetRange ? colors.text : colors.textTertiary}
-                >
-                  {budgetRange
-                    ? BUDGET_RANGES.find(b => b.value === budgetRange)?.label
-                    : 'Sélectionnez une plage de budget'}
+              <Pressable style={styles.dropdown} onPress={() => setShowBudgetDropdown(!showBudgetDropdown)} accessibilityRole="button">
+                <Text variant="body" color={budgetRange ? colors.text : colors.textTertiary}>
+                  {budgetRange ? BUDGET_RANGES.find(b => b.value === budgetRange)?.label : 'Sélectionnez une plage'}
                 </Text>
                 <Ionicons name={showBudgetDropdown ? 'chevron-up' : 'chevron-down'} size={20} color={colors.textTertiary} />
               </Pressable>
@@ -698,7 +772,6 @@ export default function CreateRequestScreen() {
                       style={[styles.dropdownItem, budgetRange === range.value && styles.dropdownItemActive]}
                       onPress={() => { setBudgetRange(range.value); setShowBudgetDropdown(false); }}
                       accessibilityRole="menuitem"
-                      accessibilityLabel={range.label}
                     >
                       <Text variant="body" color={budgetRange === range.value ? colors.primary : colors.text}>
                         {range.label}
@@ -709,307 +782,109 @@ export default function CreateRequestScreen() {
               )}
             </View>
 
-            {error && (
-              <Text variant="bodySmall" color={colors.error} style={styles.errorText}>{error}</Text>
-            )}
+            {error && <Text variant="bodySmall" color={colors.error} style={styles.errorText}>{error}</Text>}
           </>
         )}
 
         {/* ============================================================ */}
-        {/* STEP 2 — CATÉGORIE / SERVICE                                 */}
-        {/* ============================================================ */}
-        {currentStep === 1 && (
-          <>
-            {/* Info Banner */}
-            <View style={styles.infoBanner}>
-              <View style={styles.infoBannerIcon}>
-                <Ionicons name="grid-outline" size={22} color={colors.primary} />
-              </View>
-              <View style={styles.infoBannerText}>
-                <Text variant="bodyMedium">Choisissez un service</Text>
-                <Text variant="bodySmall" color={colors.textSecondary}>
-                  Sélectionnez la catégorie puis le service correspondant à votre besoin.
-                </Text>
-              </View>
-            </View>
-
-            {/* Categories */}
-            <View style={styles.section}>
-              <Text variant="bodyMedium" style={styles.sectionLabel}>Catégorie</Text>
-
-              {categoriesLoading && (
-                <View style={styles.skeletonGrid}>
-                  {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <Skeleton key={i} width="48%" height={56} style={styles.skeletonCard} />
-                  ))}
-                </View>
-              )}
-
-              {categoriesError && (
-                <View style={styles.inlineError}>
-                  <Ionicons name="alert-circle-outline" size={20} color={colors.error} />
-                  <Text variant="bodySmall" color={colors.error} style={styles.inlineErrorText}>
-                    Impossible de charger les catégories
-                  </Text>
-                  <Pressable
-                    onPress={() => refetchCategories()}
-                    accessibilityRole="button"
-                    accessibilityLabel="Réessayer"
-                  >
-                    <Text variant="bodySmall" color={colors.primary} style={styles.retryLink}>Réessayer</Text>
-                  </Pressable>
-                </View>
-              )}
-
-              {categories && categories.length === 0 && (
-                <View style={styles.inlineEmpty}>
-                  <Ionicons name="file-tray-outline" size={24} color={colors.textTertiary} />
-                  <Text variant="bodySmall" color={colors.textTertiary}>{messages.empty.noCategories}</Text>
-                </View>
-              )}
-
-              {categories && categories.length > 0 && (
-                <View style={styles.categoryGrid}>
-                  {categories.filter((c) => c.isActive).map((cat) => (
-                    <Pressable
-                      key={cat.id}
-                      style={[
-                        styles.categoryCard,
-                        selectedCategoryId === cat.id && styles.categoryCardActive,
-                      ]}
-                      onPress={() => handleCategorySelect(cat.id)}
-                      accessibilityRole="radio"
-                      accessibilityState={{ selected: selectedCategoryId === cat.id }}
-                      accessibilityLabel={cat.name}
-                    >
-                      <Ionicons
-                        name="folder-outline"
-                        size={20}
-                        color={selectedCategoryId === cat.id ? colors.secondary : colors.textSecondary}
-                      />
-                      <Text
-                        variant="bodySmall"
-                        color={selectedCategoryId === cat.id ? colors.primary : colors.text}
-                        numberOfLines={2}
-                        style={styles.categoryCardText}
-                      >
-                        {cat.name}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
-              )}
-            </View>
-
-            {/* Services for selected category */}
-            {selectedCategoryId && (
-              <View style={styles.section}>
-                <Text variant="bodyMedium" style={styles.sectionLabel}>Service</Text>
-
-                {servicesLoading && (
-                  <View style={styles.servicesList}>
-                    {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} width="100%" height={52} style={styles.skeletonServiceRow} />
-                    ))}
-                  </View>
-                )}
-
-                {services && services.length === 0 && (
-                  <View style={styles.inlineEmpty}>
-                    <Ionicons name="file-tray-outline" size={24} color={colors.textTertiary} />
-                    <Text variant="bodySmall" color={colors.textTertiary}>{messages.empty.noCategoryServices}</Text>
-                  </View>
-                )}
-
-                {services && services.length > 0 && (
-                  <View style={styles.servicesList}>
-                    {services.filter((s) => s.isActive).map((svc) => (
-                      <Pressable
-                        key={svc.id}
-                        style={[
-                          styles.serviceRow,
-                          selectedServiceId === svc.id && styles.serviceRowActive,
-                        ]}
-                        onPress={() => handleServiceSelect(svc.id)}
-                        accessibilityRole="radio"
-                        accessibilityState={{ selected: selectedServiceId === svc.id }}
-                        accessibilityLabel={svc.name}
-                      >
-                        <View style={styles.serviceRowLeft}>
-                          <Ionicons
-                            name="construct-outline"
-                            size={18}
-                            color={selectedServiceId === svc.id ? colors.primary : colors.textSecondary}
-                          />
-                          <View style={styles.serviceRowInfo}>
-                            <Text
-                              variant="body"
-                              color={selectedServiceId === svc.id ? colors.primary : colors.text}
-                              numberOfLines={1}
-                            >
-                              {svc.name}
-                            </Text>
-                            {svc.description && (
-                              <Text variant="caption" color={colors.textTertiary} numberOfLines={1}>
-                                {svc.description}
-                              </Text>
-                            )}
-                          </View>
-                        </View>
-                        <View style={[styles.serviceRadio, selectedServiceId === svc.id && styles.serviceRadioActive]}>
-                          {selectedServiceId === svc.id && <View style={styles.serviceRadioInner} />}
-                        </View>
-                      </Pressable>
-                    ))}
-                  </View>
-                )}
-              </View>
-            )}
-
-            {/* Pre-selected service info */}
-            {serviceId && preselectedService && !selectedCategoryId && (
-              <View style={styles.section}>
-                <View style={styles.preselectedBanner}>
-                  <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-                  <View style={styles.preselectedInfo}>
-                    <Text variant="bodySmall" color={colors.textSecondary}>Service pré-sélectionné</Text>
-                    <Text variant="bodyMedium" color={colors.text}>{preselectedService.name}</Text>
-                  </View>
-                </View>
-                <Pressable
-                  style={styles.changeServiceBtn}
-                  onPress={() => setSelectedCategoryId(preselectedService.subcategory?.categoryId)}
-                  accessibilityRole="button"
-                  accessibilityLabel="Changer de service"
-                >
-                  <Text variant="bodySmall" color={colors.primary}>Changer de service</Text>
-                </Pressable>
-              </View>
-            )}
-          </>
-        )}
-
-        {/* ============================================================ */}
-        {/* STEP 3 — INFORMATIONS (LOCALISATION + HORAIRES)              */}
+        {/* STEP 3 — LOCALISATION                                         */}
         {/* ============================================================ */}
         {currentStep === 2 && (
           <>
-            {/* Info Banner */}
             <View style={styles.infoBanner}>
               <View style={styles.infoBannerIcon}>
                 <Ionicons name="location-outline" size={22} color={colors.primary} />
               </View>
               <View style={styles.infoBannerText}>
-                <Text variant="bodyMedium">Localisation et disponibilité</Text>
+                <Text variant="bodyMedium">Où se déroule le service ?</Text>
                 <Text variant="bodySmall" color={colors.textSecondary}>
-                  Ces informations aident les professionnels à vous répondre plus vite.
+                  Cette information aide les professionnels à proximité.
                 </Text>
               </View>
             </View>
 
-            {/* Location Section */}
-            <View style={styles.section}>
-              <View style={styles.sectionTitleRow}>
-                <Text variant="bodyMedium">Localisation</Text>
-                <Text variant="bodySmall" color={colors.textTertiary}> (optionnel)</Text>
-              </View>
-              <Text variant="bodySmall" color={colors.textSecondary} style={styles.sectionSubtitle}>
-                Où souhaitez-vous que le service soit effectué ?
-              </Text>
-
-              {detectedAddress?.formattedAddress && !selectedCountryId && (
-                <View style={styles.detectedLocation}>
+            {/* GPS detected */}
+            {detectedAddress?.formattedAddress && !selectedAddressId && (
+              <View style={styles.section}>
+                <View style={styles.gpsDetected}>
                   <Ionicons name="navigate" size={18} color={colors.success} />
                   <View style={{ flex: 1 }}>
-                    <Text variant="bodySmall" color={colors.success}>Position détectée</Text>
+                    <Text variant="bodySmall" color={colors.success} style={{ fontWeight: '600' }}>Position GPS détectée</Text>
                     <Text variant="bodySmall" color={colors.textSecondary}>{detectedAddress.formattedAddress}</Text>
                   </View>
+                  <Ionicons name="checkmark-circle" size={20} color={colors.success} />
                 </View>
-              )}
-              {locationLoading && !detectedAddress && (
-                <View style={styles.detectedLocation}>
+                <Text variant="caption" color={colors.textTertiary} style={{ marginTop: spacing.sm }}>
+                  La position GPS sera utilisée pour la demande. Vous pouvez choisir une adresse enregistrée ci-dessous.
+                </Text>
+              </View>
+            )}
+            {locationLoading && !detectedAddress && (
+              <View style={styles.section}>
+                <View style={styles.gpsDetected}>
                   <LottieAnimation source={require('../../../lotties/Settings.json')} autoPlay loop style={styles.inlineLottie} fallbackIcon="hourglass-outline" fallbackSize={24} />
                   <Text variant="bodySmall" color={colors.textTertiary}>Détection de votre position...</Text>
                 </View>
-              )}
+              </View>
+            )}
 
-              {/* Saved addresses */}
-              {savedAddresses && savedAddresses.length > 0 && (
-                <View style={styles.geoField}>
-                  <Text variant="bodySmall" style={styles.geoLabel}>Vos adresses enregistrées</Text>
-                  {savedAddresses.map((addr) => (
-                    <Pressable
-                      key={addr.id}
-                      style={[styles.addressSelectCard, selectedAddressId === addr.id && styles.addressSelectCardActive]}
-                      onPress={() => {
-                        setSelectedAddressId(addr.id);
-                        setSelectedCountryId(undefined);
-                        setSelectedRegionId(undefined);
-                        setSelectedCityId(undefined);
-                        setSelectedDistrictId(undefined);
-                      }}
-                      accessibilityRole="radio"
-                      accessibilityState={{ selected: selectedAddressId === addr.id }}
-                    >
-                      <View style={styles.addressSelectInfo}>
-                        {addr.label && (
-                          <Text variant="bodySmall" color={selectedAddressId === addr.id ? colors.primary : colors.textSecondary}>
-                            {addr.label}
-                          </Text>
-                        )}
-                        <Text variant="bodySmall" numberOfLines={1}>{addr.fullAddress}</Text>
-                        {addr.latitude != null && addr.longitude != null && (
-                          <Text variant="caption" color={colors.textTertiary}>
-                            GPS disponible
-                          </Text>
-                        )}
-                      </View>
-                      <Ionicons
-                        name={selectedAddressId === addr.id ? 'radio-button-on' : 'radio-button-off'}
-                        size={20}
-                        color={selectedAddressId === addr.id ? colors.primary : colors.textTertiary}
-                      />
-                    </Pressable>
-                  ))}
+            {/* Saved addresses */}
+            {savedAddresses && savedAddresses.length > 0 && (
+              <View style={styles.section}>
+                <Text variant="bodyMedium" style={styles.sectionLabel}>Adresses enregistrées</Text>
+                {savedAddresses.map((addr) => (
                   <Pressable
-                    style={styles.addAddressLink}
-                    onPress={() => router.push('/(client)/addresses')}
-                    accessibilityLabel="Gérer mes adresses"
-                    accessibilityRole="button"
+                    key={addr.id}
+                    style={[styles.addressCard, selectedAddressId === addr.id && styles.addressCardActive]}
+                    onPress={() => {
+                      setSelectedAddressId(selectedAddressId === addr.id ? undefined : addr.id);
+                    }}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: selectedAddressId === addr.id }}
                   >
-                    <Ionicons name="add-circle-outline" size={16} color={colors.primary} />
-                    <Text variant="caption" color={colors.primary}>Gérer mes adresses</Text>
+                    <Ionicons
+                      name={addr.label === 'Maison' ? 'home-outline' : addr.label === 'Bureau' ? 'briefcase-outline' : 'location-outline'}
+                      size={20}
+                      color={selectedAddressId === addr.id ? colors.primary : colors.textSecondary}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text variant="bodySmall" color={selectedAddressId === addr.id ? colors.primary : colors.text} style={{ fontWeight: '600' }}>
+                        {addr.label || 'Adresse'}
+                      </Text>
+                      <Text variant="caption" color={colors.textSecondary} numberOfLines={1}>{addr.fullAddress}</Text>
+                    </View>
+                    <Ionicons
+                      name={selectedAddressId === addr.id ? 'checkmark-circle' : 'ellipse-outline'}
+                      size={20}
+                      color={selectedAddressId === addr.id ? colors.primary : colors.textTertiary}
+                    />
                   </Pressable>
-                </View>
-              )}
+                ))}
+                <Pressable style={styles.addAddressLink} onPress={() => router.push('/(client)/addresses')} accessibilityRole="button">
+                  <Ionicons name="add-circle-outline" size={16} color={colors.primary} />
+                  <Text variant="caption" color={colors.primary}>Gérer mes adresses</Text>
+                </Pressable>
+              </View>
+            )}
+
+            {/* Manual geography */}
+            <View style={styles.section}>
+              <Text variant="bodyMedium" style={styles.sectionLabel}>Ou sélectionnez manuellement</Text>
 
               {/* Country */}
               <View style={styles.geoField}>
-                <Text variant="bodySmall" style={styles.geoLabel}>Pays</Text>
-                {countriesLoading ? (
-                  <Skeleton width="100%" height={48} />
-                ) : (
+                <Text variant="caption" color={colors.textSecondary}>Pays</Text>
+                {countriesLoading ? <Skeleton width="100%" height={40} /> : (
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.geoChipScroll}>
                     {countries?.map((country) => (
                       <Pressable
                         key={country.id}
                         style={[styles.geoChip, selectedCountryId === country.id && styles.geoChipActive]}
-                        onPress={() => {
-                          setSelectedCountryId(country.id);
-                          setSelectedRegionId(undefined);
-                          setSelectedCityId(undefined);
-                          setSelectedDistrictId(undefined);
-                        }}
+                        onPress={() => { setSelectedCountryId(country.id); setSelectedRegionId(undefined); setSelectedCityId(undefined); setSelectedDistrictId(undefined); setSelectedAddressId(undefined); }}
                         accessibilityRole="radio"
                         accessibilityState={{ selected: selectedCountryId === country.id }}
-                        accessibilityLabel={country.name}
                       >
-                        <Text
-                          variant="bodySmall"
-                          color={selectedCountryId === country.id ? colors.primary : colors.textSecondary}
-                        >
-                          {country.name}
-                        </Text>
+                        <Text variant="caption" color={selectedCountryId === country.id ? colors.primary : colors.textSecondary}>{country.name}</Text>
                       </Pressable>
                     ))}
                   </ScrollView>
@@ -1019,35 +894,21 @@ export default function CreateRequestScreen() {
               {/* Region */}
               {selectedCountryId && (
                 <View style={styles.geoField}>
-                  <Text variant="bodySmall" style={styles.geoLabel}>Région</Text>
-                  {regionsLoading ? (
-                    <Skeleton width="100%" height={48} />
-                  ) : regions && regions.length > 0 ? (
+                  <Text variant="caption" color={colors.textSecondary}>Région</Text>
+                  {regionsLoading ? <Skeleton width="100%" height={40} /> : (
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.geoChipScroll}>
-                      {regions.map((region) => (
+                      {regions?.map((region) => (
                         <Pressable
                           key={region.id}
                           style={[styles.geoChip, selectedRegionId === region.id && styles.geoChipActive]}
-                          onPress={() => {
-                            setSelectedRegionId(region.id);
-                            setSelectedCityId(undefined);
-                            setSelectedDistrictId(undefined);
-                          }}
+                          onPress={() => { setSelectedRegionId(region.id); setSelectedCityId(undefined); setSelectedDistrictId(undefined); setSelectedAddressId(undefined); }}
                           accessibilityRole="radio"
                           accessibilityState={{ selected: selectedRegionId === region.id }}
-                          accessibilityLabel={region.name}
                         >
-                          <Text
-                            variant="bodySmall"
-                            color={selectedRegionId === region.id ? colors.primary : colors.textSecondary}
-                          >
-                            {region.name}
-                          </Text>
+                          <Text variant="caption" color={selectedRegionId === region.id ? colors.primary : colors.textSecondary}>{region.name}</Text>
                         </Pressable>
                       ))}
                     </ScrollView>
-                  ) : (
-                    <Text variant="caption" color={colors.textTertiary}>Aucune région disponible</Text>
                   )}
                 </View>
               )}
@@ -1055,112 +916,62 @@ export default function CreateRequestScreen() {
               {/* City */}
               {selectedRegionId && (
                 <View style={styles.geoField}>
-                  <Text variant="bodySmall" style={styles.geoLabel}>Ville</Text>
-                  {citiesLoading ? (
-                    <Skeleton width="100%" height={48} />
-                  ) : cities && cities.length > 0 ? (
+                  <Text variant="caption" color={colors.textSecondary}>Ville</Text>
+                  {citiesLoading ? <Skeleton width="100%" height={40} /> : (
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.geoChipScroll}>
-                      {cities.map((city) => (
+                      {cities?.map((city) => (
                         <Pressable
                           key={city.id}
                           style={[styles.geoChip, selectedCityId === city.id && styles.geoChipActive]}
-                          onPress={() => {
-                            setSelectedCityId(city.id);
-                            setSelectedDistrictId(undefined);
-                          }}
+                          onPress={() => { setSelectedCityId(city.id); setSelectedDistrictId(undefined); setSelectedAddressId(undefined); }}
                           accessibilityRole="radio"
                           accessibilityState={{ selected: selectedCityId === city.id }}
-                          accessibilityLabel={city.name}
                         >
-                          <Text
-                            variant="bodySmall"
-                            color={selectedCityId === city.id ? colors.primary : colors.textSecondary}
-                          >
-                            {city.name}
-                          </Text>
+                          <Text variant="caption" color={selectedCityId === city.id ? colors.primary : colors.textSecondary}>{city.name}</Text>
                         </Pressable>
                       ))}
                     </ScrollView>
-                  ) : (
-                    <Text variant="caption" color={colors.textTertiary}>Aucune ville disponible</Text>
                   )}
                 </View>
               )}
 
-              {/* District / Commune */}
+              {/* District */}
               {selectedCityId && (
                 <View style={styles.geoField}>
-                  <Text variant="bodySmall" style={styles.geoLabel}>Commune</Text>
-                  {districtsLoading ? (
-                    <Skeleton width="100%" height={48} />
-                  ) : districts && districts.length > 0 ? (
+                  <Text variant="caption" color={colors.textSecondary}>Commune / Quartier</Text>
+                  {districtsLoading ? <Skeleton width="100%" height={40} /> : (
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.geoChipScroll}>
-                      {districts.map((district) => (
+                      {districts?.map((district) => (
                         <Pressable
                           key={district.id}
                           style={[styles.geoChip, selectedDistrictId === district.id && styles.geoChipActive]}
-                          onPress={() => setSelectedDistrictId(district.id)}
+                          onPress={() => { setSelectedDistrictId(district.id); setSelectedAddressId(undefined); }}
                           accessibilityRole="radio"
                           accessibilityState={{ selected: selectedDistrictId === district.id }}
-                          accessibilityLabel={district.name}
                         >
-                          <Text
-                            variant="bodySmall"
-                            color={selectedDistrictId === district.id ? colors.primary : colors.textSecondary}
-                          >
-                            {district.name}
-                          </Text>
+                          <Text variant="caption" color={selectedDistrictId === district.id ? colors.primary : colors.textSecondary}>{district.name}</Text>
                         </Pressable>
                       ))}
                     </ScrollView>
-                  ) : (
-                    <Text variant="caption" color={colors.textTertiary}>Aucune commune disponible</Text>
                   )}
-                </View>
-              )}
-
-              {!selectedAddressId && !_location && selectedCityId && (
-                <View style={styles.locationHint}>
-                  <Ionicons name="information-circle-outline" size={16} color={colors.warning} />
-                  <Text variant="caption" color={colors.warning} style={{ flex: 1 }}>
-                    Pour un meilleur matching, enregistrez une adresse ou activez le GPS.
-                  </Text>
                 </View>
               )}
             </View>
 
-            {/* Time Preferences */}
+            {/* Time */}
             <View style={styles.section}>
               <View style={styles.sectionTitleRow}>
-                <Text variant="bodyMedium">Créneaux horaires préférés</Text>
+                <Text variant="bodyMedium">Créneaux préférés</Text>
                 <Text variant="bodySmall" color={colors.textTertiary}> (optionnel)</Text>
               </View>
-              <Text variant="bodySmall" color={colors.textSecondary} style={styles.sectionSubtitle}>
-                Indiquez vos disponibilités pour faciliter la prise de rendez-vous.
-              </Text>
-
               <View style={styles.timeRow}>
                 <View style={styles.timeField}>
-                  <Text variant="caption" color={colors.textSecondary} style={styles.timeLabel}>De</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="08:00"
-                    placeholderTextColor={colors.textTertiary}
-                    value={preferredTimeStart}
-                    onChangeText={setPreferredTimeStart}
-                    accessibilityLabel="Heure de début"
-                  />
+                  <Text variant="caption" color={colors.textSecondary}>De</Text>
+                  <TextInput style={styles.input} placeholder="08:00" placeholderTextColor={colors.textTertiary} value={preferredTimeStart} onChangeText={setPreferredTimeStart} accessibilityLabel="Heure de début" />
                 </View>
                 <View style={styles.timeField}>
-                  <Text variant="caption" color={colors.textSecondary} style={styles.timeLabel}>À</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="18:00"
-                    placeholderTextColor={colors.textTertiary}
-                    value={preferredTimeEnd}
-                    onChangeText={setPreferredTimeEnd}
-                    accessibilityLabel="Heure de fin"
-                  />
+                  <Text variant="caption" color={colors.textSecondary}>À</Text>
+                  <TextInput style={styles.input} placeholder="18:00" placeholderTextColor={colors.textTertiary} value={preferredTimeEnd} onChangeText={setPreferredTimeEnd} accessibilityLabel="Heure de fin" />
                 </View>
               </View>
             </View>
@@ -1168,11 +979,10 @@ export default function CreateRequestScreen() {
         )}
 
         {/* ============================================================ */}
-        {/* STEP 4 — RÉCAPITULATIF / CONFIRMATION                        */}
+        {/* STEP 4 — CONFIRMATION                                         */}
         {/* ============================================================ */}
         {currentStep === 3 && (
           <>
-            {/* Info Banner */}
             <View style={styles.infoBanner}>
               <View style={styles.infoBannerIcon}>
                 <Ionicons name="checkmark-circle-outline" size={22} color={colors.success} />
@@ -1180,53 +990,35 @@ export default function CreateRequestScreen() {
               <View style={styles.infoBannerText}>
                 <Text variant="bodyMedium">Vérifiez votre demande</Text>
                 <Text variant="bodySmall" color={colors.textSecondary}>
-                  Relisez les informations avant de publier votre demande.
+                  Relisez les informations avant de publier.
                 </Text>
               </View>
             </View>
 
-            {/* Service Section */}
+            {/* Service */}
             <View style={styles.section}>
               <View style={styles.summaryHeader}>
                 <Ionicons name="construct-outline" size={18} color={colors.primary} />
                 <Text variant="bodyMedium" style={styles.summaryTitle}>Service</Text>
-                <Pressable
-                  onPress={() => goToStep(1)}
-                  accessibilityRole="button"
-                  accessibilityLabel="Modifier le service"
-                  style={styles.editBtn}
-                >
+                <Pressable onPress={() => goToStep(0)} accessibilityRole="button" style={styles.editBtn}>
                   <Text variant="caption" color={colors.primary}>Modifier</Text>
                 </Pressable>
               </View>
-              {selectedCategory && (
-                <Text variant="bodySmall" color={colors.textSecondary}>
-                  {selectedCategory.name}
-                </Text>
-              )}
-              <Text variant="body" color={colors.text}>
-                {selectedService?.name || 'Non sélectionné'}
-              </Text>
+              {selectedCategory && <Text variant="bodySmall" color={colors.textSecondary}>{selectedCategory.name}</Text>}
+              <Text variant="body" color={colors.text}>{selectedService?.name || '—'}</Text>
             </View>
 
-            {/* Details Section */}
+            {/* Details */}
             <View style={styles.section}>
               <View style={styles.summaryHeader}>
                 <Ionicons name="document-text-outline" size={18} color={colors.primary} />
                 <Text variant="bodyMedium" style={styles.summaryTitle}>Détails</Text>
-                <Pressable
-                  onPress={() => goToStep(0)}
-                  accessibilityRole="button"
-                  accessibilityLabel="Modifier les détails"
-                  style={styles.editBtn}
-                >
+                <Pressable onPress={() => goToStep(1)} accessibilityRole="button" style={styles.editBtn}>
                   <Text variant="caption" color={colors.primary}>Modifier</Text>
                 </Pressable>
               </View>
               <Text variant="bodyMedium" color={colors.text}>{title || '—'}</Text>
-              <Text variant="bodySmall" color={colors.textSecondary} numberOfLines={4} style={styles.summaryDesc}>
-                {description || '—'}
-              </Text>
+              <Text variant="bodySmall" color={colors.textSecondary} numberOfLines={4}>{description || '—'}</Text>
               {photos.length > 0 && (
                 <View style={styles.summaryPhotos}>
                   {photos.map((photo, i) => (
@@ -1236,17 +1028,12 @@ export default function CreateRequestScreen() {
               )}
             </View>
 
-            {/* Date & Urgency */}
+            {/* Date */}
             <View style={styles.section}>
               <View style={styles.summaryHeader}>
                 <Ionicons name="calendar-outline" size={18} color={colors.primary} />
                 <Text variant="bodyMedium" style={styles.summaryTitle}>Date et urgence</Text>
-                <Pressable
-                  onPress={() => goToStep(0)}
-                  accessibilityRole="button"
-                  accessibilityLabel="Modifier la date"
-                  style={styles.editBtn}
-                >
+                <Pressable onPress={() => goToStep(1)} accessibilityRole="button" style={styles.editBtn}>
                   <Text variant="caption" color={colors.primary}>Modifier</Text>
                 </Pressable>
               </View>
@@ -1259,68 +1046,55 @@ export default function CreateRequestScreen() {
             </View>
 
             {/* Location */}
-            {(selectedCity || selectedDistrict) && (
-              <View style={styles.section}>
-                <View style={styles.summaryHeader}>
-                  <Ionicons name="location-outline" size={18} color={colors.primary} />
-                  <Text variant="bodyMedium" style={styles.summaryTitle}>Localisation</Text>
-                  <Pressable
-                    onPress={() => goToStep(2)}
-                    accessibilityRole="button"
-                    accessibilityLabel="Modifier la localisation"
-                    style={styles.editBtn}
-                  >
-                    <Text variant="caption" color={colors.primary}>Modifier</Text>
-                  </Pressable>
-                </View>
-                <Text variant="body" color={colors.text}>
-                  {[selectedDistrict?.name, selectedCity?.name, selectedRegion?.name, selectedCountry?.name]
-                    .filter(Boolean)
-                    .join(', ')}
-                </Text>
+            <View style={styles.section}>
+              <View style={styles.summaryHeader}>
+                <Ionicons name="location-outline" size={18} color={colors.primary} />
+                <Text variant="bodyMedium" style={styles.summaryTitle}>Localisation</Text>
+                <Pressable onPress={() => goToStep(2)} accessibilityRole="button" style={styles.editBtn}>
+                  <Text variant="caption" color={colors.primary}>Modifier</Text>
+                </Pressable>
               </View>
-            )}
+              {selectedAddressId ? (
+                <Text variant="body" color={colors.text}>
+                  {savedAddresses?.find((a) => a.id === selectedAddressId)?.fullAddress || 'Adresse enregistrée'}
+                </Text>
+              ) : detectedAddress?.formattedAddress ? (
+                <Text variant="body" color={colors.text}>{detectedAddress.formattedAddress}</Text>
+              ) : (selectedCity || selectedDistrict) ? (
+                <Text variant="body" color={colors.text}>
+                  {[selectedDistrict?.name, selectedCity?.name, selectedRegion?.name, selectedCountry?.name].filter(Boolean).join(', ')}
+                </Text>
+              ) : (
+                <Text variant="body" color={colors.textTertiary}>Non renseignée</Text>
+              )}
+            </View>
 
-            {/* Time Preferences */}
+            {/* Time */}
             {(preferredTimeStart || preferredTimeEnd) && (
               <View style={styles.section}>
                 <View style={styles.summaryHeader}>
                   <Ionicons name="time-outline" size={18} color={colors.primary} />
                   <Text variant="bodyMedium" style={styles.summaryTitle}>Créneaux</Text>
-                  <Pressable
-                    onPress={() => goToStep(2)}
-                    accessibilityRole="button"
-                    accessibilityLabel="Modifier les créneaux"
-                    style={styles.editBtn}
-                  >
+                  <Pressable onPress={() => goToStep(2)} accessibilityRole="button" style={styles.editBtn}>
                     <Text variant="caption" color={colors.primary}>Modifier</Text>
                   </Pressable>
                 </View>
-                <Text variant="body" color={colors.text}>
-                  {preferredTimeStart || '—'} → {preferredTimeEnd || '—'}
-                </Text>
+                <Text variant="body" color={colors.text}>{preferredTimeStart || '—'} → {preferredTimeEnd || '—'}</Text>
               </View>
             )}
 
-            {/* Budget (local only) */}
+            {/* Budget */}
             {budgetRange && (
               <View style={styles.section}>
                 <View style={styles.summaryHeader}>
                   <Ionicons name="wallet-outline" size={18} color={colors.primary} />
                   <Text variant="bodyMedium" style={styles.summaryTitle}>Budget indicatif</Text>
-                  <Pressable
-                    onPress={() => goToStep(0)}
-                    accessibilityRole="button"
-                    accessibilityLabel="Modifier le budget"
-                    style={styles.editBtn}
-                  >
+                  <Pressable onPress={() => goToStep(1)} accessibilityRole="button" style={styles.editBtn}>
                     <Text variant="caption" color={colors.primary}>Modifier</Text>
                   </Pressable>
                 </View>
-                <Text variant="body" color={colors.text}>
-                  {BUDGET_RANGES.find(b => b.value === budgetRange)?.label}
-                </Text>
-                <Text variant="caption" color={colors.warning} style={styles.budgetWarning}>
+                <Text variant="body" color={colors.text}>{BUDGET_RANGES.find(b => b.value === budgetRange)?.label}</Text>
+                <Text variant="caption" color={colors.warning} style={{ marginTop: spacing.xs }}>
                   Information indicative — non transmise au serveur
                 </Text>
               </View>
@@ -1350,14 +1124,13 @@ export default function CreateRequestScreen() {
           disabled={!canProceed() || isSubmitting}
           accessibilityRole="button"
           accessibilityLabel={currentStep === STEPS.length - 1 ? 'Confirmer et publier' : messages.common.continue}
-          accessibilityState={{ disabled: !canProceed() || isSubmitting }}
         >
           {isSubmitting ? (
             <ActivityIndicator color={colors.textInverse} size="small" />
           ) : (
             <>
               <Text variant="button" color={colors.textInverse}>
-                {currentStep === STEPS.length - 1 ? 'Confirmer et publier' : messages.common.continue}
+                {currentStep === STEPS.length - 1 ? 'Confirmer et publier' : 'Continuer'}
               </Text>
               <Ionicons
                 name={currentStep === STEPS.length - 1 ? 'checkmark' : 'arrow-forward'}
@@ -1374,585 +1147,142 @@ export default function CreateRequestScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  backBtn: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    flex: 1,
-    marginLeft: spacing.xs,
-  },
-  proChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.full,
-    gap: spacing.xs,
-  },
-  proChipText: {},
-  stepper: {
-    flexDirection: 'row',
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.lg,
-    justifyContent: 'space-between',
-  },
-  stepItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  stepRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    justifyContent: 'center',
-  },
-  stepCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.surfaceSecondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: colors.border,
-  },
-  stepCircleActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
+  container: { flex: 1, backgroundColor: colors.background },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
+  backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { flex: 1, marginLeft: spacing.xs },
+  proChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderWidth: 1, borderColor: colors.border, borderRadius: radius.full, gap: spacing.xs },
+
+  // Stepper
+  stepper: { flexDirection: 'row', paddingHorizontal: spacing.xl, paddingVertical: spacing.md, justifyContent: 'space-between' },
+  stepItem: { alignItems: 'center', flex: 1 },
+  stepRow: { flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'center' },
+  stepCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.surfaceSecondary, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.border },
+  stepCircleActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  stepCircleCompleted: { backgroundColor: colors.success, borderColor: colors.success },
   stepNumber: {},
-  stepLine: {
-    position: 'absolute',
-    left: '64%',
-    right: '-36%',
-    height: 2,
-    backgroundColor: colors.border,
-    top: 13,
-  },
-  stepLineActive: {
-    backgroundColor: colors.primary,
-  },
-  stepLabel: {
-    marginTop: spacing.xs,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: spacing.lg,
-    paddingBottom: 100,
-  },
-  infoBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    padding: spacing.lg,
-    borderRadius: radius.lg,
-    marginBottom: spacing.lg,
-    gap: spacing.md,
-    ...shadows.sm,
-  },
-  infoBannerIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.surfaceSecondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  infoBannerText: {
-    flex: 1,
-    gap: spacing.xxs,
-  },
-  estimateBanner: {
-    backgroundColor: colors.secondaryMuted,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.xs,
-    borderWidth: 1,
-    borderColor: colors.secondary + '30',
-  },
-  estimateHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  estimateMedian: {
-    marginTop: spacing.xs,
-  },
-  section: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-    ...shadows.sm,
-  },
-  sectionLabel: {
-    marginBottom: spacing.md,
-  },
-  sectionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  sectionSubtitle: {
-    marginBottom: spacing.md,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    fontSize: 16,
-    color: colors.text,
-    backgroundColor: colors.background,
-  },
-  textarea: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    fontSize: 16,
-    color: colors.text,
-    backgroundColor: colors.background,
-    minHeight: 120,
-  },
-  charCount: {
-    textAlign: 'right',
-    marginTop: spacing.xs,
-  },
-  photoUploadArea: {
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderStyle: 'dashed',
-    borderRadius: radius.md,
-    paddingVertical: spacing.xxl,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    backgroundColor: colors.background,
-  },
-  photoUploadTitle: {
-    marginTop: spacing.xs,
-  },
-  photoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
-  },
-  photoItem: {
-    position: 'relative',
-  },
-  photoThumb: {
-    width: 72,
-    height: 72,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceSecondary,
-  },
-  removePhotoBtn: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-  },
-  addMorePhotoBtn: {
-    width: 72,
-    height: 72,
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-    borderColor: colors.primary,
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  photoTags: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: spacing.lg,
-  },
-  photoTag: {
-    alignItems: 'center',
-    gap: spacing.xs,
-    flex: 1,
-  },
-  photoTagIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.surfaceSecondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  diagnosisBanner: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.sm,
-    backgroundColor: colors.secondaryMuted,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginTop: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.secondary + '30',
-  },
-  dateToggleRow: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  dateToggle: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.md,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    gap: spacing.sm,
-  },
-  dateToggleActive: {
-    borderColor: colors.secondary,
-    backgroundColor: colors.warningLightest,
-  },
-  dateChipsContainer: {
-    marginTop: spacing.md,
-  },
-  dateChipsScroll: {
-    flexGrow: 0,
-  },
-  dateChip: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radius.full,
-    marginRight: spacing.sm,
-    backgroundColor: colors.background,
-  },
-  dateChipActive: {
-    borderColor: colors.primary,
-    backgroundColor: colors.surfaceSecondary,
-  },
-  budgetHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.md,
-  },
-  budgetIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.surfaceSecondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dropdown: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.background,
-  },
-  dropdownList: {
-    marginTop: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    backgroundColor: colors.surface,
-    overflow: 'hidden',
-  },
-  dropdownItem: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
-  },
-  dropdownItemActive: {
-    backgroundColor: colors.surfaceSecondary,
-  },
-  errorText: {
-    marginBottom: spacing.md,
-  },
-  footer: {
-    padding: spacing.lg,
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderLight,
-  },
-  ctaButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.lg,
-    borderRadius: radius.md,
-    gap: spacing.sm,
-  },
-  ctaButtonDisabled: {
-    opacity: 0.6,
-  },
-  uploadProgressBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  // Step 2 styles
-  skeletonGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
-  },
-  skeletonCard: {
-    borderRadius: radius.md,
-  },
-  skeletonServiceRow: {
-    borderRadius: radius.md,
-    marginBottom: spacing.sm,
-  },
-  inlineError: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.md,
-  },
-  inlineErrorText: {
-    flex: 1,
-  },
-  retryLink: {},
-  inlineEmpty: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.xl,
-    justifyContent: 'center',
-  },
-  categoryGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
-  },
-  categoryCard: {
-    width: '47%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    backgroundColor: colors.background,
-    gap: spacing.sm,
-  },
-  categoryCardActive: {
-    borderColor: colors.primary,
-    backgroundColor: colors.surfaceSecondary,
-  },
-  categoryCardText: {
-    flex: 1,
-  },
-  servicesList: {
-    gap: spacing.sm,
-  },
-  serviceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    backgroundColor: colors.background,
-  },
-  serviceRowActive: {
-    borderColor: colors.primary,
-    backgroundColor: colors.surfaceSecondary,
-  },
-  serviceRowLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    flex: 1,
-  },
-  serviceRowInfo: {
-    flex: 1,
-    gap: spacing.xxs,
-  },
-  serviceRadio: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  serviceRadioActive: {
-    borderColor: colors.primary,
-  },
-  serviceRadioInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: colors.primary,
-  },
-  preselectedBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.md,
-  },
-  preselectedInfo: {
-    flex: 1,
-    gap: spacing.xxs,
-  },
-  changeServiceBtn: {
-    alignSelf: 'flex-start',
-    paddingVertical: spacing.xs,
-  },
-  // Step 3 styles
-  detectedLocation: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.successLightest,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.md,
-    marginBottom: spacing.md,
-  },
-  locationHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.warningLight,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.md,
-    marginTop: spacing.sm,
-  },
-  addressSelectCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    marginBottom: spacing.sm,
-    backgroundColor: colors.surface,
-  },
-  addressSelectCardActive: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryLight,
-  },
-  addressSelectInfo: {
-    flex: 1,
-    gap: spacing.xxs,
-  },
-  addAddressLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    paddingVertical: spacing.sm,
-  },
-  geoField: {
-    marginBottom: spacing.lg,
-  },
-  geoLabel: {
-    marginBottom: spacing.sm,
-  },
-  geoChipScroll: {
-    flexGrow: 0,
-  },
-  geoChip: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radius.full,
-    marginRight: spacing.sm,
-    backgroundColor: colors.background,
-  },
-  geoChipActive: {
-    borderColor: colors.primary,
-    backgroundColor: colors.surfaceSecondary,
-  },
-  timeRow: {
-    flexDirection: 'row',
-    gap: spacing.lg,
-  },
-  timeField: {
-    flex: 1,
-  },
-  timeLabel: {
-    marginBottom: spacing.sm,
-  },
-  // Step 4 styles
-  summaryHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  summaryTitle: {
-    flex: 1,
-  },
-  editBtn: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-  },
-  summaryDesc: {
-    marginTop: spacing.xs,
-  },
-  summaryPhotos: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.md,
-  },
-  summaryPhotoThumb: {
-    width: 52,
-    height: 52,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surfaceSecondary,
-  },
-  budgetWarning: {
-    marginTop: spacing.xs,
-    fontStyle: 'italic',
-  },
-  submitError: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.errorLight,
-    padding: spacing.lg,
-    borderRadius: radius.md,
-  },
-  submitErrorText: {
-    flex: 1,
-  },
-  inlineLottie: {
-    width: 36,
-    height: 36,
-  },
+  stepLine: { position: 'absolute', left: '64%', right: '-36%', height: 2, backgroundColor: colors.border, top: 15 },
+  stepLineActive: { backgroundColor: colors.success },
+  stepLabel: { marginTop: spacing.xs, fontSize: 10 },
+  stepLabelActive: { fontWeight: '700' },
+
+  // Progress bar
+  progressBarContainer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.xl, marginBottom: spacing.md, gap: spacing.sm },
+  progressBarBg: { flex: 1, height: 4, borderRadius: 2, backgroundColor: colors.surfaceSecondary },
+  progressBarFill: { height: 4, borderRadius: 2, backgroundColor: colors.primary },
+  progressText: { fontSize: 10 },
+
+  scrollContent: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingBottom: 100 },
+
+  // Info banner
+  infoBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, padding: spacing.lg, borderRadius: radius.lg, marginBottom: spacing.lg, gap: spacing.md, ...shadows.sm },
+  infoBannerIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.surfaceSecondary, alignItems: 'center', justifyContent: 'center' },
+  infoBannerText: { flex: 1, gap: spacing.xxs },
+
+  // Estimate
+  estimateBanner: { backgroundColor: colors.secondaryMuted, borderRadius: radius.md, padding: spacing.md, gap: spacing.xs, borderWidth: 1, borderColor: colors.secondary + '30' },
+  estimateHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  estimateMedian: { marginTop: spacing.xs },
+
+  // Sections
+  section: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg, marginBottom: spacing.lg, ...shadows.sm },
+  sectionLabel: { marginBottom: spacing.md },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'baseline' },
+  sectionSubtitle: { marginBottom: spacing.md },
+
+  // Inputs
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.md, fontSize: 16, color: colors.text, backgroundColor: colors.background },
+  textarea: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.md, fontSize: 16, color: colors.text, backgroundColor: colors.background, minHeight: 120 },
+  charCount: { textAlign: 'right', marginTop: spacing.xs },
+
+  // Photos
+  photoUploadArea: { borderWidth: 1.5, borderColor: colors.border, borderStyle: 'dashed', borderRadius: radius.md, paddingVertical: spacing.xxl, alignItems: 'center', justifyContent: 'center', gap: spacing.xs, backgroundColor: colors.background },
+  photoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  photoItem: { position: 'relative' },
+  photoThumb: { width: 72, height: 72, borderRadius: radius.md, backgroundColor: colors.surfaceSecondary },
+  removePhotoBtn: { position: 'absolute', top: -6, right: -6 },
+  addMorePhotoBtn: { width: 72, height: 72, borderRadius: radius.md, borderWidth: 1.5, borderColor: colors.primary, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
+  photoTags: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.lg },
+  photoTag: { alignItems: 'center', gap: spacing.xs, flex: 1 },
+  photoTagIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.surfaceSecondary, alignItems: 'center', justifyContent: 'center' },
+  diagnosisBanner: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: colors.primaryLight + '10', borderRadius: radius.md, padding: spacing.md, marginTop: spacing.md, gap: spacing.sm, borderLeftWidth: 3, borderLeftColor: colors.primary },
+  inlineLottie: { width: 24, height: 24 },
+
+  // Categories
+  categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  categoryCard: { width: '48%', flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border },
+  categoryCardActive: { backgroundColor: colors.goldTint, borderColor: colors.primary },
+  categoryCardText: { flex: 1, fontWeight: '500' },
+  skeletonGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  skeletonCard: { borderRadius: radius.md },
+
+  // Services
+  servicesList: { gap: spacing.sm },
+  serviceRow: { flexDirection: 'row', alignItems: 'center', padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border },
+  serviceRowActive: { backgroundColor: colors.goldTint, borderColor: colors.primary },
+  serviceRowLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  serviceRowInfo: { flex: 1, gap: 2 },
+  serviceRadio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
+  serviceRadioActive: { borderColor: colors.primary },
+  serviceRadioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.primary },
+  skeletonServiceRow: { borderRadius: radius.md },
+
+  // Preselected
+  preselectedBanner: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, backgroundColor: colors.successLight, borderRadius: radius.md, marginBottom: spacing.md },
+  preselectedInfo: { flex: 1, gap: 2 },
+  changeServiceBtn: { paddingVertical: spacing.sm },
+
+  // Date
+  dateToggleRow: { flexDirection: 'row', gap: spacing.sm },
+  dateToggle: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.background },
+  dateToggleActive: { borderColor: colors.primary, backgroundColor: colors.goldTint },
+  dateChipsContainer: { marginTop: spacing.md },
+  dateChipsScroll: { gap: spacing.sm },
+  dateChip: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.full, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.background },
+  dateChipActive: { borderColor: colors.primary, backgroundColor: colors.goldTint },
+
+  // Budget
+  budgetHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
+  budgetIconWrap: { width: 36, height: 36, borderRadius: radius.md, backgroundColor: colors.secondaryMuted, alignItems: 'center', justifyContent: 'center' },
+  dropdown: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.md, backgroundColor: colors.background },
+  dropdownList: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, marginTop: spacing.sm, backgroundColor: colors.surface, overflow: 'hidden' },
+  dropdownItem: { paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.borderLight },
+  dropdownItemActive: { backgroundColor: colors.goldTint },
+
+  // Location
+  gpsDetected: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, backgroundColor: colors.successLight, borderRadius: radius.md },
+  addressCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, marginBottom: spacing.sm },
+  addressCardActive: { borderColor: colors.primary, backgroundColor: colors.goldTint },
+  addAddressLink: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.sm },
+
+  // Geography
+  geoField: { marginBottom: spacing.md },
+  geoChipScroll: { marginTop: spacing.sm },
+  geoChip: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.full, borderWidth: 1, borderColor: colors.border, marginRight: spacing.sm, backgroundColor: colors.background },
+  geoChipActive: { borderColor: colors.primary, backgroundColor: colors.goldTint },
+
+  // Time
+  timeRow: { flexDirection: 'row', gap: spacing.md },
+  timeField: { flex: 1, gap: spacing.xs },
+
+  // Confirmation summary
+  summaryHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
+  summaryTitle: { flex: 1, fontWeight: '600' },
+  editBtn: { paddingVertical: spacing.xs },
+  summaryPhotos: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+  summaryPhotoThumb: { width: 48, height: 48, borderRadius: radius.sm, backgroundColor: colors.surfaceSecondary },
+
+  // Errors
+  inlineError: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, backgroundColor: colors.errorLight, borderRadius: radius.md },
+  inlineEmpty: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xl },
+  retryLink: { fontWeight: '600' },
+  errorText: { textAlign: 'center', marginTop: spacing.md },
+  submitError: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, backgroundColor: colors.errorLight, borderRadius: radius.md, marginTop: spacing.md },
+  submitErrorText: { flex: 1 },
+
+  // Footer
+  footer: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
+  uploadProgressBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, marginBottom: spacing.sm },
+  ctaButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, backgroundColor: colors.primary, paddingVertical: spacing.lg, borderRadius: radius.full, ...shadows.md },
+  ctaButtonDisabled: { opacity: 0.5 },
 });
