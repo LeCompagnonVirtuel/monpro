@@ -8,7 +8,7 @@ import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
 import { shadows } from '@/theme/shadows';
-import { Text, Card, Skeleton } from '@/components/ui';
+import { Text, Card, Skeleton, StatusBadge, UrgencyBadge, BookingStatus, UrgencyLevel } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useMe } from '@/hooks/use-me';
@@ -41,6 +41,81 @@ function compactCurrency(amount: number): string {
   if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1).replace('.0', '')}M`;
   if (amount >= 10_000) return `${Math.round(amount / 1000)}k`;
   return formatCurrency(amount);
+}
+
+function StatCard({ icon, iconBg, iconColor, value, valueColor, label, subLabel, showDot, onPress }: {
+  icon: keyof typeof Ionicons.glyphMap;
+  iconBg: string;
+  iconColor: string;
+  value: string | null;
+  valueColor?: string;
+  label: string;
+  subLabel?: string;
+  showDot?: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable style={styles.statCard} onPress={onPress} accessibilityRole="button">
+      <View style={styles.statIconWrap}>
+        <View style={[styles.statIcon, { backgroundColor: iconBg }]}>
+          <Ionicons name={icon} size={16} color={iconColor} />
+        </View>
+        {showDot && <View style={styles.statDot} />}
+      </View>
+      {value === null ? (
+        <Skeleton width={28} height={22} />
+      ) : (
+        <Text style={[styles.statValue, valueColor ? { color: valueColor } : undefined]} numberOfLines={1}>{value}</Text>
+      )}
+      <Text variant="caption" color={colors.textSecondary} align="center">{label}</Text>
+      {subLabel && <Text variant="caption" color={colors.textTertiary} style={styles.statSub}>{subLabel}</Text>}
+    </Pressable>
+  );
+}
+
+function QuickAction({ icon, label, onPress }: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable style={styles.quickAction} onPress={onPress} accessibilityLabel={label} accessibilityRole="button">
+      <Ionicons name={icon} size={20} color={colors.textSecondary} />
+      <Text variant="bodySmall" style={styles.quickLabel} numberOfLines={1}>{label}</Text>
+      <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+    </Pressable>
+  );
+}
+
+function SectionHead({ title, actionLabel, onAction }: { title: string; actionLabel: string; onAction: () => void }) {
+  return (
+    <View style={styles.sectionHead}>
+      <Text variant="h3" style={styles.sectionTitle}>{title}</Text>
+      <Pressable onPress={onAction} style={styles.seeAllBtn} accessibilityRole="button">
+        <Text variant="bodySmall" color={colors.primary} style={styles.seeAllText}>{actionLabel}</Text>
+        <Ionicons name="chevron-forward" size={14} color={colors.primary} />
+      </Pressable>
+    </View>
+  );
+}
+
+function EmptyBlock({ icon, text }: { icon: keyof typeof Ionicons.glyphMap; text: string }) {
+  return (
+    <View style={styles.emptyBlock}>
+      <Ionicons name={icon} size={32} color={colors.textTertiary} />
+      <Text variant="bodySmall" color={colors.textTertiary}>{text}</Text>
+    </View>
+  );
+}
+
+function VerificationLabel({ status }: { status: string }) {
+  const labels: Record<string, string> = {
+    VERIFIED: messages.dashboard.verification.verified,
+    PENDING: messages.dashboard.verification.pending,
+    REJECTED: messages.dashboard.verification.rejected,
+    SUSPENDED: messages.dashboard.verification.suspended,
+  };
+  return <>{labels[status] || messages.dashboard.verification.incomplete}</>;
 }
 
 export default function DashboardScreen() {
@@ -370,7 +445,7 @@ export default function DashboardScreen() {
                   </View>
                   <View style={styles.metaRow}>
                     <Text variant="caption" color={colors.textTertiary}>{formatRelativeDate(req.createdAt)}</Text>
-                    <UrgencyBadge urgency={req.urgency} />
+                    <UrgencyBadge urgency={req.urgency as UrgencyLevel} />
                   </View>
                 </View>
                 <View style={styles.voirBtn}>
@@ -413,7 +488,7 @@ export default function DashboardScreen() {
                     </View>
                   ) : null}
                 </View>
-                <BookingStatusBadge status={booking.status} />
+                <StatusBadge status={booking.status as BookingStatus} />
               </Pressable>
             ))
           ) : (
@@ -432,116 +507,6 @@ export default function DashboardScreen() {
         )}
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-// ──────────── EXTRACTED COMPONENTS ────────────
-
-function StatCard({ icon, iconBg, iconColor, value, valueColor, label, subLabel, showDot, onPress }: {
-  icon: keyof typeof Ionicons.glyphMap;
-  iconBg: string;
-  iconColor: string;
-  value: string | null;
-  valueColor?: string;
-  label: string;
-  subLabel?: string;
-  showDot?: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable style={styles.statCard} onPress={onPress} accessibilityRole="button">
-      <View style={styles.statIconWrap}>
-        <View style={[styles.statIcon, { backgroundColor: iconBg }]}>
-          <Ionicons name={icon} size={16} color={iconColor} />
-        </View>
-        {showDot && <View style={styles.statDot} />}
-      </View>
-      {value === null ? (
-        <Skeleton width={28} height={22} />
-      ) : (
-        <Text style={[styles.statValue, valueColor ? { color: valueColor } : undefined]} numberOfLines={1}>{value}</Text>
-      )}
-      <Text variant="caption" color={colors.textSecondary} align="center">{label}</Text>
-      {subLabel && <Text variant="caption" color={colors.textTertiary} style={styles.statSub}>{subLabel}</Text>}
-    </Pressable>
-  );
-}
-
-function QuickAction({ icon, label, onPress }: {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable style={styles.quickAction} onPress={onPress} accessibilityLabel={label} accessibilityRole="button">
-      <Ionicons name={icon} size={20} color={colors.textSecondary} />
-      <Text variant="bodySmall" style={styles.quickLabel} numberOfLines={1}>{label}</Text>
-      <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
-    </Pressable>
-  );
-}
-
-function SectionHead({ title, actionLabel, onAction }: { title: string; actionLabel: string; onAction: () => void }) {
-  return (
-    <View style={styles.sectionHead}>
-      <Text variant="h3" style={styles.sectionTitle}>{title}</Text>
-      <Pressable onPress={onAction} style={styles.seeAllBtn} accessibilityRole="button">
-        <Text variant="bodySmall" color={colors.primary} style={styles.seeAllText}>{actionLabel}</Text>
-        <Ionicons name="chevron-forward" size={14} color={colors.primary} />
-      </Pressable>
-    </View>
-  );
-}
-
-function EmptyBlock({ icon, text }: { icon: keyof typeof Ionicons.glyphMap; text: string }) {
-  return (
-    <View style={styles.emptyBlock}>
-      <Ionicons name={icon} size={32} color={colors.textTertiary} />
-      <Text variant="bodySmall" color={colors.textTertiary}>{text}</Text>
-    </View>
-  );
-}
-
-function VerificationLabel({ status }: { status: string }) {
-  const labels: Record<string, string> = {
-    VERIFIED: messages.dashboard.verification.verified,
-    PENDING: messages.dashboard.verification.pending,
-    REJECTED: messages.dashboard.verification.rejected,
-    SUSPENDED: messages.dashboard.verification.suspended,
-  };
-  return <>{labels[status] || messages.dashboard.verification.incomplete}</>;
-}
-
-function UrgencyBadge({ urgency }: { urgency: string }) {
-  const cfg: Record<string, { color: string; label: string }> = {
-    LOW: { color: colors.textTertiary, label: messages.urgency.low },
-    NORMAL: { color: colors.info, label: messages.urgency.normalF },
-    HIGH: { color: colors.warning, label: messages.urgency.high },
-    URGENT: { color: colors.error, label: messages.urgency.urgent },
-  };
-  const c = cfg[urgency] || cfg.NORMAL;
-  return (
-    <View style={[styles.urgencyBadge, { backgroundColor: c.color + '14' }]}>
-      <Text variant="caption" color={c.color} style={styles.urgencyLabel}>{c.label}</Text>
-    </View>
-  );
-}
-
-function BookingStatusBadge({ status }: { status: string }) {
-  const cfg: Record<string, { color: string; bg: string; label: string }> = {
-    PENDING: { color: colors.textTertiary, bg: colors.surfaceSecondary, label: messages.status.pending },
-    CONFIRMED: { color: colors.info, bg: colors.infoLight, label: messages.status.confirmed },
-    ARRIVING: { color: colors.warning, bg: colors.warningLight, label: messages.status.enRoute },
-    IN_PROGRESS: { color: colors.primary, bg: colors.primaryLight, label: messages.status.inProgress },
-    COMPLETED: { color: colors.success, bg: colors.successLight, label: messages.status.completed },
-    CANCELLED: { color: colors.error, bg: colors.errorLight, label: messages.status.cancelled },
-  };
-  const c = cfg[status] || cfg.CONFIRMED;
-  return (
-    <View style={[styles.bookingBadge, { backgroundColor: c.bg }]}>
-      <Text variant="caption" color={c.color} style={styles.bookingBadgeText}>{c.label}</Text>
-      <Ionicons name="chevron-forward" size={10} color={c.color} />
-    </View>
   );
 }
 
@@ -673,8 +638,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   voirBtnText: { fontWeight: '700', fontSize: 12 },
-  urgencyBadge: { paddingHorizontal: spacing.sm, paddingVertical: 1, borderRadius: radius.sm, marginLeft: spacing.xs },
-  urgencyLabel: { fontSize: 10, fontWeight: '600' },
 
   // Planning
   planningCard: {
@@ -683,12 +646,6 @@ const styles = StyleSheet.create({
   },
   planningTime: { fontWeight: '700', fontSize: 11, minWidth: 50, textAlign: 'center' },
   planningInfo: { flex: 1, gap: 2 },
-  bookingBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 2,
-    paddingHorizontal: spacing.sm, paddingVertical: spacing.xs,
-    borderRadius: radius.full,
-  },
-  bookingBadgeText: { fontSize: 10, fontWeight: '600' },
 
   // Empty
   emptyBlock: {

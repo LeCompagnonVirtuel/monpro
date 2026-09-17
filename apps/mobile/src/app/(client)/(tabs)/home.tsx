@@ -1,11 +1,13 @@
 import { useCallback } from 'react';
-import { FlatList, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { FlatList, RefreshControl, ScrollView, StyleSheet, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { radius } from '@/theme/radius';
+import { shadows } from '@/theme/shadows';
 import { Skeleton } from '@/components/ui';
 import { Text } from '@/components/ui';
 import { ErrorState } from '@/components/feedback/ErrorState';
@@ -23,6 +25,70 @@ import { useProfessionals } from '@/hooks/use-professionals';
 import { useLocation } from '@/hooks/use-location';
 import { useServiceRequests } from '@/hooks/use-service-requests';
 import { messages } from '@/constants/messages';
+
+function QuickActions() {
+  const actions = [
+    { icon: 'add-circle-outline', label: 'Publier', color: colors.primary, bg: colors.primaryLight + '20', route: '/(client)/create-request' },
+    { icon: 'map-outline', label: 'Carte', color: colors.info, bg: colors.infoLight, route: '/(client)/(tabs)/map' },
+    { icon: 'grid-outline', label: 'Services', color: colors.secondary, bg: colors.secondaryMuted, route: '/(client)/(tabs)/search' },
+  ];
+
+  return (
+    <View style={styles.quickActionsRow}>
+      {actions.map((action) => (
+        <Pressable
+          key={action.label}
+          style={styles.quickActionBtn}
+          onPress={() => router.push(action.route as any)}
+          accessibilityLabel={action.label}
+          accessibilityRole="button"
+        >
+          <View style={[styles.quickActionIcon, { backgroundColor: action.bg }]}>
+            <Ionicons name={action.icon as any} size={24} color={action.color} />
+          </View>
+          <Text variant="caption" color={colors.text} style={styles.quickActionLabel}>
+            {action.label}
+          </Text>
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+
+function EmptyProCard() {
+  return (
+    <View style={styles.emptyProCard}>
+      <Ionicons name="people-outline" size={32} color={colors.textTertiary} />
+      <Text variant="bodySmall" color={colors.textTertiary} align="center">
+        {messages.empty.noProfessionals}
+      </Text>
+      <Pressable
+        style={styles.emptyProBtn}
+        onPress={() => router.push('/(client)/(tabs)/search')}
+      >
+        <Text variant="caption" color={colors.primary}>Découvrir les services</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function EmptyRequestCard() {
+  return (
+    <View style={styles.emptyRequestCard}>
+      <Ionicons name="document-text-outline" size={32} color={colors.textTertiary} />
+      <Text variant="bodySmall" color={colors.textTertiary} align="center">
+        {messages.home.emptyRequests}
+      </Text>
+      <Pressable
+        style={styles.emptyRequestBtn}
+        onPress={() => router.push('/(client)/create-request')}
+      >
+        <Ionicons name="add-circle-outline" size={16} color={colors.primary} />
+        <Text variant="caption" color={colors.primary}>Publier ma première demande</Text>
+      </Pressable>
+    </View>
+  );
+}
 
 export default function HomeScreen() {
   const { data: user, isLoading: isLoadingUser, error: userError, refetch: refetchUser } = useMe();
@@ -82,8 +148,17 @@ export default function HomeScreen() {
       >
         <HomeHeader firstName={firstName} avatarUrl={user?.avatarUrl} />
 
+        {/* ── Quick Actions ── */}
+        <Animated.View entering={FadeInDown.delay(50).duration(400)} style={styles.quickActionsSection}>
+          <QuickActions />
+        </Animated.View>
+
         {/* ── Catégories ── */}
         <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.categoriesSection}>
+          <SectionHeader
+            title="Services"
+            onSeeAll={() => router.push('/(client)/(tabs)/search')}
+          />
           {categories.isLoading ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
               {Array.from({ length: 6 }).map((_, i) => (
@@ -97,7 +172,7 @@ export default function HomeScreen() {
             <ErrorState message={getErrorMessage(categories.error, messages.errors.generic)} onRetry={() => categories.refetch()} />
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
-              {categories.data?.filter((c) => c.isActive).slice(0, 5).map((cat, idx) => (
+              {categories.data?.filter((c) => c.isActive).slice(0, 6).map((cat, idx) => (
                 <CategoryCircle
                   key={cat.id}
                   name={cat.name}
@@ -135,11 +210,7 @@ export default function HomeScreen() {
           ) : nearbyPros.error ? (
             <ErrorState message={getErrorMessage(nearbyPros.error, messages.errors.loadProfessionals)} onRetry={() => nearbyPros.refetch()} />
           ) : (nearbyPros.data?.professionals || []).length === 0 ? (
-            <View style={styles.emptyPad}>
-              <Text variant="bodySmall" color={colors.textTertiary} align="center">
-                {messages.empty.noProfessionals}
-              </Text>
-            </View>
+            <EmptyProCard />
           ) : (
             <FlatList
               horizontal
@@ -167,11 +238,7 @@ export default function HomeScreen() {
           ) : recentRequests.error ? (
             <ErrorState message={getErrorMessage(recentRequests.error, messages.errors.loadRequests)} onRetry={() => recentRequests.refetch()} />
           ) : (recentRequests.data?.requests || []).length === 0 ? (
-            <View style={styles.emptyPad}>
-              <Text variant="bodySmall" color={colors.textTertiary} align="center">
-                {messages.home.emptyRequests}
-              </Text>
-            </View>
+            <EmptyRequestCard />
           ) : (
             <View style={styles.reqList}>
               {(recentRequests.data?.requests || []).map((req) => (
@@ -209,8 +276,38 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: spacing.xxxl,
   },
+  quickActionsSection: {
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.xl,
+  },
+  quickActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  quickActionBtn: {
+    flex: 1,
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    ...shadows.sm,
+  },
+  quickActionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickActionLabel: {
+    fontWeight: '600',
+  },
   categoriesSection: {
-    marginTop: spacing.lg,
+    marginTop: spacing.xl,
     gap: spacing.md,
   },
   section: {
@@ -226,10 +323,42 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     width: 70,
   },
-  emptyPad: {
+  emptyProCard: {
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.xl,
+    paddingVertical: spacing.xxl,
+    gap: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    marginHorizontal: spacing.xl,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  emptyProBtn: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.full,
+    backgroundColor: colors.secondaryMuted,
+  },
+  emptyRequestCard: {
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.xxl,
+    gap: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    marginHorizontal: spacing.xl,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  emptyRequestBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.full,
+    backgroundColor: colors.secondaryMuted,
   },
   reqLoading: {
     paddingHorizontal: spacing.xl,
