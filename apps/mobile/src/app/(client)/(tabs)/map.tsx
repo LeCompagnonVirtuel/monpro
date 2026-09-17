@@ -12,7 +12,7 @@ import { shadows } from '@/theme/shadows';
 import { Text, Skeleton } from '@/components/ui';
 import { ScreenHeader } from '@/components/navigation/ScreenHeader';
 import { ErrorState } from '@/components/feedback/ErrorState';
-import { MonproMapView, ProfessionalMarker, LocationButton, MapFiltersPanel, ProfessionalSheet, MapCircle, MapboxGL } from '@/components/map';
+import { MonproMapView, ProfessionalMarker, LocationButton, MapFiltersPanel, ProfessionalSheet, MapCircle } from '@/components/map';
 import { useLocation } from '@/hooks/use-location';
 import { useProfessionals } from '@/hooks/use-professionals';
 import { messages } from '@/constants/messages';
@@ -33,7 +33,6 @@ export default function ClientMapScreen() {
   const [showAddressPicker, setShowAddressPicker] = useState(false);
   const bottomSheetRef = useRef<BottomSheet>(null);
   const flatListRef = useRef<FlatList>(null);
-  const mapCameraRef = useRef<MapboxGL.Camera>(null);
 
   const { data: addresses } = useQuery({
     queryKey: ['addresses'],
@@ -87,15 +86,6 @@ export default function ClientMapScreen() {
   const handleListItemPress = useCallback((pro: Professional) => {
     setSelectedPro(pro);
     setHighlightedProId(pro.id);
-    const zone = pro.zones?.[0];
-    if (zone?.latitude && zone?.longitude) {
-      mapCameraRef.current?.setCamera({
-        centerCoordinate: [zone.longitude, zone.latitude],
-        zoomLevel: 15,
-        animationMode: 'flyTo',
-        animationDuration: 500,
-      });
-    }
     bottomSheetRef.current?.snapToIndex(0);
   }, []);
 

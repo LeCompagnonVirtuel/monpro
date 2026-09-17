@@ -1,4 +1,4 @@
-export { MonproMapView, MapboxGL } from './MonproMapView';
+export { MonproMapView, useMapMarker, useMapCircle } from './MonproMapView';
 export { ProfessionalMarker } from './ProfessionalMarker';
 export { RequestMarker } from './RequestMarker';
 export { LocationButton } from './LocationButton';

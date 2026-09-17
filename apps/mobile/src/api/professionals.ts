@@ -66,6 +66,9 @@ export interface ProfessionalMatchParams {
   serviceId: string;
   latitude?: number;
   longitude?: number;
+  description?: string;
+  urgency?: string;
+  city?: string;
 }
 
 export const professionalsApi = {

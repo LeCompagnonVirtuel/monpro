@@ -42,8 +42,11 @@ export class ProfessionalsController {
     @Query('serviceId') serviceId: string,
     @Query('latitude') latitude?: number,
     @Query('longitude') longitude?: number,
+    @Query('description') description?: string,
+    @Query('urgency') urgency?: string,
+    @Query('city') city?: string,
   ) {
-    return this.professionalsService.matchForRequest(serviceId, latitude, longitude);
+    return this.professionalsService.matchForRequest(serviceId, latitude, longitude, { description, urgency, city });
   }
 
   @Get('me')

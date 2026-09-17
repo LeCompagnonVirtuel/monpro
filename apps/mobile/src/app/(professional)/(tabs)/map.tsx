@@ -12,7 +12,7 @@ import { shadows } from '@/theme/shadows';
 import { Text } from '@/components/ui';
 import { ScreenHeader } from '@/components/navigation/ScreenHeader';
 import { ErrorState } from '@/components/feedback/ErrorState';
-import { MonproMapView, RequestMarker, LocationButton, RequestSheet, MapCircle, MapboxGL } from '@/components/map';
+import { MonproMapView, RequestMarker, LocationButton, RequestSheet, MapCircle } from '@/components/map';
 import { useLocation } from '@/hooks/use-location';
 import { useMyProfessionalProfile, useUpdateProfessionalProfile } from '@/hooks/use-professional-profile';
 import { requestsApi } from '@/api/requests';
@@ -40,7 +40,6 @@ export default function ProfessionalMapScreen() {
   const updateProfile = useUpdateProfessionalProfile();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const flatListRef = useRef<FlatList>(null);
-  const mapCameraRef = useRef<MapboxGL.Camera>(null);
 
   useEffect(() => {
     if (location && !center) {
@@ -90,14 +89,6 @@ export default function ProfessionalMapScreen() {
   const handleListItemPress = useCallback((req: any) => {
     setSelectedRequest(req);
     setHighlightedRequestId(req.id);
-    if (req.latitude && req.longitude) {
-      mapCameraRef.current?.setCamera({
-        centerCoordinate: [req.longitude, req.latitude],
-        zoomLevel: 15,
-        animationMode: 'flyTo',
-        animationDuration: 500,
-      });
-    }
     bottomSheetRef.current?.snapToIndex(0);
   }, []);
 

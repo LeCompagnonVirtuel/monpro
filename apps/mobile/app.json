@@ -44,12 +44,7 @@
       "expo-image-picker",
       "expo-notifications",
       "expo-font",
-      [
-        "@rnmapbox/maps",
-        {
-          "RNMapboxMapsVersion": "11.16.2"
-        }
-      ]
+      "expo-web-browser"
     ],
     "extra": {
       "eas": {
