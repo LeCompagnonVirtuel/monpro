@@ -106,4 +106,11 @@ export const professionalsApi = {
   setAvailability(professionalId: string, slots: { dayOfWeek: number; startTime: string; endTime: string; isActive: boolean }[]) {
     return apiClient.put(`/professionals/${professionalId}/availability`, { slots });
   },
+
+  updatePosition(id: string, latitude: number, longitude: number) {
+    return apiClient.patch<{ success: boolean; data: { latitude: number; longitude: number; updatedAt: string } }>(
+      `/professionals/${id}/position`,
+      { latitude, longitude },
+    );
+  },
 };

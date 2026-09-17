@@ -18,6 +18,7 @@ import { useProfessionalBookings } from '@/hooks/use-professional-bookings';
 import { useProfessionalWallet } from '@/hooks/use-professional-revenue';
 import { useProfessionalAvailability } from '@/hooks/use-professional-availability';
 import { useUnreadNotificationCount } from '@/hooks/use-notifications';
+import { useLocationTracking } from '@/hooks/use-location-tracking';
 import { formatCurrency, formatRelativeDate } from '@/lib/format';
 import { messages } from '@/constants/messages';
 
@@ -127,6 +128,7 @@ export default function DashboardScreen() {
   const { data: wallet, isLoading: walletLoading, refetch: refetchWallet } = useProfessionalWallet();
   const { data: unreadCount, refetch: refetchNotifications } = useUnreadNotificationCount();
   const { data: availability } = useProfessionalAvailability(profile?.id);
+  const { isTracking } = useLocationTracking(profile?.isAvailable);
   const [refreshing, setRefreshing] = useState(false);
 
   const primaryService = useMemo(() => {

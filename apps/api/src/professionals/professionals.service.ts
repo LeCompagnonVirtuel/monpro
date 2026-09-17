@@ -244,6 +244,32 @@ export class ProfessionalsService {
     });
   }
 
+  async updatePosition(id: string, latitude: number, longitude: number) {
+    const existingZone = await this.prisma.professionalZone.findFirst({
+      where: { professionalId: id },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (existingZone) {
+      await this.prisma.professionalZone.update({
+        where: { id: existingZone.id },
+        data: { latitude, longitude },
+      });
+    } else {
+      await this.prisma.professionalZone.create({
+        data: {
+          professionalId: id,
+          name: 'Position actuelle',
+          latitude,
+          longitude,
+          radiusKm: 15,
+        },
+      });
+    }
+
+    return { success: true, latitude, longitude, updatedAt: new Date() };
+  }
+
   async matchForRequest(
     serviceId: string,
     latitude?: number,

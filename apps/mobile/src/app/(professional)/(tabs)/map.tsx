@@ -14,7 +14,7 @@ import { ScreenHeader } from '@/components/navigation/ScreenHeader';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { MonproMapView, RequestMarker, LocationButton, RequestSheet, MapCircle, MapboxGL } from '@/components/map';
 import { useLocation } from '@/hooks/use-location';
-import { useMyProfessionalProfile } from '@/hooks/use-professional-profile';
+import { useMyProfessionalProfile, useUpdateProfessionalProfile } from '@/hooks/use-professional-profile';
 import { requestsApi } from '@/api/requests';
 import { useQuery } from '@tanstack/react-query';
 
@@ -37,6 +37,7 @@ export default function ProfessionalMapScreen() {
   const [highlightedRequestId, setHighlightedRequestId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [urgencyFilter, setUrgencyFilter] = useState<string>('ALL');
+  const updateProfile = useUpdateProfessionalProfile();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const flatListRef = useRef<FlatList>(null);
   const mapCameraRef = useRef<MapboxGL.Camera>(null);
@@ -74,6 +75,11 @@ export default function ProfessionalMapScreen() {
       setCenter([location.longitude, location.latitude]);
     }
   }, [refreshLocation, location]);
+
+  const handleToggleAvailability = useCallback(() => {
+    if (!profile) return;
+    updateProfile.mutate({ id: profile.id, isAvailable: !profile.isAvailable });
+  }, [profile, updateProfile]);
 
   const handleMarkerPress = useCallback((req: any) => {
     setSelectedRequest(req);
@@ -175,6 +181,19 @@ export default function ProfessionalMapScreen() {
             <Text variant="caption" color={colors.textSecondary}>
               {requestsList.length} demande{requestsList.length !== 1 ? 's' : ''}
             </Text>
+            <Pressable
+              onPress={handleToggleAvailability}
+              style={[styles.availabilityBtn, profile?.isAvailable && styles.availabilityBtnActive]}
+            >
+              <Ionicons
+                name={profile?.isAvailable ? 'radio-button-on' : 'radio-button-off'}
+                size={16}
+                color={profile?.isAvailable ? colors.success : colors.textSecondary}
+              />
+              <Text variant="caption" color={profile?.isAvailable ? colors.success : colors.textSecondary}>
+                {profile?.isAvailable ? 'Dispo' : 'Indispo'}
+              </Text>
+            </Pressable>
             <Pressable onPress={() => setShowFilters(true)} style={styles.filterBtn}>
               <Ionicons name="options-outline" size={20} color={colors.primary} />
             </Pressable>
@@ -316,6 +335,21 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.borderLight,
   },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  availabilityBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  availabilityBtnActive: {
+    backgroundColor: colors.success + '15',
+    borderColor: colors.success + '40',
+  },
   filterBtn: { padding: spacing.xs },
   mapContainer: { flex: 1 },
   loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.md },

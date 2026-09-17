@@ -8,6 +8,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { CreateProfessionalDto } from './dto/create-professional.dto';
 import { UpdateProfessionalDto } from './dto/update-professional.dto';
+import { UpdatePositionDto } from './dto/update-position.dto';
 import { UserRole, VerificationStatus } from '@prisma/client';
 
 @ApiTags('Professionals')
@@ -88,5 +89,17 @@ export class ProfessionalsController {
   @ApiOperation({ summary: 'Vérifier un professionnel (admin)' })
   verify(@Param('id') id: string, @CurrentUser('id') adminId: string, @Body('status') status: VerificationStatus) {
     return this.professionalsService.verify(id, adminId, status);
+  }
+
+  @Patch(':id/position')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Mettre à jour la position du professionnel' })
+  async updatePosition(@Param('id') id: string, @CurrentUser('id') userId: string, @Body() body: UpdatePositionDto) {
+    const profile = await this.professionalsService.findOne(id);
+    if (profile.userId !== userId) {
+      throw new ForbiddenException('Vous ne pouvez modifier que votre propre profil');
+    }
+    return this.professionalsService.updatePosition(id, body.latitude, body.longitude);
   }
 }
