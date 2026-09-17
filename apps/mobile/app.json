@@ -8,7 +8,7 @@
     "icon": "./assets/icon.png",
     "scheme": "monpro",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -43,8 +43,7 @@
       "expo-location",
       "expo-image-picker",
       "expo-notifications",
-      "expo-font",
-      "expo-web-browser"
+      "expo-font"
     ],
     "extra": {
       "eas": {
