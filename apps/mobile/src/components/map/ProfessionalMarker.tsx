@@ -1,10 +1,8 @@
 import { View, StyleSheet, Pressable, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
-import { Marker } from 'react-native-maps';
+import { MapboxGL } from './MonproMapView';
 import { colors } from '@/theme/colors';
-import { radius } from '@/theme/radius';
-import { Text } from '@/components/ui';
 
 interface ProfessionalMarkerProps {
   latitude: number;
@@ -28,12 +26,11 @@ export function ProfessionalMarker({
   onPress,
 }: ProfessionalMarkerProps) {
   return (
-    <Marker
-      coordinate={{ latitude, longitude }}
-      onPress={onPress}
-      tracksViewChanges={false}
+    <MapboxGL.MarkerView
+      coordinate={[longitude, latitude]}
+      anchor={{ x: 0.5, y: 1 }}
     >
-      <View style={styles.container}>
+      <Pressable onPress={onPress} style={styles.container}>
         <View style={[styles.avatarBorder, { borderColor: isAvailable ? colors.success : colors.textTertiary }]}>
           {avatarUrl ? (
             <Image source={{ uri: avatarUrl }} style={styles.avatar} contentFit="cover" />
@@ -49,8 +46,8 @@ export function ProfessionalMarker({
           </View>
         )}
         <View style={styles.pin} />
-      </View>
-    </Marker>
+      </Pressable>
+    </MapboxGL.MarkerView>
   );
 }
 

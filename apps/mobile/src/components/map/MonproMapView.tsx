@@ -1,69 +1,96 @@
-import { useRef, useCallback, useEffect } from 'react';
-import MapView, { PROVIDER_DEFAULT, Marker, Region } from 'react-native-maps';
+import { useRef, useCallback, useEffect, useMemo } from 'react';
 import { StyleSheet, View, Platform } from 'react-native';
+import MapboxGL from '@rnmapbox/maps';
 import { colors } from '@/theme/colors';
 
-const PROVIDER = Platform.OS === 'ios' ? PROVIDER_DEFAULT : PROVIDER_DEFAULT;
+MapboxGL.setAccessToken(null);
+
+const OSM_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+const DEFAULT_CENTER: [number, number] = [-4.0083, 5.36];
+const DEFAULT_ZOOM = 13;
+
+const osmStyle: any = {
+  version: 8,
+  name: 'OSM',
+  sources: {
+    osm: {
+      type: 'raster',
+      tiles: [OSM_TILE_URL],
+      tileSize: 256,
+      attribution: '© OpenStreetMap contributors',
+    },
+  },
+  layers: [
+    {
+      id: 'osm-layer',
+      type: 'raster',
+      source: 'osm',
+    },
+  ],
+};
 
 interface MonproMapViewProps {
-  region?: {
-    latitude: number;
-    longitude: number;
-    latitudeDelta?: number;
-    longitudeDelta?: number;
-  };
-  onRegionChange?: (region: Region) => void;
+  centerCoordinate?: [number, number];
+  zoomLevel?: number;
+  onRegionChange?: (coords: { latitude: number; longitude: number; zoomLevel: number }) => void;
   children?: React.ReactNode;
   style?: object;
   showsUserLocation?: boolean;
-  showsMyLocationButton?: boolean;
   followsUserLocation?: boolean;
 }
 
 export function MonproMapView({
-  region,
+  centerCoordinate,
+  zoomLevel,
   onRegionChange,
   children,
   style,
   showsUserLocation = true,
   followsUserLocation = false,
 }: MonproMapViewProps) {
-  const mapRef = useRef<MapView>(null);
+  const cameraRef = useRef<MapboxGL.Camera>(null);
+  const mapRef = useRef<MapboxGL.MapView>(null);
 
-  const defaultRegion = {
-    latitude: 5.3600,
-    longitude: -4.0083,
-    latitudeDelta: 0.05,
-    longitudeDelta: 0.05,
-  };
-
-  const currentRegion = region || defaultRegion;
+  const center = centerCoordinate || DEFAULT_CENTER;
+  const zoom = zoomLevel || DEFAULT_ZOOM;
 
   return (
-    <MapView
-      ref={mapRef}
-      provider={PROVIDER}
-      style={[styles.map, style]}
-      initialRegion={{
-        ...currentRegion,
-        latitudeDelta: currentRegion.latitudeDelta || 0.05,
-        longitudeDelta: currentRegion.longitudeDelta || 0.05,
-      }}
-      showsUserLocation={showsUserLocation}
-      followsUserLocation={followsUserLocation}
-      onRegionChangeComplete={onRegionChange}
-      showsCompass={false}
-      showsScale={false}
-      toolbarEnabled={false}
-      mapType="standard"
-    >
-      {children}
-    </MapView>
+    <View style={[styles.container, style]}>
+      <MapboxGL.MapView
+        ref={mapRef}
+        style={styles.map}
+        styleJSON={JSON.stringify(osmStyle)}
+        logoEnabled={false}
+        attributionEnabled={true}
+        onRegionDidChange={(event: any) => {
+          if (onRegionChange && event.geometry) {
+            const [lng, lat] = event.geometry.coordinates;
+            const zoomLevel = event.properties?.zoomLevel || DEFAULT_ZOOM;
+            onRegionChange({ latitude: lat, longitude: lng, zoomLevel });
+          }
+        }}
+      >
+        <MapboxGL.Camera
+          ref={cameraRef}
+          centerCoordinate={center}
+          zoomLevel={zoom}
+          animationMode="flyTo"
+          animationDuration={0}
+        />
+        {showsUserLocation && <MapboxGL.UserLocation visible={true} />}
+        {children}
+      </MapboxGL.MapView>
+    </View>
   );
 }
 
+export { MapboxGL };
+
 const styles = StyleSheet.create({
-  map: {
+  container: {
     ...StyleSheet.absoluteFillObject,
+  },
+  map: {
+    flex: 1,
   },
 });

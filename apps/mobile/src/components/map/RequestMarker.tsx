@@ -1,6 +1,6 @@
 import { View, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Marker } from 'react-native-maps';
+import { MapboxGL } from './MonproMapView';
 import { colors } from '@/theme/colors';
 
 const URGENCY_COLORS: Record<string, string> = {
@@ -42,10 +42,9 @@ export function RequestMarker({
   const iconName = CATEGORY_ICONS[categoryName || ''] || 'location-outline';
 
   return (
-    <Marker
-      coordinate={{ latitude, longitude }}
-      onPress={onPress}
-      tracksViewChanges={false}
+    <MapboxGL.MarkerView
+      coordinate={[longitude, latitude]}
+      anchor={{ x: 0.5, y: 1 }}
     >
       <View style={styles.container}>
         <View style={[styles.bubble, { borderColor: iconColor + '40' }]}>
@@ -55,7 +54,7 @@ export function RequestMarker({
         </View>
         <View style={[styles.arrow, { borderTopColor: iconColor + '40' }]} />
       </View>
-    </Marker>
+    </MapboxGL.MarkerView>
   );
 }
 
